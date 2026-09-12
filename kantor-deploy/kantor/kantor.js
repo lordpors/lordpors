@@ -94,7 +94,7 @@
     { x: 16,  y: 116, w: 56, nama: null,               isi: 'monitor6' },
     { x: 116, y: 138, w: 40, nama: "Porscy's Agent 1", isi: false },
     { x: 172, y: 138, w: 40, nama: "Porscy's Agent 2", isi: false },
-    { x: 284, y: 114, w: 46, nama: null,               isi: 'auditor' },
+    { x: 284, y: 116, w: 46, nama: null,               isi: 'auditor' },
     /* Meja blaster — barisan DEPAN, sengaja di kiri.
        Di sana lantainya kosong: dinding monitor berakhir di y=132 dan
        tanaman besar baru mulai di x=91, jadi meja ini punya ruangnya
@@ -137,18 +137,26 @@
      Agent 2 saja. Kontrak di bawah ini yang menjaga supaya kejadian itu
      tidak terulang.)
 
+     ATURAN KURSI YANG BERLAKU UNTUK SELURUH KANTOR:
+       dudukan tiap kursi = tutup mejanya + 8
+       -> tiap kursi menonjol 7 satuan di atas mejanya, dan kakinya
+          tertutup badan meja. Sebelum aturan ini, kursi auditor
+          menonjol 7 satuan sementara yang lain NOL — yang tampak cuma
+          dudukan & kaki menyembul di bawah meja. Tidak masuk akal.
+
+     Angka auditor yang mengikuti aturan itu:
        gambarAuditor()  kepala y+2..y+11   badan y+11..y+20
-       tutup meja       114
-       AUDITOR.y        98      -> kepala 100..109 di atas meja
-       kursi            y+24    -> sandaran belakang 111..122
-       sandaran DEPAN   y+15..y+24 -> menutupi separuh badan bawah
+       tutup meja       116   (disejajarkan dengan meja Lordpors)
+       AUDITOR.y        100   -> kepala 102..111 di atas meja
+       kursi            y+24 = 124 = 116+8
+       sandaran DEPAN   y+13..y+24 -> menutupi separuh badan yang terlihat
 
      SANDARAN DIGAMBAR DUA KALI: sekali di belakang sosoknya (bersama
      bantalan kepala, dudukan, dan kaki), sekali lagi DI DEPAN untuk
      menutupi separuh badan bawahnya. Itu yang membuatnya terbaca duduk
      DI DALAM kursi, bukan melayang di depannya.
      ========================================================== */
-  var AUDITOR = { x: 297, y: 98 };
+  var AUDITOR = { x: 297, y: 100 };
 
   /* ---------------- dinding bata ---------------- */
   var bataPola = null;
@@ -841,7 +849,7 @@
         for (var r = 0; r < 2; r++)
           for (var c = 0; c < 3; c++)
             gambarMonitor(m.x + 2 + c * 18, y - 32 + r * 16, 16, 14, true, t, r * 3 + c);
-        gambarKursi(m.x + 21, y + MEJA_H + 2);
+        gambarKursi(m.x + 21, y + 8);
 
       } else if (m.isi === 'auditor') {
         // Layar menyala karena auditornya ADA, bukan karena irama
@@ -861,7 +869,7 @@
         var denyut = .16 + .22 * Math.sin(t / 1600);
         kotak(hp + 1, y - 18, 6, 4, '#3b82f6', denyut);
         kotak(hp + 2, y - 14, 2, 2, '#3b82f6', denyut);
-        gambarKursi(m.x + m.w / 2 - 7, y + MEJA_H + 2, true);
+        gambarKursi(m.x + m.w / 2 - 7, y + 8, true);
         daftarTombol('meta', 'Meta', m.x + m.w / 2, y + MEJA_H - 3);
 
       } else if (m.isi === 'blaster') {
@@ -874,7 +882,7 @@
         kotak(bx + 2, y - 5, 4, 2, '#67e8f9', .45);
         kotak(bx + 15, y - 16, 1, 8, W.logam);
         kotak(bx + 14, y - 18, 3, 2, '#f87171', .2 + .3 * Math.sin(t / 1400));
-        gambarKursi(m.x + m.w / 2 - 7, y + MEJA_H + 2, true);
+        gambarKursi(m.x + m.w / 2 - 7, y + 8, true);
         daftarTombol('blaster', 'Blaster', m.x + m.w / 2, y + MEJA_H - 3);
 
       } else {
@@ -885,7 +893,7 @@
         var mxm = nyala ? (m.x + m.w - 24) : (m.x + m.w / 2 - 10);
         gambarMonitor(mxm, y - 19, 20, 15, nyala, t, m === MEJA_SEMUA[2] ? 2 : 3, true);
         if (!nyala) {
-          gambarKursi(m.x + m.w / 2 - 7, y + MEJA_H + 2, true);
+          gambarKursi(m.x + m.w / 2 - 7, y + 8, true);
           daftarTombol(m === MEJA_SEMUA[1] ? 'agen1' : 'agen2',
                        m === MEJA_SEMUA[1] ? 'Agent 1' : 'Agent 2',
                        m.x + m.w / 2, y + MEJA_H - 3);
@@ -1019,9 +1027,9 @@
 
        Bentuk dan warnanya disalin dari gambarKursi() supaya tetap satu
        kursi yang sama — kalau kursi diubah di sana, samakan di sini. */
-    kotak(x - 1, y + 15, 12, 9, W.kursi);
-    kotak(x, y + 16, 10, 1, W.kursiTerang, .8);
-    kotak(x, y + 19, 10, 1, '#1e2338', .6);          // jahitan tengah
+    kotak(x - 1, y + 13, 12, 11, W.kursi);
+    kotak(x, y + 14, 10, 1, W.kursiTerang, .8);
+    kotak(x, y + 18, 10, 1, '#1e2338', .6);          // jahitan tengah
     kotak(x - 2, y + 17, 1, 5, W.kursiTerang);       // sandaran tangan kiri
     kotak(x + 11, y + 17, 1, 5, W.kursiTerang);      // sandaran tangan kanan
 
@@ -1063,12 +1071,12 @@
   function gambarAgen1(t) {
     if (!agen1.aktif) return;
     var m = MEJA_SEMUA[1];
-    var x = m.x + 8, y = m.y - 18;
+    var x = m.x + 8, y = m.y - 14;
 
     /* Kursinya digambar UTUH dan padat, tubuh di atasnya yang tembus
        pandang. Itu yang membuat ketembusan terbaca: ada benda nyata di
        belakangnya untuk dilihat menembus. */
-    gambarKursi(x - 2, y + 14, false);
+    gambarKursi(x - 2, y + 22, false);
 
     // pendar lembut di sekeliling — menandakan kehadiran, bukan benda
     var nadi = .5 + .5 * Math.sin(t / 620);
@@ -1154,9 +1162,9 @@
   function gambarAgen2(t) {
     if (!agen2.aktif) return;
     var m = MEJA_SEMUA[2];
-    var x = m.x + 8, y = m.y - 18;
+    var x = m.x + 8, y = m.y - 14;
 
-    gambarKursi(x - 2, y + 14, false);
+    gambarKursi(x - 2, y + 22, false);
 
     // Denyut sengaja lebih lambat dari Agen 1 (620) supaya kalau kami
     // berdua duduk bersamaan, ruangan tidak berdenyut serempak seperti
@@ -1777,7 +1785,8 @@
       daftarTombol('auditor-hadir', 'Auditor', AUDITOR.x + 5, AUDITOR.y + 7, 'sosok');
     } else {
       gambarKursi(AUDITOR.x - 2, AUDITOR.y + 24, true);
-      daftarTombol('auditor', 'Auditor', AUDITOR.x + 5, AUDITOR.y + 17);
+      // di sandaran kursi yang menonjol di atas meja, bukan di muka meja
+      daftarTombol('auditor', 'Auditor', AUDITOR.x + 5, AUDITOR.y + 10);
     }
 
     for (var j = 0; j < MEJA_SEMUA.length; j++)
