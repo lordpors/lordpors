@@ -3,262 +3,91 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kantor LordPors</title>
+<title>LordPors</title>
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
 <meta name="googlebot" content="noindex, nofollow">
 <meta name="theme-color" content="#07070f">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;800&family=Orbitron:wght@700;900&family=Cinzel:ital,wght@0,500;0,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#07070f; --kaca:rgba(255,255,255,.055); --kaca2:rgba(255,255,255,.085);
-    --garis:rgba(255,255,255,.10); --garis2:rgba(255,255,255,.16);
-    --teks:#e9eef6; --redup:#8d9ab0; --cyan:#67e8f9; --kuning:#ffd93d;
-    --hijau:#34d399; --merah:#f87171;
-  }
+  /* Halaman ini SENGAJA hampir kosong.
+
+     Ia cuma penunjuk arah sampai dashboard lordpors benar-benar
+     dirancang. Mengisinya dengan angka-angka hiasan sekarang akan
+     membuat kantor di baliknya terlihat seperti mainan, dan bagian
+     yang sungguhan jadi ikut diragukan. */
   *{box-sizing:border-box}
-  html,body{height:100%; overflow:hidden}
   body{
-    margin:0; padding:14px; display:flex; flex-direction:column; gap:11px;
+    margin:0; min-height:100vh; padding:26px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px;
     background:
-      radial-gradient(ellipse 60% 45% at 50% -5%, rgba(77,184,255,.09), rgba(0,0,0,0) 100%),
+      radial-gradient(ellipse 60% 45% at 50% -5%, rgba(77,184,255,.10), rgba(0,0,0,0) 100%),
       radial-gradient(ellipse 40% 30% at 8% 10%, rgba(255,217,61,.05), rgba(0,0,0,0) 100%),
-      var(--bg);
-    color:var(--teks); font-family:'Poppins',system-ui,sans-serif;
+      #07070f;
+    color:#e9eef6; font-family:'Poppins',system-ui,sans-serif;
   }
-
-  header{display:flex; align-items:center; gap:11px; padding:0 2px; flex:0 0 auto}
-  header h1{margin:0; font-size:15px; font-weight:800; letter-spacing:-.01em}
-  header small{font-size:10px; font-weight:500; color:var(--redup); letter-spacing:.1em}
-  header .kanan{margin-left:auto; display:flex; align-items:center; gap:8px;
-    font-size:11px; color:var(--redup); min-width:0; overflow:hidden;
-    text-overflow:ellipsis; white-space:nowrap}
-  .saklar{display:flex; gap:6px; flex:0 0 auto}
-  .saklar button{
-    display:inline-flex; align-items:center; gap:6px; cursor:pointer;
-    padding:6px 11px; border-radius:8px; font:inherit; font-size:11px; font-weight:600;
-    color:var(--redup); background:rgba(255,255,255,.04);
-    border:1px solid var(--garis); transition:color .2s, background .2s, border-color .2s;
+  h1{
+    margin:0; font-family:'Orbitron',monospace; font-size:clamp(26px,7vw,44px);
+    font-weight:900; letter-spacing:.16em; color:#ffd93d;
+    text-shadow:0 0 22px rgba(255,217,61,.45), 0 0 46px rgba(255,217,61,.2);
   }
-  .saklar button:hover{color:var(--teks); background:rgba(255,255,255,.075)}
-  .saklar button.aktif{color:var(--cyan); border-color:rgba(103,232,249,.35);
-    background:rgba(103,232,249,.09)}
-  @media (max-width:620px){ .saklar button span{display:none} .saklar button{padding:7px 9px} }
-
-  /* saat salah satu kartu disembunyikan, sisanya melebar penuh */
-  body.tanpa-log      #kartu-log{display:none}
-  body.tanpa-log      .bawah{grid-template-columns:1fr}
-  body.tanpa-log .bawah{display:none}
-
-  /* ---------- panggung ----------
-     Kanvas dibatasi oleh TINGGI yang tersisa, bukan oleh lebar layar.
-     Sebelumnya `width:100%` membuatnya membesar mengikuti monitor, lalu
-     mendorong kotak perintah keluar layar di tampilan penuh. */
-  .panggung{
-    flex:1 1 auto; min-height:0; display:flex; align-items:center; justify-content:center;
-    border-radius:16px; padding:8px; overflow:hidden;
-    background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.015));
-    border:1px solid var(--garis);
-    box-shadow:0 26px 60px rgba(0,0,0,.62), inset 0 1px 0 rgba(255,255,255,.07);
-  }
-  canvas{
-    display:block; border-radius:9px; image-rendering:pixelated;
-    /* Muat di dalam ruang yang ada TANPA merusak perbandingan sisi:
-       yang lebih dulu mentok — lebar atau tinggi — yang menentukan. */
-    max-width:100%; max-height:100%;
-    width:auto; height:auto;
-    object-fit:contain;
-  }
-
-  #panel{
-    flex:0 0 auto;
-    display:flex; align-items:center; gap:10px; padding:9px 14px;
-    border-radius:11px; background:var(--kaca); border:1px solid var(--garis);
-    font-size:12px; color:var(--redup);
-  }
-  #panel b{color:var(--teks); font-weight:600; text-transform:capitalize}
-  #panel .pesan{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  #panel .maju{font-variant-numeric:tabular-nums; font-weight:600; color:var(--cyan);
-    padding:2px 9px; border-radius:99px; background:rgba(103,232,249,.10)}
-  .titik{width:8px; height:8px; border-radius:50%; flex:0 0 auto; box-shadow:0 0 8px currentColor}
-
-  /* ---------- dua kolom bawah ---------- */
-  /* Tingginya mengikuti isi log, bukan sebaliknya. Dulu dipatok
-     clamp(190px,27vh,290px) sehingga jumlah baris yang terlihat berubah
-     ikut tinggi layar — di laptop pendek cuma lima baris. */
-  .bawah{flex:0 0 auto; display:grid; grid-template-columns:1fr; gap:12px}
-  @media (max-width:1080px){
-    html,body{overflow:auto}
-    body{padding:10px; gap:9px}
-    .bawah{grid-template-columns:1fr; height:auto; gap:9px}
-    .panggung{flex:0 0 auto; padding:6px}
-    #kartu-log{min-height:170px}
-    header h1{font-size:14px}
-    header small{display:none}
-  }
-  @media (max-width:620px){
-    body{padding:8px}
-    #panel{padding:8px 11px; font-size:11px}
-    #panel .pesan{font-size:11px}
-    .kartu > h2{padding:9px 12px; font-size:9.5px}
-    .catatan{font-size:9.5px}
-    header .kanan{display:none}
-  }
-
-  .kartu{
-    display:flex; flex-direction:column; border-radius:14px; overflow:hidden;
+  .sub{margin:-16px 0 0; font-size:11px; letter-spacing:.24em; color:#8d9ab0}
+  .pintu{display:grid; gap:13px; width:min(430px,100%)}
+  a.kartu, div.kartu{
+    display:flex; align-items:center; gap:13px; padding:16px 18px;
+    border-radius:14px; text-decoration:none; color:inherit;
     background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.022));
-    border:1px solid var(--garis);
-    -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
+    border:1px solid rgba(255,255,255,.10);
     box-shadow:0 14px 34px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.08);
+    transition:border-color .18s, background .18s, transform .18s;
   }
-  .kartu > h2{
-    margin:0; padding:11px 15px; font-size:10.5px; font-weight:700;
-    letter-spacing:.13em; text-transform:uppercase; color:var(--redup);
-    border-bottom:1px solid var(--garis); display:flex; align-items:center; gap:8px;
+  a.kartu:hover{border-color:rgba(103,232,249,.45); transform:translateY(-2px)}
+  .kartu .ikon{font-size:22px; line-height:1}
+  .kartu b{display:block; font-size:14px; font-weight:600}
+  .kartu span{display:block; font-size:11px; color:#8d9ab0; margin-top:2px; line-height:1.5}
+  .kartu .tanda{
+    margin-left:auto; flex:0 0 auto; font-size:9px; font-weight:700; letter-spacing:.08em;
+    padding:3px 9px; border-radius:99px; text-transform:uppercase;
   }
-  .kartu > h2 .lencana{
-    margin-left:auto; font-size:9px; letter-spacing:.06em; text-transform:none;
-    padding:2px 8px; border-radius:99px; background:rgba(255,255,255,.06);
-    border:1px solid var(--garis); color:var(--redup); font-weight:600;
-  }
-
-  /* ---------- percakapan ---------- */
-  /* Agen 2 memakai ungu, warna yang sama dengan karakternya di panggung,
-     supaya lencana di chat dan sosok di meja terbaca sebagai satu orang. */
-
-
-  /* ---------- log ---------- */
-  /* Log menampilkan SEPULUH baris, sisanya digulir ke atas.
-
-     Hitungannya, jangan diubah sebelah-sebelah:
-       satu baris = 4px atas + (11px x 1,5) + 4px bawah = 24,5px
-       sepuluh    = 245px
-       + padding #log 9 atas + 9 bawah                  = 263px
-
-     Kalau font-size atau padding .log-baris diubah, hitung ulang 263px
-     itu — kalau tidak, jumlah baris yang terlihat ikut bergeser. Baris
-     dengan teks panjang membungkus jadi dua, jadi yang tampak bisa
-     kurang dari sepuluh. Itu disengaja: lebih baik terbaca utuh. */
-  #log{flex:0 0 auto; overflow-y:auto; max-height:263px;
-    padding:9px 6px 9px 13px; min-height:0;
-    font-family:ui-monospace,monospace; font-size:11px; line-height:1.5}
-  .log-baris{display:flex; gap:9px; padding:4px 6px; border-radius:5px}
-  .log-baris:hover{background:rgba(255,255,255,.035)}
-  .log-baris .jam{flex:0 0 auto; color:#5f6b80; font-variant-numeric:tabular-nums}
-  .log-baris .tanda{flex:0 0 auto; width:5px; height:5px; border-radius:50%; margin-top:6px}
-  .log-baris .teks{min-width:0; word-break:break-word; color:#b9c4d4}
-  .log-baris.sukses .tanda{background:var(--hijau)}
-  .log-baris.kerja .tanda{background:var(--cyan)}
-  .log-baris.peringatan .tanda{background:var(--kuning)}
-  .log-baris.galat .tanda{background:var(--merah)}
-  .log-baris.info .tanda{background:#64748b}
-  .kosong{padding:16px 13px; color:#5f6b80; font-size:11px; font-family:'Poppins',sans-serif}
-
-  /* ---------- menu tugas (tombol + di kursi kosong) ---------- */
-  .tugas-tirai{
-    position:fixed; inset:0; z-index:50; display:flex;
-    align-items:center; justify-content:center; padding:18px;
-    background:rgba(4,5,12,.72); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px);
-  }
-  .tugas-panel{
-    width:min(420px,100%); max-height:86vh; overflow-y:auto;
-    border-radius:16px; padding:16px 17px 15px;
-    background:linear-gradient(180deg,#12141f,#0b0d16);
-    border:1px solid var(--garis2);
-    box-shadow:0 30px 70px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.08);
-  }
-  .tugas-panel h3{
-    margin:0 0 13px; font-size:13px; font-weight:700; letter-spacing:.04em;
-    display:flex; align-items:center; gap:8px; color:var(--teks);
-  }
-  .tugas-tutup{
-    margin-left:auto; width:26px; height:26px; border-radius:7px; cursor:pointer;
-    font:inherit; font-size:17px; line-height:1; color:var(--redup);
-    background:rgba(255,255,255,.05); border:1px solid var(--garis);
-  }
-  .tugas-tutup:hover{color:var(--merah); border-color:rgba(248,113,113,.4)}
-  .tugas-isi{display:flex; flex-direction:column; gap:8px}
-  .tugas-opsi{
-    display:flex; flex-direction:column; gap:3px; text-align:left; cursor:pointer;
-    padding:11px 13px; border-radius:10px; font:inherit;
-    background:rgba(103,232,249,.07); border:1px solid rgba(103,232,249,.22);
-    color:var(--teks); transition:background .15s, border-color .15s;
-  }
-  .tugas-opsi:hover{background:rgba(103,232,249,.13); border-color:rgba(103,232,249,.45)}
-  .tugas-opsi b{font-size:12.5px; font-weight:600}
-  .tugas-opsi span{font-size:10.5px; color:var(--redup); line-height:1.45}
-  /* Yang belum tersambung TIDAK disamarkan jadi tombol biasa — kalau
-     ditekan ia harus menjelaskan, bukan pura-pura bekerja. */
-  .tugas-opsi.belum{background:rgba(255,255,255,.035); border-color:var(--garis); cursor:help}
-  .tugas-opsi.belum b{color:var(--redup)}
-  .tugas-kosong{margin:0; padding:10px 2px; font-size:11px; color:var(--redup); line-height:1.55}
-  .tugas-qr{display:flex; align-items:center; justify-content:center; min-height:170px;
-    border-radius:10px; background:rgba(255,255,255,.04); border:1px solid var(--garis);
-    padding:12px; text-align:center}
-  .tugas-qr img{width:min(230px,100%); height:auto; image-rendering:pixelated;
-    border-radius:8px; background:#fff; padding:8px}
-  .tugas-qr code{font-family:ui-monospace,monospace; font-size:10.5px; color:var(--cyan)}
-  .tugas-teks{
-    margin-top:10px; width:100%; padding:10px 12px; border-radius:9px;
-    font:inherit; font-size:16px;   /* 16px: iOS tidak ikut memperbesar halaman */
-    color:var(--teks); background:rgba(255,255,255,.05); border:1px solid var(--garis);
-  }
-  .tugas-teks:focus{outline:none; border-color:rgba(103,232,249,.5)}
-  .tugas-lapor{margin-top:11px; font-size:10.5px; line-height:1.5; color:var(--redup)}
-  .tugas-lapor.sukses{color:var(--hijau)}
-  .tugas-lapor.kerja{color:var(--cyan)}
-  .tugas-lapor.peringatan{color:var(--kuning)}
-  .tugas-lapor.galat{color:var(--merah)}
-
-  ::-webkit-scrollbar{width:8px}
-  ::-webkit-scrollbar-track{background:transparent}
-  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.11); border-radius:99px}
-  ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.18)}
-
-  .catatan{flex:0 0 auto; font-size:10.5px; line-height:1.5; color:var(--redup);
-    text-align:center; padding:0 10px; margin:0}
-  .catatan code{font-family:ui-monospace,monospace; font-size:10.5px; color:var(--cyan);
-    background:rgba(103,232,249,.08); padding:1.5px 6px; border-radius:4px}
+  .siap{background:rgba(52,211,153,.12); color:#34d399}
+  .belum{background:rgba(255,255,255,.06); color:#8d9ab0}
+  /* Pintu yang belum ada TIDAK dibuat seperti tautan. Tautan yang
+     diklik lalu tidak ke mana-mana lebih menjengkelkan daripada
+     pintu yang jujur mengaku belum dibangun. */
+  div.kartu{opacity:.62; cursor:not-allowed}
+  footer{font-size:10.5px; color:#5f6b80; text-align:center; line-height:1.6}
 </style>
 </head>
 <body>
 
-<header>
-  <h1>Kantor</h1><small>LORDPORS COMMPANY</small>
-  <span class="kanan" id="ringkas-agen"><span class="titik" style="background:#34d399"></span>memeriksa…</span>
-  <div class="saklar">
-    <button type="button" id="tbl-log" class="aktif" title="Sembunyikan/tampilkan log">
-      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"
-           stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
-      <span>Log</span>
-    </button>
+<h1>LORDPORS</h1>
+<p class="sub">COMMPANY</p>
+
+<nav class="pintu">
+  <a class="kartu" href="/kantor/">
+    <span class="ikon">🏢</span>
+    <span>
+      <b>Kantor</b>
+      <span>Panggung agen, status auditor, log pekerjaan.</span>
+    </span>
+    <span class="tanda siap">siap</span>
+  </a>
+
+  <div class="kartu">
+    <span class="ikon">🏠</span>
+    <span>
+      <b>Rumah</b>
+      <span>Belum dibangun.</span>
+    </span>
+    <span class="tanda belum">nanti</span>
   </div>
-</header>
+</nav>
 
-<div class="panggung"><canvas id="kantor"></canvas></div>
+<footer>
+  Halaman pribadi, tidak diindeks.<br>
+  Kehadiran agen &amp; tugas hanya hidup saat kantor dibuka dari komputer.
+</footer>
 
-<div id="panel"><span class="titik" style="background:#64748b"></span><b>Memuat…</b></div>
-
-<div class="bawah">
-  <div class="kartu" id="kartu-log">
-    <h2>Log Pekerjaan <span class="lencana" id="lencana-log">0</span></h2>
-    <div id="log"><div class="kosong">Belum ada aktivitas.</div></div>
-  </div>
-</div>
-
-<p class="catatan">
-  Kantor ini memantau, bukan mengobrol. Untuk bicara dengan Agent 1 atau Agent 2,
-  pakai Remote Control lewat aplikasi Claude atau <code>claude.ai/code</code>.
-  <br><b>Kehadiran agen hanya terlihat dari komputer kantor</b> — jalankan
-  <code>python3 server.py</code> di folder <code>kantor/</code>. Dibuka dari alamat ini,
-  kursinya selalu kosong karena halaman statis tidak punya cara mengetahui keadaan komputer.
-  Log Pekerjaan tersimpan di peramban ini dan tidak hilang saat halaman dimuat ulang.
-</p>
-
-<script src="kantor.js?v=15"></script>
-<script src="log.js?v=15"></script>
-<script src="tugas.js?v=15"></script>
 </body>
 </html>

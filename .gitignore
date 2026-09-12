@@ -37,9 +37,9 @@
 # membuat riwayat penuh perubahan yang tidak berarti apa-apa.
 
 # ---------- kantor versi Vercel ----------
-!kantor-deploy/*.js
 !kantor-deploy/*.html
 !kantor-deploy/*.json
+!kantor-deploy/kantor/*
 !kantor-deploy/api/*.js
 !kantor-deploy/robots.txt
 

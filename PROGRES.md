@@ -1861,3 +1861,86 @@ sebelum ada yang menyimpan tautan dalam — jalur relatif di `kantor.js`
 (`agenN.json`, `auditor.json`) akan ikut pindah dengan sendirinya, tapi
 `/api/*` di `server.py` dan `penerima-auditor.py` memakai jalur mutlak
 dan harus disesuaikan.
+
+---
+
+## RALAT: akun GitHub-nya `lordpors`, bukan `macanterbang` (12 Sep 2026)
+
+Instruksi remote di bagian sebelumnya **salah**. Ia disimpulkan dari
+remote proyek lama di `~/projects/` yang memakai `macanterbang`. Porscy
+menunjukkan akun yang sebenarnya dipakai:
+
+```
+github.com/lordpors      2 repo:
+  telegram-blaster-clean   (publik)
+  telegram_blaster         (privat)
+```
+
+Perintah yang benar:
+
+```bash
+cd ~/My_Business/AI-agent
+git remote add origin https://github.com/lordpors/lordpors-kantor.git
+./cadangan.sh
+```
+
+Reponya harus dibuat **privat** dulu lewat github.com — `gh` tidak
+terpasang di PC ini. Pelajarannya: jangan menyimpulkan akun dari remote
+proyek lain; satu orang bisa punya beberapa akun, dan mendorong ke akun
+yang salah berarti data bisnis mendarat di tempat yang tidak diniatkan.
+
+---
+
+## Kantor pindah ke /kantor (12 September 2026)
+
+Dilakukan sekarang, sebelum ada yang menyimpan tautan dalam — sesuai
+catatan sebelumnya bahwa menunda cuma menambah tautan yang perlu diurus.
+
+### Struktur baru di Vercel
+
+```
+/                 halaman penunjuk arah lordpors  (baru)
+/kantor/          kantornya
+/api/pesan        tetap di akar — itu ketentuan Vercel
+```
+
+Berkas kantor dipindah ke `kantor-deploy/kantor/`. `api/` **tidak boleh**
+ikut pindah: Vercel hanya mengenali fungsi serverless di `api/` pada akar
+proyek.
+
+### Kenapa tidak ada yang rusak
+
+Seluruh jalur di `kantor.js` ternyata **relatif** — `agen1.json`,
+`auditor.json`, `../audit/status.json`. Jadi semuanya ikut pindah dengan
+sendirinya begitu halamannya turun satu tingkat. Yang mutlak cuma
+`/api/tugas`, `/api/qr`, dan `/api/versi`, dan ketiganya hanya dilayani
+`server.py` di komputer — tidak tersentuh pemindahan ini.
+
+Di lokal alamatnya **tidak berubah sama sekali**: `server.py` memang
+sudah menyajikan dari akar `AI-agent`, jadi kantornya sejak awal ada di
+`http://127.0.0.1:8789/kantor/`. Sekarang Vercel dan lokal seragam.
+
+### Halaman akar
+
+Sengaja hampir kosong: cuma nama, pintu ke `/kantor/`, dan `/rumah`
+yang ditandai **belum dibangun**. Pintu yang belum ada tidak dibuat
+sebagai tautan — tautan yang diklik lalu tidak ke mana-mana lebih
+menjengkelkan daripada pintu yang jujur mengaku belum ada.
+
+Mengisinya dengan angka-angka hiasan sekarang akan membuat kantor di
+baliknya terlihat seperti mainan, dan bagian yang sungguhan jadi ikut
+diragukan. Diisi nanti, saat dashboard-nya benar-benar dirancang.
+
+### Terverifikasi
+
+```
+/                    200   menunjuk ke /kantor/
+/kantor/             200   noindex masih terpasang
+/kantor/kantor.js    200
+/kantor/log.js       200
+/kantor/tugas.js     200
+/kantor/agen1.json   200
+/kantor/auditor.json 200
+/robots.txt          200
+lokal /kantor/       200
+```
