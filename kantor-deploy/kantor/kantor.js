@@ -844,12 +844,45 @@
     var y = m.y;
     var belakang = (lapis === 'belakang');
 
+    /* ---------------- lapis KURSI: paling dekat ke kamera ----------------
+       Urutan kedalaman dari kamera, menurut Porscy:
+         kursi  ->  orang  ->  meja  ->  monitor
+       Jadi kursi digambar PALING AKHIR, menimpa semuanya. Itu sebabnya
+       sandaran punggung menutupi separuh badan bawah orang yang duduk,
+       dan kaki kursinya terlihat di depan muka meja — persis seperti
+       melihat orang bekerja dari belakang kursinya. */
+    if (lapis === 'kursi') {
+      var kx = (m.isi === 'auditor')  ? AUDITOR.x - 2
+             : (m.isi === 'monitor6') ? m.x + 21
+             : (m.isi === false)      ? m.x + 6
+             : m.x + m.w / 2 - 7;
+      var duduk = (m.isi === 'auditor')   ? auditorHadir()
+                : (m === MEJA_SEMUA[1])   ? agen1.aktif
+                : (m === MEJA_SEMUA[2])   ? agen2.aktif
+                : false;
+
+      gambarKursi(kx, m.y + 8, !duduk);
+
+      // Meja dinding-monitor tidak punya penghuni, jadi tanpa tombol.
+      if (!duduk && m.isi !== 'monitor6') {
+        var id = (m.isi === 'auditor') ? 'auditor'
+               : (m.isi === 'blaster') ? 'blaster'
+               : (m.isi === 'meta')    ? 'meta'
+               : (m === MEJA_SEMUA[1]) ? 'agen1' : 'agen2';
+        var nm = (m.isi === 'auditor') ? 'Auditor'
+               : (m.isi === 'blaster') ? 'Blaster'
+               : (m.isi === 'meta')    ? 'Meta'
+               : (m === MEJA_SEMUA[1]) ? 'Agent 1' : 'Agent 2';
+        daftarTombol(id, nm, kx + 7, m.y + 1);
+      }
+      return;
+    }
+
     if (belakang) {
       if (m.isi === 'monitor6') {
         for (var r = 0; r < 2; r++)
           for (var c = 0; c < 3; c++)
             gambarMonitor(m.x + 2 + c * 18, y - 32 + r * 16, 16, 14, true, t, r * 3 + c);
-        gambarKursi(m.x + 21, y + 8);
 
       } else if (m.isi === 'auditor') {
         // Layar menyala karena auditornya ADA, bukan karena irama
@@ -869,8 +902,6 @@
         var denyut = .16 + .22 * Math.sin(t / 1600);
         kotak(hp + 1, y - 18, 6, 4, '#3b82f6', denyut);
         kotak(hp + 2, y - 14, 2, 2, '#3b82f6', denyut);
-        gambarKursi(m.x + m.w / 2 - 7, y + 8, true);
-        daftarTombol('meta', 'Meta', m.x + m.w / 2, y + MEJA_H - 3);
 
       } else if (m.isi === 'blaster') {
         /* Sengaja TANPA monitor tinggi: meja ini di barisan depan, dan
@@ -882,8 +913,6 @@
         kotak(bx + 2, y - 5, 4, 2, '#67e8f9', .45);
         kotak(bx + 15, y - 16, 1, 8, W.logam);
         kotak(bx + 14, y - 18, 3, 2, '#f87171', .2 + .3 * Math.sin(t / 1400));
-        gambarKursi(m.x + m.w / 2 - 7, y + 8, true);
-        daftarTombol('blaster', 'Blaster', m.x + m.w / 2, y + MEJA_H - 3);
 
       } else {
         /* Meja agen. `isi` memilih BENTUK meja, bukan siapa yang duduk —
@@ -892,12 +921,6 @@
         var nyala = !!(agen && agen.aktif);
         var mxm = nyala ? (m.x + m.w - 24) : (m.x + m.w / 2 - 10);
         gambarMonitor(mxm, y - 19, 20, 15, nyala, t, m === MEJA_SEMUA[2] ? 2 : 3, true);
-        if (!nyala) {
-          gambarKursi(m.x + m.w / 2 - 7, y + 8, true);
-          daftarTombol(m === MEJA_SEMUA[1] ? 'agen1' : 'agen2',
-                       m === MEJA_SEMUA[1] ? 'Agent 1' : 'Agent 2',
-                       m.x + m.w / 2, y + MEJA_H - 3);
-        }
       }
       return;
     }
@@ -983,9 +1006,6 @@
 
     /* Kursi digambar DULU, sosoknya menumpang di atasnya.
        Sama persis dengan kursi Agen 1 & 2 — satu fungsi, satu bentuk. */
-    /* Kursi UTUH di belakang: bantalan kepala, dudukan, kaki.
-       Sandarannya nanti digambar ulang di depan badannya. */
-    gambarKursi(x - 2, y + 24, false);
 
     // --- ekor kuda: di tengah punggung, di depan sandaran ---
     kotak(x + 4, y + 4, 3, 3, W.rambutHitam);
@@ -1019,19 +1039,6 @@
        terlihat. Lensa di sini akan jadi kebohongan kecil. */
     kotak(x + 1, y + 7, 1, 1, W.bingkai, .95);
     kotak(x + 8, y + 7, 1, 1, W.bingkai, .95);
-
-    /* --- SANDARAN PUNGGUNG DIGAMBAR ULANG DI DEPAN ---
-       Inilah yang membuatnya terbaca duduk DI DALAM kursi. Sebelum ini
-       kursinya selalu di belakang, jadi sosoknya tampak melayang di
-       depannya betapapun tepat posisinya.
-
-       Bentuk dan warnanya disalin dari gambarKursi() supaya tetap satu
-       kursi yang sama — kalau kursi diubah di sana, samakan di sini. */
-    kotak(x - 1, y + 13, 12, 11, W.kursi);
-    kotak(x, y + 14, 10, 1, W.kursiTerang, .8);
-    kotak(x, y + 18, 10, 1, '#1e2338', .6);          // jahitan tengah
-    kotak(x - 2, y + 17, 1, 5, W.kursiTerang);       // sandaran tangan kiri
-    kotak(x + 11, y + 17, 1, 5, W.kursiTerang);      // sandaran tangan kanan
 
     /* --- kedua lengan, PALING AKHIR ---
        Digambar sesudah sandaran karena lengannya menjulur ke DEPAN, ke
@@ -1076,7 +1083,6 @@
     /* Kursinya digambar UTUH dan padat, tubuh di atasnya yang tembus
        pandang. Itu yang membuat ketembusan terbaca: ada benda nyata di
        belakangnya untuk dilihat menembus. */
-    gambarKursi(x - 2, y + 22, false);
 
     // pendar lembut di sekeliling — menandakan kehadiran, bukan benda
     var nadi = .5 + .5 * Math.sin(t / 620);
@@ -1164,7 +1170,6 @@
     var m = MEJA_SEMUA[2];
     var x = m.x + 8, y = m.y - 14;
 
-    gambarKursi(x - 2, y + 22, false);
 
     // Denyut sengaja lebih lambat dari Agen 1 (620) supaya kalau kami
     // berdua duduk bersamaan, ruangan tidak berdenyut serempak seperti
@@ -1768,29 +1773,26 @@
 
     tentukanPapan();
 
-    /* URUTAN KEDALAMAN, dari jauh ke dekat:
-         1. monitor & barang di sisi jauh meja
-         2. orang yang duduk
-         3. badan meja di sisi dekat
-       Itulah sebabnya meja digambar dua kali. Menukar urutan ini akan
-       membuat orangnya melayang di atas meja, atau kepalanya tertimbun
-       monitor — dua-duanya pernah terjadi. */
+    /* URUTAN KEDALAMAN, dari JAUH ke DEKAT:
+         monitor  ->  meja  ->  orang  ->  kursi
+       Kursi paling dekat ke kamera, monitor paling jauh. Menukar urutan
+       ini sudah dua kali menghasilkan bug: meja di depan orang membuat
+       orangnya tertimbun, kursi di belakang orang membuat orangnya
+       tampak melayang. */
     for (var i = 0; i < MEJA_SEMUA.length; i++)
-      gambarSatuMeja(MEJA_SEMUA[i], t, ketik, 'belakang');
+      gambarSatuMeja(MEJA_SEMUA[i], t, ketik, 'belakang');   // monitor
+    for (var j = 0; j < MEJA_SEMUA.length; j++)
+      gambarSatuMeja(MEJA_SEMUA[j], t, ketik, 'depan');      // badan meja
 
     gambarAgen1(t);
     gambarAgen2(t);
     if (auditorHadir()) {
       gambarAuditor(t);
       daftarTombol('auditor-hadir', 'Auditor', AUDITOR.x + 5, AUDITOR.y + 7, 'sosok');
-    } else {
-      gambarKursi(AUDITOR.x - 2, AUDITOR.y + 24, true);
-      // di sandaran kursi yang menonjol di atas meja, bukan di muka meja
-      daftarTombol('auditor', 'Auditor', AUDITOR.x + 5, AUDITOR.y + 10);
     }
 
-    for (var j = 0; j < MEJA_SEMUA.length; j++)
-      gambarSatuMeja(MEJA_SEMUA[j], t, ketik, 'depan');
+    for (var k = 0; k < MEJA_SEMUA.length; k++)
+      gambarSatuMeja(MEJA_SEMUA[k], t, ketik, 'kursi');      // kursi paling depan
 
     gambarTanaman(92, 162, true);
     gambarTanaman(340, 168, false);
