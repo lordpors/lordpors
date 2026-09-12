@@ -995,8 +995,24 @@
         if (lt + fs * 1.25 <= MAKS) break;
         fs *= (MAKS / (lt + fs * 1.25)) * .99;
       }
-      var px = (m.x + m.w / 2) * P, py = (y + 4) * P;
+      /* LETAK PAPAN NAMA — di atas monitor kalau ada ruangnya.
+
+         Meja agen ada di barisan tengah; ruang di atas monitornya
+         kosong, jadi papannya naik ke sana. Meja Blaster & Meta ada di
+         barisan DEPAN — tepat di atas monitornya sudah ada barisan
+         tengah. Diukur di 390px, papan mereka menabrak meja
+         dinding-monitor dan meja auditor. Jadi keduanya tetap di muka
+         meja, tempat yang memang kosong untuk mereka.
+
+         Letaknya dihitung dari TEPI BAWAH papan, bukan titik tengahnya:
+         tinggi papan berubah menurut lebar layar (lihat pxLayar), dan
+         memakai titik tengah membuat papan di ponsel merangsek turun
+         sampai menabrak monitornya sendiri. Dengan tepi bawah dipatok,
+         jaraknya ke monitor tetap sama di layar mana pun. */
       var pw = lt + fs * 1.25, ph = fs * 1.45;
+      var px = (m.x + m.w / 2) * P;
+      var py = m.agen ? (y - 21) * P - ph / 2      // di atas monitor
+                      : (y + 4) * P;               // di muka meja
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillStyle = 'rgba(10,8,22,.95)';
       ctx.strokeStyle = 'rgba(148,163,184,.6)';
