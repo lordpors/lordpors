@@ -100,7 +100,7 @@
   ];
   // Duduk di sisi kiri meja; monitornya digeser ke kanan supaya
   // dia tidak tertutup layarnya sendiri.
-  var AUDITOR = { x: 271, y: 91 };
+  var AUDITOR = { x: 269, y: 82 };
 
   /* ---------------- dinding bata ---------------- */
   var bataPola = null;
@@ -280,30 +280,39 @@
     k.width = w; k.height = h;
     var c = k.getContext('2d');
 
-    /* Tiga lapis untuk tiap unsur: pendar luar yang lebar, pendar dalam
-       yang rapat, lalu inti hampir putih. Itu yang membuat tabung neon
-       terasa BERISI cahaya, bukan sekadar garis berwarna. */
-    function tulis(teks, y, warna, font, spasi) {
+    /* HURUF NEON HARUS PADAT, BUKAN BERONGGA.
+
+       Versi sebelumnya cuma memakai fillText berlapis. Hasilnya: pendar
+       menyala di tepi huruf sementara bagian dalamnya tetap gelap — huruf
+       terbaca sebagai garis tepi, bukan sebagai tabung berisi cahaya.
+
+       Yang memperbaikinya: strokeText DI SAMPING fillText pada tiap
+       lapis. Stroke menggemukkan glifnya dari luar, fill mengisi
+       dalamnya. Intinya tidak dibuat putih — di acuan hurufnya tetap
+       amber, cuma sedikit lebih terang di tengah. Inti putih membuatnya
+       terlihat seperti lampu sorot, bukan neon. */
+    function tulis(teks, y, warna, inti, font, spasi) {
       c.font = font;
       c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.lineJoin = 'round'; c.lineCap = 'round';
       if (c.letterSpacing !== undefined) c.letterSpacing = spasi || '0px';
       c.shadowColor = warna;
-      c.shadowBlur = 34; c.fillStyle = warna; c.fillText(teks, w / 2, y);
-      c.shadowBlur = 20; c.fillText(teks, w / 2, y);
-      c.shadowBlur = 10; c.fillText(teks, w / 2, y);
-      c.shadowBlur = 4;  c.fillStyle = '#fff6e0'; c.fillText(teks, w / 2, y);
+      [[30, 7, warna], [16, 4, warna], [0, 2, inti]].forEach(function (L) {
+        c.shadowBlur = L[0];
+        c.lineWidth = L[1];
+        c.strokeStyle = L[2];
+        c.fillStyle = L[2];
+        c.strokeText(teks, w / 2, y);
+        c.fillText(teks, w / 2, y);
+      });
       c.shadowBlur = 0;
       if (c.letterSpacing !== undefined) c.letterSpacing = '0px';
     }
 
-    /* Satu jalur tabung, digambar tiga kali dengan tebal & pendar menurun.
-       `jalur` menerima konteks supaya bentuknya ditulis sekali saja —
-       menulis jalur yang sama tiga kali adalah cara termudah membuat
-       ketiganya diam-diam berbeda. */
-    function tabung(jalur, warna) {
+    function tabung(jalur, warna, tebal) {
       c.lineCap = 'round'; c.lineJoin = 'round';
       c.shadowColor = warna;
-      [[30, 5.0, warna], [14, 3.2, warna], [0, 1.6, '#fff6e0']]
+      [[30, tebal, warna], [14, tebal * .65, warna], [0, tebal * .34, '#fff6e0']]
         .forEach(function (L) {
           c.shadowBlur = L[0]; c.lineWidth = L[1]; c.strokeStyle = L[2];
           c.beginPath(); jalur(c); c.stroke();
@@ -313,42 +322,38 @@
 
     var A = W.neonAmber, S = W.neonSian;
 
-    /* Tabung utama, mengikuti acuan: KAIT di kiri bawah yang melengkung
-       balik ke dalam, naik di sisi kiri, membelok di atas, melintang ke
-       kanan, lalu turun pendek dan berhenti.
-
-       Kaitnya itu ciri paling khas di acuan — tanpa kait, ini cuma kotak
-       yang kurang satu sisi. */
+    /* KAIT di kiri bawah — bentuk paling khas di acuan.
+       Bukan sudut membulat: tabungnya turun, MELINGKAR BALIK ke kiri,
+       lalu ujungnya menghadap ke dalam lagi. Itu yang membuatnya terbaca
+       sebagai tabung neon yang dibengkokkan tangan. */
     tabung(function (c) {
-      c.moveTo(w * .17, h * .52);          // ujung kait, di dalam
-      c.quadraticCurveTo(w * .04, h * .52, w * .05, h * .38);
-      c.lineTo(w * .05, h * .20);          // naik
-      c.quadraticCurveTo(w * .05, h * .08, w * .16, h * .08);
-      c.lineTo(w * .88, h * .08);          // melintang di atas
-      c.quadraticCurveTo(w * .96, h * .08, w * .96, h * .20);
-      c.lineTo(w * .96, h * .30);          // turun pendek lalu berhenti
-    }, A);
+      c.moveTo(w * .20, h * .46);                                   // ujung kait
+      c.quadraticCurveTo(w * .07, h * .46, w * .065, h * .33);      // melingkar balik
+      c.lineTo(w * .065, h * .20);                                  // naik sisi kiri
+      c.quadraticCurveTo(w * .065, h * .085, w * .17, h * .085);    // belok di atas
+      c.lineTo(w * .87, h * .085);                                  // melintang
+      c.quadraticCurveTo(w * .955, h * .085, w * .955, h * .20);    // belok turun
+      c.lineTo(w * .955, h * .32);
+    }, A, 7);
 
-    tulis('LORDPORS', h * .40, A,
+    tulis('LORDPORS', h * .40, A, '#ffd074',
           '900 40px "Orbitron", ui-monospace, monospace', '7px');
 
-    // garis amber di bawah LORDPORS — di acuan ia tidak selebar tulisannya
+    // garis amber di bawah tulisan — di acuan setebal tabung utamanya
     tabung(function (c) {
-      c.moveTo(w * .17, h * .62);
-      c.lineTo(w * .72, h * .62);
-    }, A);
+      c.moveTo(w * .155, h * .615);
+      c.lineTo(w * .70, h * .615);
+    }, A, 6);
 
-    tulis('MEMENTO VIVERE', h * .78, S,
+    tulis('MEMENTO VIVERE', h * .78, S, '#9df0ff',
           '700 20px "Orbitron", ui-monospace, monospace', '4px');
 
-    /* Tabung cyan di kanan: turun menyerong lalu tegak. Di acuan inilah
-       yang menyeimbangkan kait amber di kiri bawah — tanpa itu papan
-       neonnya berat sebelah. */
+    // tabung cyan menyerong di kanan bawah, penyeimbang kait amber
     tabung(function (c) {
-      c.moveTo(w * .80, h * .66);
-      c.lineTo(w * .92, h * .80);
-      c.lineTo(w * .92, h * .96);
-    }, S);
+      c.moveTo(w * .78, h * .64);
+      c.lineTo(w * .915, h * .80);
+      c.lineTo(w * .915, h * .97);
+    }, S, 6);
 
     neonSiap = k;
   }
@@ -783,7 +788,7 @@
       kotak(hp + 1, y - 18, 6, 4, '#3b82f6', denyut);      // gelembung pesan
       kotak(hp + 2, y - 14, 2, 2, '#3b82f6', denyut);      // ekor gelembungnya
       gambarKursi(m.x + m.w / 2 - 7, y + MEJA_H + 2, true);
-      daftarTombol('meta', 'Meta', m.x + m.w / 2, y + MEJA_H - 1);
+      daftarTombol('meta', 'Meta', m.x + m.w / 2, y + MEJA_H - 3);
 
     } else if (m.isi === 'blaster') {
       /* Masih kosong — menunggu blast pertama dinyalakan.
@@ -802,7 +807,7 @@
       // blaster benar-benar jalan, di sinilah tempat mempercepatnya.
       kotak(bx + 14, y - 18, 3, 2, '#f87171', .2 + .3 * Math.sin(t / 1400));
       gambarKursi(m.x + m.w / 2 - 7, y + MEJA_H + 2, true);
-      daftarTombol('blaster', 'Blaster', m.x + m.w / 2, y + MEJA_H - 1);
+      daftarTombol('blaster', 'Blaster', m.x + m.w / 2, y + MEJA_H - 3);
 
     } else {
       /* Meja agen menyala kalau penghuninya sedang bekerja. `isi` tetap
@@ -821,7 +826,7 @@
         gambarKursi(m.x + m.w / 2 - 7, y + MEJA_H + 2, true);
         daftarTombol(m === MEJA_SEMUA[1] ? 'agen1' : 'agen2',
                      m === MEJA_SEMUA[1] ? 'Agent 1' : 'Agent 2',
-                     m.x + m.w / 2, y + MEJA_H - 1);
+                     m.x + m.w / 2, y + MEJA_H - 3);
       }
     }
 
@@ -865,80 +870,91 @@
   }
 
   /* ---------------- wanita auditor ----------------
-     Tampak TIGA PEREMPAT dari belakang: badannya menghadap layar di
-     kanan, tapi kepalanya sedikit berpaling sehingga pipi, kacamata,
-     dan ujung hidungnya terlihat di tepi kanan siluetnya.
+     DIPERBESAR LAGI. Versi sebelumnya berkepala 10 satuan, dan kacamata
+     3x2 di kepala sebesar itu mustahil terbaca — Porscy benar. Sekarang
+     kepalanya 13 satuan, sosoknya 34, jadi lensa 4x3 punya ruang untuk
+     terlihat sebagai lensa.
 
-     Kenapa bukan murni dari belakang: Porscy ingin dia terbaca sebagai
-     "wanita berkacamata", dan kacamata mustahil terlihat dari belakang.
-     Kenapa bukan menghadap penonton: itu akan membuatnya berpose untuk
-     kita, bukan bekerja. Tiga perempat menjawab keduanya.
+     Aturan yang berlaku di sini dan sudah dua kali terbukti: pada pixel
+     art, menambah detail pada sosok yang terlalu kecil tidak menghasilkan
+     apa-apa. Besarkan dulu, baru isi.
 
-     Urutan gambar penting: kursi, ekor kuda, badan, lengan, kepala,
-     rambut depan, lalu kacamata. Kacamata harus paling akhir — kalau
-     didahului rambut, gagangnya tertimbun. */
+     Tampak TIGA PEREMPAT dari belakang: badan menghadap layar di kanan,
+     kepala sedikit berpaling sehingga pipi, hidung, dan kacamatanya
+     terlihat di tepi kanan siluet. Murni dari belakang akan menyembunyikan
+     kacamata; menghadap penonton akan membuatnya berpose, bukan bekerja.
+
+     Urutan: kursi, ekor kuda, badan, lengan, kepala, rambut depan,
+     kacamata. Kacamata paling akhir — kalau didahului rambut, gagangnya
+     tertimbun. */
   function gambarAuditor(t, ketik) {
     var x = AUDITOR.x, y = AUDITOR.y;
 
     // --- kursi kerja ---
-    kotak(x - 3, y + 10, 17, 16, W.kursi);
-    kotak(x - 2, y + 11, 15, 1, W.kursiTerang, .8);
-    kotak(x - 3, y + 18, 17, 1, '#1e2338', .6);
-    kotak(x + 4, y + 26, 2, 3, '#20253c');
-    kotak(x - 1, y + 29, 12, 1, '#20253c');
+    kotak(x - 4, y + 14, 20, 18, W.kursi);
+    kotak(x - 3, y + 15, 18, 1, W.kursiTerang, .8);
+    kotak(x - 4, y + 23, 20, 1, '#1e2338', .6);
+    kotak(x + 5, y + 32, 2, 3, '#20253c');
 
-    /* --- ekor kuda ---
-       Diikat TINGGI di belakang kepala, lalu jatuh ke punggung. Pita
-       ikatnya sengaja diberi warna berbeda: tanpa itu, rambut terikat
-       tidak terbaca berbeda dari rambut tergerai. */
-    kotak(x + 4, y + 1, 7, 3, W.rambutHitam);            // sanggul ikat
-    kotak(x + 5, y + 2, 5, 1, '#3a2f45');                // pita
-    kotak(x + 5, y + 4, 5, 13, W.rambutHitam);           // ekor jatuh
-    kotak(x + 6, y + 13, 4, 5, '#0f0c14');               // ujung lebih gelap
-    kotak(x + 5, y + 5, 1, 11, '#241d2c', .8);           // helai sorot
+    /* --- ekor kuda: diikat tinggi, jatuh ke punggung ---
+       Pita ikat diberi warna berbeda. Tanpa pita, rambut terikat tidak
+       terbaca berbeda dari rambut tergerai. */
+    kotak(x + 4, y + 1, 9, 4, W.rambutHitam);            // sanggul
+    kotak(x + 5, y + 2, 7, 2, '#4a3a58');                // pita ikat
+    kotak(x + 6, y + 5, 6, 17, W.rambutHitam);           // ekor jatuh
+    kotak(x + 7, y + 17, 4, 6, '#0f0c14');               // ujung lebih gelap
+    kotak(x + 6, y + 6, 1, 14, '#2c2436', .85);          // helai sorot
 
-    // --- badan: kemeja kantor putih lengan pendek ---
-    kotak(x + 2, y + 13, 10, 13, W.bajuPutih);
-    kotak(x + 2, y + 13, 10, 1, W.bajuPutihBayang);
-    kotak(x + 6, y + 14, 1, 12, W.bajuPutihBayang, .7);  // jahitan punggung
-    kotak(x + 2, y + 24, 10, 2, W.bajuPutihBayang, .5);  // bayangan pinggang
-    kotak(x + 3, y + 13, 2, 2, '#dfe4ee');               // kerah
-    kotak(x + 9, y + 13, 2, 2, '#dfe4ee');
+    // --- badan: kemeja kantor putih ---
+    kotak(x + 2, y + 17, 12, 15, W.bajuPutih);
+    kotak(x + 2, y + 17, 12, 1, W.bajuPutihBayang);
+    kotak(x + 7, y + 18, 1, 14, W.bajuPutihBayang, .7);  // jahitan punggung
+    kotak(x + 2, y + 29, 12, 2, W.bajuPutihBayang, .5);  // bayangan pinggang
+    kotak(x + 3, y + 17, 3, 2, '#dfe4ee');               // kerah kiri
+    kotak(x + 10, y + 17, 3, 2, '#dfe4ee');              // kerah kanan
+    kotak(x + 6, y + 17, 2, 3, '#cdd4e2');               // belahan kerah
 
     /* --- lengan pendek: kain sampai siku, sisanya kulit ---
-       Ini satu-satunya penanda "lengan pendek" pada sosok sekecil ini.
-       Kalau seluruh lengan putih, ia terbaca lengan panjang. */
+       Ini satu-satunya penanda "lengan pendek". Kalau seluruh lengan
+       putih, ia terbaca sebagai lengan panjang. */
     var goyang = ketik ? (Math.floor(t / 110) % 2) : 0;
-    kotak(x + 11, y + 15, 4, 4, W.bajuPutih);            // kain lengan atas
-    kotak(x + 11, y + 15, 4, 1, W.bajuPutihBayang);
-    kotak(x + 14, y + 17 - goyang, 3, 2, W.kulit);       // lengan bawah, kulit
-    kotak(x + 11, y + 20, 4, 4, W.bajuPutih);
-    kotak(x + 14, y + 21 - (1 - goyang), 3, 2, W.kulit);
+    kotak(x + 13, y + 19, 4, 5, W.bajuPutih);            // kain lengan
+    kotak(x + 13, y + 19, 4, 1, W.bajuPutihBayang);
+    kotak(x + 13, y + 23, 4, 1, '#cdd4e2');              // ujung lengan
+    kotak(x + 16, y + 22 - goyang, 4, 2, W.kulit);       // lengan bawah
+    kotak(x + 13, y + 25, 4, 5, W.bajuPutih);
+    kotak(x + 13, y + 29, 4, 1, '#cdd4e2');
+    kotak(x + 16, y + 27 - (1 - goyang), 4, 2, W.kulit);
 
     // --- kepala ---
-    kotak(x + 3, y + 3, 9, 10, W.kulit);                 // tengkorak & pipi
-    kotak(x + 10, y + 6, 2, 5, W.kulit);                 // pipi kanan menonjol
-    kotak(x + 12, y + 8, 1, 2, W.kulit);                 // ujung hidung
-    kotak(x + 4, y + 11, 6, 2, W.kulitGelap);            // rahang/tengkuk
-    kotak(x + 10, y + 10, 2, 1, '#e8a5a5', .55);         // rona pipi
+    kotak(x + 3, y + 4, 11, 13, W.kulit);
+    kotak(x + 13, y + 8, 2, 6, W.kulit);                 // pipi kanan menonjol
+    kotak(x + 15, y + 10, 1, 3, W.kulit);                // hidung
+    kotak(x + 15, y + 13, 1, 1, W.kulitGelap);           // bawah hidung
+    kotak(x + 4, y + 15, 8, 2, W.kulitGelap);            // rahang & tengkuk
+    kotak(x + 12, y + 13, 3, 2, '#e8a5a5', .5);          // rona pipi
+    kotak(x + 14, y + 14, 2, 1, '#c96a6a', .55);         // bibir, sekilas
 
-    // --- rambut depan menutupi ubun-ubun & sisi ---
-    kotak(x + 2, y + 1, 11, 4, W.rambutHitam);
-    kotak(x + 2, y + 3, 2, 8, W.rambutHitam);            // sisi kiri
-    kotak(x + 11, y + 3, 2, 4, W.rambutHitam);           // sisi kanan, lebih pendek
-    kotak(x + 3, y, 9, 2, '#1d1822');                    // kilau ubun-ubun
-    kotak(x + 4, y + 4, 5, 1, '#2a2130', .7);            // poni
+    // --- rambut depan ---
+    kotak(x + 2, y + 2, 13, 5, W.rambutHitam);
+    kotak(x + 2, y + 4, 2, 11, W.rambutHitam);           // sisi kiri panjang
+    kotak(x + 13, y + 4, 2, 5, W.rambutHitam);           // sisi kanan pendek
+    kotak(x + 3, y + 1, 11, 2, '#1d1822');               // kilau ubun-ubun
+    kotak(x + 4, y + 6, 7, 1, '#2a2130', .75);           // poni
+    kotak(x + 11, y + 7, 2, 3, W.rambutHitam);           // anak rambut di pelipis
 
     /* --- kacamata ---
-       Lensa di pipi kanan yang terlihat, gagang menyusur ke belakang.
-       Kilau satu piksel di sudut lensa — itu yang membuat kaca terbaca
-       sebagai kaca, bukan lubang. */
-    kotak(x + 10, y + 7, 3, 3, W.kaca, .55);             // lensa kanan
-    kotak(x + 10, y + 7, 3, 1, W.bingkai);               // bingkai atas
-    kotak(x + 10, y + 9, 3, 1, W.bingkai);               // bingkai bawah
-    kotak(x + 13, y + 7, 1, 3, W.bingkai);               // sisi luar
-    kotak(x + 4, y + 7, 6, 1, W.bingkai, .85);           // gagang ke telinga
-    kotak(x + 12, y + 7, 1, 1, '#ffffff', .85);          // kilau lensa
+       Lensa di pipi kanan yang terlihat, gagang menyusur ke telinga.
+       Kilau satu piksel di sudut lensa membuat kaca terbaca sebagai
+       kaca, bukan lubang hitam. */
+    kotak(x + 11, y + 9, 5, 4, W.kaca, .45);             // kaca lensa
+    kotak(x + 11, y + 9, 5, 1, W.bingkai);               // bingkai atas
+    kotak(x + 11, y + 12, 5, 1, W.bingkai);              // bingkai bawah
+    kotak(x + 16, y + 9, 1, 4, W.bingkai);               // bingkai luar
+    kotak(x + 10, y + 9, 1, 4, W.bingkai);               // jembatan hidung
+    kotak(x + 4, y + 9, 6, 1, W.bingkai, .9);            // gagang ke telinga
+    kotak(x + 15, y + 10, 1, 1, '#ffffff', .9);          // kilau lensa
+    kotak(x + 12, y + 11, 2, 1, '#8fd4ea', .35);         // pantulan layar di kaca
   }
 
   /* ---------------- Agen 1 (Claude) ----------------
@@ -1665,10 +1681,12 @@
       gambarAuditor(t, ketik);
       daftarTombol('auditor-hadir', 'Auditor', AUDITOR.x + 7, AUDITOR.y + 4, 'sosok');
     } else {
-      // Kursi kosong di tempat dia biasa duduk, bukan kursi yang hilang.
-      // Meja yang kehilangan kursinya terbaca seperti meja yang dibongkar.
-      gambarKursi(AUDITOR.x, AUDITOR.y + 9, true);
-      daftarTombol('auditor', 'Auditor', AUDITOR.x + 7, AUDITOR.y + 3);
+      /* Kursi kosong PERSIS di tempat dia biasa duduk. Angkanya
+         diturunkan dari kursi yang dipakainya (y+14..y+32) supaya
+         kursinya tidak melayang setelah sosoknya diperbesar.
+         Kalau AUDITOR.y digeser lagi, periksa baris ini. */
+      gambarKursi(AUDITOR.x + 1, AUDITOR.y + 29, true);
+      daftarTombol('auditor', 'Auditor', AUDITOR.x + 8, AUDITOR.y + 19);
     }
     gambarAgen1(t);
     gambarAgen2(t);
