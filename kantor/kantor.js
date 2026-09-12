@@ -1425,10 +1425,22 @@
     kotak(x + 9, y + 16, 2, 2, r.tepi);
     ctx.globalAlpha = 1;
 
+    /* BALONNYA DIAM KALAU TIDAK ADA PEKERJAAN.
+       Duduk siaga sudah terlihat dari sosoknya yang ada di kursi dan
+       layarnya yang tidur; balon bertuliskan "menunggu perintah" cuma
+       menambah satu kotak teks yang tidak memberi kabar apa-apa. Balon
+       yang selalu muncul juga berhenti berarti "ada yang sedang
+       dikerjakan" — dan justru itu gunanya. */
+    if (a.siaga) return;
+
     /* Balon naik satu tingkat untuk tiap agen bernomor lebih kecil yang
-       sedang bicara, supaya balon mereka tidak saling menutupi. */
+       BENAR-BENAR BERBALON, supaya balon mereka tidak saling menutupi.
+       Dihitung dari yang berbalon, bukan dari yang aktif: agen siaga
+       tidak lagi punya balon, dan kalau ia tetap dihitung, balon agen
+       sesudahnya melayang satu tingkat di atas ruang kosong. */
     var tingkat = 0;
-    for (var n = 1; n < nomor; n++) if (AGEN[n] && AGEN[n].aktif) tingkat++;
+    for (var n = 1; n < nomor; n++)
+      if (AGEN[n] && AGEN[n].aktif && !AGEN[n].siaga) tingkat++;
     gambarBalon((a.pesan || 'bekerja').slice(0, 28),
                 (x + 5) * P, atasPapanNama(m), r.tanda, '#f2edf6', tingkat);
   }
@@ -1573,10 +1585,42 @@
     return (m.y - jarakAtas) * P - fs * 1.45 - 4;
   }
 
+  /* ---------------- balon tugas ----------------
+
+     BALON SELALU DI LAPIS PALING ATAS, dan itu perlu antrian.
+
+     Sosoknya digambar SEBELUM lapis 'kursi' — memang harus, supaya
+     kursinya menutupi separuh badan seperti orang yang benar-benar
+     duduk. Tapi balonnya ikut terbawa ke bawah lapis itu, dan kursi
+     LordPors yang tinggi menutupi balon Blaster di sebelahnya.
+
+     Menggambar balonnya belakangan di dalam fungsi sosok juga tidak
+     menolong: 'kursi' tetap digambar sesudah SELURUH sosok selesai.
+
+     Jadi `gambarBalon()` tidak lagi melukis, ia cuma MENCATAT. Seluruh
+     antriannya dituang oleh `siramBalon()` di baris terakhir bingkai(),
+     sesudah kursi, tanaman, tombol, dan label status. Pemanggilnya tidak
+     perlu tahu apa-apa soal ini — urutan panggilannya tetap sama.
+
+     Antriannya dikosongkan tiap awal bingkai, bukan tiap tuang: kalau
+     ada bingkai yang keluar lebih awal, balon bingkai sebelumnya tidak
+     boleh ikut tertinggal dan tergambar dua kali. */
+  var ANTRE_BALON = [];
+
+  function gambarBalon(teks, pusatX, bawahY, warnaTepi, warnaTeks, tingkat) {
+    ANTRE_BALON.push([teks, pusatX, bawahY, warnaTepi, warnaTeks, tingkat]);
+  }
+
+  function siramBalon() {
+    for (var i = 0; i < ANTRE_BALON.length; i++)
+      lukisBalon.apply(null, ANTRE_BALON[i]);
+    ANTRE_BALON.length = 0;
+  }
+
   /* pusatX/bawahY dalam satuan gambar (sudah dikali P).
      tingkat 0 = balon menempel di atas kepala; 1 = ditumpuk satu tingkat
      lebih tinggi, dipakai kalau dua agen bicara bersamaan. */
-  function gambarBalon(teks, pusatX, bawahY, warnaTepi, warnaTeks, tingkat) {
+  function lukisBalon(teks, pusatX, bawahY, warnaTepi, warnaTeks, tingkat) {
     /* DIKECILKAN. Versi sebelumnya 12-16px dengan lebar sampai 94%
        panggung — satu balon saja melintang hampir seluruh layar, dan
        tiga agen yang bicara bersamaan jadi dinding teks.
@@ -2000,6 +2044,10 @@
     // Daftar tombol disusun ulang tiap bingkai oleh yang menggambar
     // kursinya. Jangan menambahkannya dari tempat lain.
     TOMBOL.length = 0;
+    // Sama untuk antrian balon: dikosongkan di AWAL, bukan cuma sesudah
+    // dituang. Kalau suatu saat ada bingkai yang keluar lebih awal,
+    // balonnya tidak ikut tertinggal ke bingkai berikutnya.
+    ANTRE_BALON.length = 0;
     ctx.clearRect(0, 0, kanvas.width, kanvas.height);
     var ketik = modeNyata ? (status.keadaan === 'memeriksa') : (Math.sin(t / 2600) > -.35);
 
@@ -2056,6 +2104,7 @@
         gambarTombolTambah(TOMBOL[b].x, TOMBOL[b].y, t);
     gambarStatusAuditor(t);
     gambarGelembung(t);
+    siramBalon();          // paling akhir: balon di atas segalanya
     perbaruiPanel();
     requestAnimationFrame(bingkai);
   }
