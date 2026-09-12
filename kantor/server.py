@@ -172,8 +172,19 @@ class Penangan(SimpleHTTPRequestHandler):
         diedit. Sengaja sesederhana ini -- tanpa websocket, tanpa pustaka,
         tanpa proses pengawas. Satu bilangan, dibandingkan tiap 1,5 detik.
         """
+        # HANYA BERKAS KODE. *.json sengaja TIDAK dipantau.
+        #
+        # auditor.json ditulis ulang tiap 45 detik oleh detak bot, dan
+        # agenN.json tiap kali seseorang menandai mulai/selesai. Selama
+        # keduanya ikut dipantau, halaman memuat ulang sendiri tiap 45
+        # detik tanpa ada satu baris kode pun yang berubah -- persis yang
+        # dikeluhkan Porscy.
+        #
+        # Berkas keadaan itu memang sudah diintip halaman secara
+        # terpisah (ambilSemuaAgen tiap 8 detik); ia tidak butuh halaman
+        # dimuat ulang untuk melihat perubahannya.
         terbaru = 0.0
-        for pola in ("*.js", "*.html", "*.css", "*.json"):
+        for pola in ("*.js", "*.html", "*.css"):
             for f in KANTOR.glob(pola):
                 try:
                     terbaru = max(terbaru, f.stat().st_mtime)
