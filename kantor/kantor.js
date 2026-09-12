@@ -395,34 +395,52 @@
        menyentuh tabung. Papan neon yang sesak terbaca seperti stiker,
        bukan tabung kaca yang dibengkokkan. */
 
-    // Tabung utama: KAIT di kiri bawah, naik, melintang, turun pendek.
+    /* SATU JALUR MENERUS, bukan tiga potong yang melayang terpisah.
+
+       Versi sebelumnya menggambar tiga tabung terpisah: bingkai, garis
+       di bawah LORDPORS, dan tabung cyan. Ketiganya berakhir di udara,
+       dan itu yang membuat papan neonnya terbaca putus-putus — tabung
+       neon sungguhan selalu punya pangkal dan ujung yang jelas, tidak
+       pernah berhenti di tengah kosong.
+
+       Sekarang amber digambar sebagai SATU `beginPath()`:
+
+         kait kiri bawah -> naik sisi kiri -> melintang di atas
+         -> turun sisi kanan -> membelok -> kembali ke kiri
+            sebagai garis di bawah LORDPORS
+
+       Jadi seluruh amber satu tabung utuh. Tabung cyan bercabang dari
+       TIKUNGAN KANAN jalur itu (sekitar .85w, .55h), bukan menggantung
+       sendiri — titik pangkalnya sengaja ditaruh persis di atas jalur
+       amber supaya keduanya terlihat bersambung.
+
+       Kalau menggeser salah satu titik, periksa dua hal: jalur amber
+       masih satu beginPath, dan pangkal cyan masih menyentuhnya. */
     tabung(function (c) {
       c.moveTo(w * .19, h * .58);                                   // ujung kait
-      c.quadraticCurveTo(w * .06, h * .58, w * .055, h * .44);      // melingkar balik
+      c.quadraticCurveTo(w * .06, h * .58, w * .055, h * .44);      // kait melingkar balik
       c.lineTo(w * .055, h * .22);                                  // naik sisi kiri
       c.quadraticCurveTo(w * .055, h * .10, w * .17, h * .10);      // belok di atas
-      c.lineTo(w * .86, h * .10);                                   // melintang
-      c.quadraticCurveTo(w * .945, h * .10, w * .945, h * .23);     // belok turun
-      c.lineTo(w * .945, h * .36);
+      c.lineTo(w * .80, h * .10);                                   // melintang
+      c.quadraticCurveTo(w * .875, h * .10, w * .875, h * .23);     // belok turun
+      c.lineTo(w * .875, h * .48);                                  // turun sisi kanan
+      c.quadraticCurveTo(w * .875, h * .60, w * .80, h * .60);      // tikungan kanan bawah
+      c.lineTo(w * .155, h * .60);                                  // kembali ke kiri
     }, A, 6.5);
 
-    tulis('LORDPORS', h * .34, A, '#ffd074',
+    tulis('LORDPORS', h * .33, A, '#ffd074',
           '900 36px "Orbitron", ui-monospace, monospace', '6px');
 
-    // garis amber, lebih pendek dari tulisannya — seperti di acuan
-    tabung(function (c) {
-      c.moveTo(w * .155, h * .63);
-      c.lineTo(w * .70, h * .63);
-    }, A, 5.5);
-
-    tulis('MEMENTO VIVERE', h * .81, S, '#9df0ff',
+    tulis('MEMENTO VIVERE', h * .80, S, '#9df0ff',
           '700 15px "Orbitron", ui-monospace, monospace', '2px');
 
-    // tabung cyan di kanan bawah, penyeimbang kait amber di kiri atas
+    /* Tabung cyan: bercabang dari tikungan kanan jalur amber, turun
+       menyerong, lalu tegak. Titik pertamanya sengaja diletakkan DI ATAS
+       jalur amber, bukan di sebelahnya. */
     tabung(function (c) {
-      c.moveTo(w * .76, h * .68);
-      c.lineTo(w * .90, h * .84);
-      c.lineTo(w * .90, h * .98);
+      c.moveTo(w * .855, h * .545);      // menempel pada tikungan amber
+      c.lineTo(w * .95, h * .78);
+      c.lineTo(w * .95, h * .97);
     }, S, 5);
 
     neonSiap = k;
