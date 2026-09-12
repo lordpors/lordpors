@@ -732,20 +732,57 @@
      dikenali — sandaran kepala, sandaran punggung, sandaran tangan, dan
      kaki bintang lima. Empat bagian itu yang membuatnya terbaca sebagai
      kursi kerja, bukan bangku. */
-  function gambarKursi(x, y, kosong) {
-    kotak(x + 3, y - 15, 8, 4, W.kursi);                 // sandaran kepala
-    kotak(x + 4, y - 15, 6, 1, W.kursiTerang);
-    kotak(x + 1, y - 11, 12, 11, W.kursi);               // sandaran punggung
-    kotak(x + 2, y - 10, 10, 1, W.kursiTerang, .8);
-    kotak(x + 2, y - 6, 10, 1, '#1e2338', .6);           // jahitan tengah
-    kotak(x, y - 7, 1, 5, W.kursiTerang);                // sandaran tangan
-    kotak(x + 13, y - 7, 1, 5, W.kursiTerang);
-    kotak(x, y, 14, 3, W.kursiTerang);                   // dudukan
-    kotak(x, y, 14, 1, '#4a5480', .7);
-    kotak(x + 6, y + 3, 2, 4, '#20253c');                // silinder gas
-    kotak(x + 1, y + 7, 12, 1, '#20253c');               // kaki bintang
-    kotak(x + 3, y + 8, 2, 1, '#171b2e');                // roda
-    kotak(x + 9, y + 8, 2, 1, '#171b2e');
+  /* `bagian` memecah kursi jadi DUA LAPIS, untuk sosok yang benar-benar
+     duduk di atasnya:
+
+         'belakang'  digambar SEBELUM badannya
+         'depan'     digambar SESUDAH badannya
+
+     Gunanya satu: sandaran bawah harus menutupi pinggul dan tulang ekor
+     orang yang duduk. Kursi sungguhan dilihat dari belakang memang
+     begitu — punggungnya bersandar DI DEPAN sandaran, jadi yang lebih
+     dekat ke kamera adalah kursinya, bukan orangnya. Waktu seluruh
+     badan digambar di atas kursi, sandarannya hilang total dan sosoknya
+     terbaca melayang di depan kursi, bukan duduk di dalamnya.
+
+     Tanpa argumen ini kursinya digambar utuh seperti biasa, jadi semua
+     pemanggil lain (meja kosong, Agen 1 & 2) tidak berubah sama sekali. */
+  var KURSI_TUTUP = 7;        // piksel sandaran yang menimpa punggung
+
+  function gambarKursi(x, y, kosong, bagian) {
+    var belakang = (bagian !== 'depan');
+    var depan    = (bagian !== 'belakang');
+
+    if (belakang) {
+      kotak(x + 3, y - 15, 8, 4, W.kursi);                 // sandaran kepala
+      kotak(x + 4, y - 15, 6, 1, W.kursiTerang);
+      kotak(x + 1, y - 11, 12, 11, W.kursi);               // sandaran punggung
+      kotak(x + 2, y - 10, 10, 1, W.kursiTerang, .8);
+      kotak(x + 2, y - 6, 10, 1, '#1e2338', .6);           // jahitan tengah
+    }
+
+    if (depan) {
+      if (bagian === 'depan') {
+        /* Sandaran bawah digambar ULANG di atas badannya, lengkap dengan
+           rim kiri-kanan. Rim itu bukan hiasan: sandaran dan badan
+           sama-sama selebar 12 piksel, jadi tepinya berimpit persis dan
+           tanpa rim yang terbaca cuma balok gelap, bukan kursi. */
+        var T = KURSI_TUTUP;
+        kotak(x + 1, y - T, 12, T, W.kursi);
+        kotak(x + 1, y - T, 12, 1, W.kursiTerang, .95);    // bibir sandaran
+        kotak(x + 1, y - T, 1, T, W.kursiTerang, .7);      // rim kiri
+        kotak(x + 12, y - T, 1, T, W.kursiTerang, .7);     // rim kanan
+        kotak(x + 6, y - T + 1, 1, T - 1, '#1e2338', .6);  // jahitan tengah
+      }
+      kotak(x, y - 7, 1, 5, W.kursiTerang);                // sandaran tangan
+      kotak(x + 13, y - 7, 1, 5, W.kursiTerang);
+      kotak(x, y, 14, 3, W.kursiTerang);                   // dudukan
+      kotak(x, y, 14, 1, '#4a5480', .7);
+      kotak(x + 6, y + 3, 2, 4, '#20253c');                // silinder gas
+      kotak(x + 1, y + 7, 12, 1, '#20253c');               // kaki bintang
+      kotak(x + 3, y + 8, 2, 1, '#171b2e');                // roda
+      kotak(x + 9, y + 8, 2, 1, '#171b2e');
+    }
   }
 
   function gambarSatuMeja(m, t, ketik) {
@@ -931,9 +968,14 @@
        Dulu di sini digambar kursi buatan sendiri, dan itu bagian dari
        masalahnya: bentuknya beda, dan dudukannya tidak menyentuh lantai.
        Memakai gambarKursi() membuat kursinya benar-benar sebaris dengan
-       kursi Lordpors di meja 6-monitor — bukan cuma mirip. Digambar DULU,
-       badannya menimpa di atasnya, sama seperti Agen 1 & 2. */
-    gambarKursi(x, y + 25, false);
+       kursi Lordpors di meja 6-monitor — bukan cuma mirip.
+
+       Digambar DUA LAPIS. Yang ini lapis belakangnya: sandaran kepala
+       dan bagian atas sandaran punggung. Sisanya — sandaran bawah,
+       sandaran tangan, dudukan, kaki — digambar SESUDAH badannya, di
+       bagian paling bawah fungsi ini, supaya pinggul dan tulang ekornya
+       benar-benar masuk ke dalam kursi. */
+    gambarKursi(x, y + 25, false, 'belakang');
 
     /* --- kepala dari belakang: seluruhnya rambut, tanpa sepetak kulit ---
        Versi lama menggambar tengkorak sebagai blok KULIT lalu menempelkan
@@ -971,9 +1013,9 @@
        hitam di atas putih, jatuh lurus di tengah. Dulu ekornya digambar
        sebelum badan, jadi tertimbun kemeja dan hilang sama sekali. */
     kotak(x + 5, y + 10, 4, 1, '#4a3a58');               // pita ikat
-    kotak(x + 5, y + 11, 4, 11, W.rambutHitam);          // ekor
-    kotak(x + 5, y + 21, 4, 3, '#0f0c14');               // ujung
-    kotak(x + 5, y + 12, 1, 9, '#2c2436', .8);           // helai sorot
+    kotak(x + 5, y + 11, 4, 7, W.rambutHitam);           // ekor
+    kotak(x + 5, y + 15, 4, 3, '#0f0c14');               // ujung
+    kotak(x + 5, y + 12, 1, 5, '#2c2436', .8);           // helai sorot
 
     /* --- kedua lengan, simetris, menjulur ke depan ---
        Kain sampai siku lalu kulit: itu satu-satunya penanda "lengan
@@ -990,6 +1032,14 @@
     kotak(x + 12, y + 17, 3, 1, '#cdd4e2');              // ujung lengan kanan
     kotak(x, y + 12 - (ketik ? kiri : 0), 2, 5, W.kulit);      // lengan bawah kiri
     kotak(x + 12, y + 12 - (ketik ? kanan : 0), 2, 5, W.kulit); // kanan
+
+    /* --- lapis depan kursi ---
+       Sandaran bawahnya menimpa punggung bawah, pinggul, dan tulang
+       ekornya; dudukan serta kakinya menutup sisanya. Inilah yang
+       membuat dia terbaca duduk DI DALAM kursi, bukan melayang di
+       depannya. Ekor kudanya sengaja berhenti tepat di bibir sandaran
+       (y+18) — seolah tergerai di atasnya, bukan tembus. */
+    gambarKursi(x, y + 25, false, 'depan');
   }
 
 
