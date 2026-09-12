@@ -30,16 +30,22 @@
     agen1: [
       { tugas: 'agen1-mulai',   judul: 'Tandai mulai bekerja', teks: true,
         catatan: 'Karakternya duduk di meja dan tugasnya muncul di atas kepalanya.' },
+      { tugas: 'agen1-siaga',   judul: 'Duduk siaga',
+        catatan: 'Tetap di kursinya tapi layarnya tidur — hadir, tidak sedang mengerjakan apa pun.' },
       { tugas: 'agen1-selesai', judul: 'Tandai selesai' }
     ],
     agen2: [
       { tugas: 'agen2-mulai',   judul: 'Tandai mulai bekerja', teks: true,
         catatan: 'Karakternya duduk di meja dan tugasnya muncul di atas kepalanya.' },
+      { tugas: 'agen2-siaga',   judul: 'Duduk siaga',
+        catatan: 'Tetap di kursinya tapi layarnya tidur — hadir, tidak sedang mengerjakan apa pun.' },
       { tugas: 'agen2-selesai', judul: 'Tandai selesai' }
     ],
     agen3: [
       { tugas: 'agen3-mulai',   judul: 'Tandai mulai bekerja', teks: true,
         catatan: 'Karakternya duduk di meja dan tugasnya muncul di atas kepalanya.' },
+      { tugas: 'agen3-siaga',   judul: 'Duduk siaga',
+        catatan: 'Tetap di kursinya tapi layarnya tidur — hadir, tidak sedang mengerjakan apa pun.' },
       { tugas: 'agen3-selesai', judul: 'Tandai selesai' }
     ],
     // Kursi auditor KOSONG — dia sedang keluar.

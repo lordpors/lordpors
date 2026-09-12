@@ -2288,3 +2288,52 @@ lain kantor ini.
 tidak ada: polanya mencocokkan perintah shell yang sedang menjalankan
 pgrep itu sendiri. Sudah dua kali tertipu ini di sesi yang sama. Pakai
 `ps -eo pid,cmd | grep ... | grep -v zsh` kalau ingin yakin.
+
+---
+
+## Agen selalu duduk — dua keadaan, balon yang hidup (12 Sep 2026)
+
+Porscy minta agennya selalu ada di kantor, dan balonnya mengikuti apa
+yang sedang dikerjakan.
+
+### Kenapa dipecah dua keadaan
+
+Kalau "duduk" berlaku terus-menerus, ia berhenti berarti "sedang
+bekerja" — dan kantor tidak memberi tahu apa-apa lagi. Jadi duduk dipecah:
+
+| keadaan | sosok | layar | balon |
+|---|---|---|---|
+| **kerja** | pekat | menyala | tugas yang sedang dikerjakan |
+| **siaga** | 55% redup | **mati** | "menunggu perintah" |
+
+Yang membawa kabar sekarang **balon dan layarnya**, bukan ada-tidaknya
+sosok. Itu pertukaran yang sadar: kehadiran tetap, informasinya pindah.
+
+### Tiga perintah
+
+```bash
+python3 agen2.py siaga                  # duduk, layar tidur
+python3 agen2.py mulai "<tugas>"        # duduk, layar menyala
+python3 agen2.py pesan "<tugas baru>"   # ganti balon, penyegar jalan terus
+python3 agen2.py selesai                # tinggalkan kursi
+```
+
+`pesan` itu yang membuat balon bisa mengikuti pekerjaan yang berganti
+sepanjang sesi: ia cuma menulis berkasnya, dan penyegar membaca ulang
+tiap putaran — bukan menimpa kembali dengan teks lama. Itu bug yang
+hampir terjadi: penyegar versi pertama menyimpan pesannya di memori dan
+akan mengembalikan teks lama tiap 60 detik.
+
+### Batas umur diubah 20 menit -> 12 jam
+
+Yang sebenarnya menghentikan penyegar adalah **PID sesi Claude**: begitu
+sesinya mati, penyegarnya berhenti dalam 60 detik. Batas 12 jam cuma rem
+terakhir kalau pemeriksaan PID entah bagaimana meleset.
+
+Ini konsekuensi dari "selalu duduk": batas 20 menit dulu masuk akal
+ketika duduk berarti bekerja. Sekarang tidak.
+
+### Tombol + ikut bertambah
+
+Tiap kursi agen sekarang punya tiga pilihan: mulai bekerja, **duduk
+siaga**, dan tandai selesai.

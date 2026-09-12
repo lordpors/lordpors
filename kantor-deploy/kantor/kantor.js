@@ -1059,7 +1059,8 @@
         /* Meja agen. `isi` memilih BENTUK meja, bukan siapa yang duduk —
            kehadiran datang dari agen1.json & agen2.json. */
         var agen = m.agen ? AGEN[m.agen] : null;
-        var nyala = !!(agen && agen.aktif);
+        // Layar menyala hanya kalau dia BEKERJA. Duduk siaga = layar tidur.
+        var nyala = !!(agen && agen.aktif && !agen.siaga);
         /* Monitor SELALU di tengah meja. Dulu digeser ke kanan saat ada
            yang duduk, supaya agennya muat di kiri — tapi sekarang agennya
            sendiri duduk di tengah, jadi geseran itu justru memisahkan
@@ -1272,6 +1273,9 @@
     // Diletakkan dengan pola yang sama persis seperti auditor.
     var x = m.x + m.w / 2 - 5, y = m.y - 16;
     var nadi = .5 + .5 * Math.sin(t / r.denyut);
+    /* Saat siaga sosoknya lebih samar dan tandanya lebih redup —
+       hadir, tapi jelas sedang tidak mengerjakan apa-apa. */
+    var redup = a.siaga ? .55 : 1;
 
     // pendar di sekeliling — menandakan kehadiran, bukan benda
     var g = ctx.createRadialGradient((x + 5) * P, (y + 10) * P, 0,
@@ -1281,7 +1285,7 @@
     ctx.fillStyle = g;
     ctx.fillRect((x - 18) * P, (y - 14) * P, 46 * P, 46 * P);
 
-    ctx.globalAlpha = r.alpha;
+    ctx.globalAlpha = r.alpha * redup;
 
     // badan 8 satuan — lebih sempit dari sandaran 12
     kotak(x + 1, y + 11, 8, 9, r.badan);
@@ -1310,7 +1314,7 @@
     }
 
     // --- tanda wajah: tiga bentuk berbeda ---
-    var terang = .62 + .38 * nadi;
+    var terang = (.62 + .38 * nadi) * redup;
     ctx.globalAlpha = terang;
     if (r.bentuk === 'pita') {                      // Agen 1: pita mendatar
       kotak(x + 3, y + 6, 4, 2, r.tanda);
@@ -1338,7 +1342,7 @@
        Sesudah tanda wajah supaya tidak tertimbun, dan simetris karena
        dia duduk lurus menghadap monitornya. Versi lama menjulurkan
        keduanya ke kanan — sisa dari zaman agen duduk di kiri meja. */
-    ctx.globalAlpha = r.alpha;
+    ctx.globalAlpha = r.alpha * redup;
     kotak(x - 1, y + 12, 2, 4, r.badan);
     kotak(x + 9, y + 12, 2, 4, r.badan);
     kotak(x - 1, y + 16, 2, 2, r.tepi);
@@ -1709,9 +1713,12 @@
     ctx.stroke();
     ctx.lineCap = 'butt';
   }
-  var agen1 = { aktif: false, pesan: '', lama: null };
-  var agen2 = { aktif: false, pesan: '', lama: null };
-  var agen3 = { aktif: false, pesan: '', lama: null };
+  /* `siaga` = duduk tapi tidak mengerjakan apa pun. Porscy minta agennya
+     selalu ada di kantor; tanpa keadaan kedua ini, "duduk" berhenti
+     berarti "sedang bekerja" dan kantor tidak memberi tahu apa-apa lagi. */
+  var agen1 = { aktif: false, siaga: false, pesan: '', lama: null };
+  var agen2 = { aktif: false, siaga: false, pesan: '', lama: null };
+  var agen3 = { aktif: false, siaga: false, pesan: '', lama: null };
   // Dicari lewat nomornya, bukan lewat indeks meja. Menambah Agen 4
   // berarti menambah satu baris di sini dan satu di MEJA_SEMUA.
   var AGEN = [null, agen1, agen2, agen3];
@@ -1822,6 +1829,7 @@
           }
         }
         wadah.aktif = aktif;
+        wadah.siaga = !!d.siaga;
         wadah.pesan = d.pesan || '';
   }
 

@@ -122,6 +122,18 @@ TUGAS = {
         "argv": [sys.executable, "agen3.py", "selesai"],
         "kerja": lambda: KANTOR, "teks": False, "latar": False,
     },
+    "agen1-siaga": {
+        "judul": "Duduk siaga", "argv": [sys.executable, "agen1.py", "siaga"],
+        "kerja": lambda: KANTOR, "teks": False, "latar": False,
+    },
+    "agen2-siaga": {
+        "judul": "Duduk siaga", "argv": [sys.executable, "agen2.py", "siaga"],
+        "kerja": lambda: KANTOR, "teks": False, "latar": False,
+    },
+    "agen3-siaga": {
+        "judul": "Duduk siaga", "argv": [sys.executable, "agen3.py", "siaga"],
+        "kerja": lambda: KANTOR, "teks": False, "latar": False,
+    },
     "audit-contoh": {
         "judul": "Jalankan audit daftar contoh",
         "argv": [sys.executable, "jalankan.py", "--berkas", "daftar-contoh.txt"],
