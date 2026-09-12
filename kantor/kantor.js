@@ -103,11 +103,21 @@
      x=299: dulu 272 — ujung kiri meja sementara monitornya mulai di 292,
      jadi lengannya menjulur menyamping untuk menggapai papan ketik.
 
-     y=92: dulu 89, dan itu membuatnya melayang setinggi layar alih-alih
-     duduk. Tutup meja ada di y=114; dengan y=92 bahunya jatuh di 106 dan
-     tangannya sampai ke papan ketik di 117 — badannya terpotong meja di
-     tempat yang benar untuk orang yang sedang duduk. */
-  var AUDITOR = { x: 299, y: 92 };
+     y=107: dulu 89, dan itu membuatnya melayang setinggi layar. Angka ini
+     bukan selera — diturunkan dari lantai. Setiap meja di kantor ini
+     menaruh kursinya di `y meja + MEJA_H + 2`:
+
+         meja 6-monitor (kursi Lordpors)  y=116  ->  dudukan 134
+         meja Agent 1 & 2                 y=138  ->  dudukan 156
+         meja auditor                     y=114  ->  dudukan 132
+
+     Kursi auditor dulu di 114 — 18 piksel di atas lantai, menempel di
+     dinding, sebaris dengan tutup mejanya sendiri. Itu sebabnya dia
+     terlihat melayang dan bukan duduk. Sekarang dudukannya di y+25 = 132,
+     sebaris dengan kursi Lordpors di 134 (beda 2, persis sama dengan beda
+     tinggi kedua mejanya). Pinggulnya ada di dudukan itu, bahunya di 118,
+     dan tangannya sampai ke papan ketik di 117..121. */
+  var AUDITOR = { x: 299, y: 107 };
 
   /* ---------------- dinding bata ---------------- */
   var bataPola = null;
@@ -917,62 +927,71 @@
   function gambarAuditor(t, ketik) {
     var x = AUDITOR.x, y = AUDITOR.y;
 
-    /* --- kursi kerja, digambar DULU supaya dia bersandar di depannya ---
-       Sudut atasnya dipangkas satu piksel di kiri-kanan; tanpa itu
-       sandarannya terbaca sebagai peti, bukan kursi. */
-    kotak(x - 5, y + 12, 24, 13, W.kursi);
-    kotak(x - 6, y + 14, 1, 9, W.kursi);                 // pinggul kiri
-    kotak(x + 19, y + 14, 1, 9, W.kursi);                // pinggul kanan
-    kotak(x - 4, y + 11, 22, 1, W.kursi);                // puncak
-    kotak(x - 4, y + 11, 22, 1, W.kursiTerang, .9);      // rim puncak
-    kotak(x - 5, y + 12, 1, 13, W.kursiTerang, .55);     // rim kiri
-    kotak(x + 18, y + 12, 1, 13, W.kursiTerang, .55);    // rim kanan
-    kotak(x + 6, y + 13, 1, 12, '#1e2338', .45);         // jahitan tengah
-    kotak(x - 8, y + 16, 2, 7, W.kursiTerang, .85);      // sandaran tangan kiri
-    kotak(x + 20, y + 16, 2, 7, W.kursiTerang, .85);     // kanan
+    /* --- kursi kerja: kursi kantor YANG SAMA dengan semua meja lain ---
+       Dulu di sini digambar kursi buatan sendiri, dan itu bagian dari
+       masalahnya: bentuknya beda, dan dudukannya tidak menyentuh lantai.
+       Memakai gambarKursi() membuat kursinya benar-benar sebaris dengan
+       kursi Lordpors di meja 6-monitor — bukan cuma mirip. Digambar DULU,
+       badannya menimpa di atasnya, sama seperti Agen 1 & 2. */
+    gambarKursi(x, y + 25, false);
 
-    /* --- kepala dari belakang: seluruhnya rambut, tanpa sepetak kulit --- */
-    kotak(x + 2, y + 1, 10, 11, W.rambutHitam);          // tengkorak
-    kotak(x + 1, y + 4, 1, 7, W.rambutHitam);            // rambut sisi kiri
-    kotak(x + 12, y + 4, 1, 7, W.rambutHitam);           // sisi kanan
+    /* --- kepala dari belakang: seluruhnya rambut, tanpa sepetak kulit ---
+       Versi lama menggambar tengkorak sebagai blok KULIT lalu menempelkan
+       rambut cuma di atas dan di kedua sisinya, menyisakan kulit 6x3
+       piksel tepat di tengah. Pada sosok selebar 13 piksel, petak sebesar
+       itu tidak terbaca sebagai belakang kepala — terbaca sebagai WAJAH,
+       dan itulah kenapa dia tampak menghadap kamera. */
+    kotak(x + 2, y + 1, 10, 10, W.rambutHitam);          // tengkorak
+    kotak(x + 1, y + 4, 1, 6, W.rambutHitam);            // rambut sisi kiri
+    kotak(x + 12, y + 4, 1, 6, W.rambutHitam);           // sisi kanan
     kotak(x + 3, y, 8, 2, '#1d1822');                    // kilau ubun-ubun
     kotak(x + 4, y + 2, 6, 1, '#2a2130', .55);
-    kotak(x + 5, y + 12, 4, 2, W.kulitGelap);            // tengkuk
+    kotak(x + 5, y + 10, 4, 2, W.kulitGelap);            // tengkuk
 
     /* --- gagang kacamata, sepasang ---
        Dari belakang inilah satu-satunya bagian kacamata yang memang
        terlihat. Menggambar lensa di sini akan jadi kebohongan kecil:
        dari sudut ini lensanya ada di sisi lain kepalanya. */
-    kotak(x, y + 7, 2, 1, W.bingkai, .95);
-    kotak(x + 12, y + 7, 2, 1, W.bingkai, .95);
-    kotak(x, y + 7, 1, 1, '#d8e6ee', .5);                // kilau logam
-    kotak(x + 13, y + 7, 1, 1, '#d8e6ee', .5);
+    kotak(x, y + 6, 2, 1, W.bingkai, .95);
+    kotak(x + 12, y + 6, 2, 1, W.bingkai, .95);
+    kotak(x, y + 6, 1, 1, '#d8e6ee', .5);                // kilau logam
+    kotak(x + 13, y + 6, 1, 1, '#d8e6ee', .5);
 
-    /* --- punggung berkemeja putih --- */
-    kotak(x + 1, y + 14, 12, 11, W.bajuPutih);
-    kotak(x + 1, y + 14, 12, 1, W.bajuPutihBayang);      // garis bahu
-    kotak(x + 2, y + 14, 3, 1, '#dfe4ee');               // kerah kiri
-    kotak(x + 9, y + 14, 3, 1, '#dfe4ee');               // kerah kanan
+    /* --- punggung berkemeja putih ---
+       Tingginya 14 supaya pinggulnya jatuh tepat di dudukan kursi (y+25)
+       sementara bahunya tetap di y+11 — cukup tinggi agar tangannya
+       sampai ke papan ketik tanpa harus terangkat. */
+    kotak(x + 1, y + 11, 12, 14, W.bajuPutih);
+    kotak(x + 1, y + 11, 12, 1, W.bajuPutihBayang);      // garis bahu
+    kotak(x + 2, y + 11, 3, 1, '#dfe4ee');               // kerah kiri
+    kotak(x + 9, y + 11, 3, 1, '#dfe4ee');               // kerah kanan
 
-    /* --- ekor kuda, DI ATAS kemeja --- */
-    kotak(x + 5, y + 13, 4, 1, '#4a3a58');               // pita ikat
-    kotak(x + 5, y + 14, 4, 9, W.rambutHitam);           // ekor
+    /* --- ekor kuda, DI ATAS kemeja ---
+       Penanda punggung yang paling kuat justru yang paling sederhana:
+       hitam di atas putih, jatuh lurus di tengah. Dulu ekornya digambar
+       sebelum badan, jadi tertimbun kemeja dan hilang sama sekali. */
+    kotak(x + 5, y + 10, 4, 1, '#4a3a58');               // pita ikat
+    kotak(x + 5, y + 11, 4, 11, W.rambutHitam);          // ekor
     kotak(x + 5, y + 21, 4, 3, '#0f0c14');               // ujung
-    kotak(x + 5, y + 15, 1, 7, '#2c2436', .8);           // helai sorot
+    kotak(x + 5, y + 12, 1, 9, '#2c2436', .8);           // helai sorot
 
     /* --- kedua lengan, simetris, menjulur ke depan ---
        Kain sampai siku lalu kulit: itu satu-satunya penanda "lengan
-       pendek" pada sosok sekecil ini. Kedua tangan mengetik bergantian,
-       dan ujungnya sampai di y+26 — tepat menyentuh papan ketik di 117. */
+       pendek" pada sosok sekecil ini. Lengan bawahnya digambar SATU
+       piksel lebih tinggi dari lengan atas supaya terbaca menggapai ke
+       depan, bukan tergantung di samping badan. Kedua tangan mengetik
+       bergantian, dan ujungnya jatuh di y+12..y+17 — tepat di papan
+       ketik yang ada di 117..121. */
     var kiri = ketik ? (Math.floor(t / 110) % 2) : 0;
     var kanan = 1 - kiri;
-    kotak(x - 1, y + 16, 3, 5, W.bajuPutih);             // lengan atas kiri
-    kotak(x + 12, y + 16, 3, 5, W.bajuPutih);            // lengan atas kanan
-    kotak(x - 1, y + 20, 3, 1, '#cdd4e2');               // ujung lengan kiri
-    kotak(x + 12, y + 20, 3, 1, '#cdd4e2');              // ujung lengan kanan
-    kotak(x, y + 21 - (ketik ? kiri : 0), 2, 5, W.kulit);      // lengan bawah kiri
-    kotak(x + 12, y + 21 - (ketik ? kanan : 0), 2, 5, W.kulit); // kanan
+    kotak(x - 1, y + 13, 3, 5, W.bajuPutih);             // lengan atas kiri
+    kotak(x + 12, y + 13, 3, 5, W.bajuPutih);            // lengan atas kanan
+    kotak(x - 1, y + 17, 3, 1, '#cdd4e2');               // ujung lengan kiri
+    kotak(x + 12, y + 17, 3, 1, '#cdd4e2');              // ujung lengan kanan
+    kotak(x, y + 12 - (ketik ? kiri : 0), 2, 5, W.kulit);      // lengan bawah kiri
+    kotak(x + 12, y + 12 - (ketik ? kanan : 0), 2, 5, W.kulit); // kanan
   }
+
 
   /* ---------------- Agen 1 (Claude) ----------------
      Kenapa bentuknya begini — tiga keputusan yang disengaja:
@@ -1704,7 +1723,7 @@
       gambarAuditor(t, ketik);
       daftarTombol('auditor-hadir', 'Auditor', AUDITOR.x + 6, AUDITOR.y + 5, 'sosok');
     } else {
-      gambarKursi(AUDITOR.x + 1, AUDITOR.y + 22, true);
+      gambarKursi(AUDITOR.x, AUDITOR.y + 25, true);
       daftarTombol('auditor', 'Auditor', AUDITOR.x + 8, AUDITOR.y + 13);
     }
     gambarTanaman(92, 162, true);

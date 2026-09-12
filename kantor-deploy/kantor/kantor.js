@@ -48,7 +48,7 @@
     kaosHitam:'#17161c', kaosGelap:'#0f0e13', jeans:'#2c3d61', jeansGelap:'#20304d',
     sepatu:'#e8e8e8',
     neonKuning:'#ffd93d', neonBiru:'#4db8ff',
-    neonUngu:'#c026d3', neonSian:'#22d3ee',
+    neonUngu:'#c026d3', neonSian:'#2ad4f0', neonAmber:'#ffa424',
     lampuGantung:'#f5c451', balok:'#2b3152',
     permadani:'#1c2547', permadaniTepi:'#2a3766',
     lemari:'#2a3050', lemariAtas:'#39406a',
@@ -76,7 +76,7 @@
   /* ---------------- tata letak ---------------- */
   var JENDELA = { x: 112, y: 12, w: 150, h: 88 };
   var NEON    = { x: 8,   y: 14, w: 104, h: 54 };
-  var PORS    = { x: 180, y: 78 };
+  var PORS    = { x: 179, y: 71 };   // sol mendarat di y=107, tepat di lantai
 
   var MEJA_H = 16;
   var MEJA_SEMUA = [
@@ -98,9 +98,16 @@
        meja, dan tanaman kecil yang mulai di x=339. */
     { x: 266, y: 160, w: 64, nama: "Porscy's Meta", isi: 'meta' }
   ];
-  // Duduk di sisi kiri meja; monitornya digeser ke kanan supaya
-  // dia tidak tertutup layarnya sendiri.
-  var AUDITOR = { x: 272, y: 96 };
+  /* Duduk TEPAT DI DEPAN monitor utamanya, di kursi, membelakangi kamera.
+
+     x=299: dulu 272 — ujung kiri meja sementara monitornya mulai di 292,
+     jadi lengannya menjulur menyamping untuk menggapai papan ketik.
+
+     y=92: dulu 89, dan itu membuatnya melayang setinggi layar alih-alih
+     duduk. Tutup meja ada di y=114; dengan y=92 bahunya jatuh di 106 dan
+     tangannya sampai ke papan ketik di 117 — badannya terpotong meja di
+     tempat yang benar untuk orang yang sedang duduk. */
+  var AUDITOR = { x: 299, y: 92 };
 
   /* ---------------- dinding bata ---------------- */
   var bataPola = null;
@@ -267,7 +274,7 @@
   if (document.fonts && document.fonts.load) {
     Promise.all([
       document.fonts.load('900 40px "Orbitron"'),
-      document.fonts.load('italic 600 28px "Cinzel"')
+      document.fonts.load('700 21px "Orbitron"')
     ]).then(function () { fontSiap = true; neonSiap = null; })
       .catch(function () { fontSiap = true; });
   } else {
@@ -280,41 +287,80 @@
     k.width = w; k.height = h;
     var c = k.getContext('2d');
 
-    /* Tiga lapis untuk tiap tulisan: pendar luar yang lebar, pendar
-       dalam yang rapat, lalu inti hampir putih. Itu yang membuat tabung
-       neon terasa berisi cahaya, bukan sekadar teks berwarna. */
-    function tulis(teks, y, warna, font, spasi) {
+    /* HURUF NEON HARUS PADAT, BUKAN BERONGGA.
+
+       Versi sebelumnya cuma memakai fillText berlapis. Hasilnya: pendar
+       menyala di tepi huruf sementara bagian dalamnya tetap gelap — huruf
+       terbaca sebagai garis tepi, bukan sebagai tabung berisi cahaya.
+
+       Yang memperbaikinya: strokeText DI SAMPING fillText pada tiap
+       lapis. Stroke menggemukkan glifnya dari luar, fill mengisi
+       dalamnya. Intinya tidak dibuat putih — di acuan hurufnya tetap
+       amber, cuma sedikit lebih terang di tengah. Inti putih membuatnya
+       terlihat seperti lampu sorot, bukan neon. */
+    function tulis(teks, y, warna, inti, font, spasi) {
       c.font = font;
       c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.lineJoin = 'round'; c.lineCap = 'round';
       if (c.letterSpacing !== undefined) c.letterSpacing = spasi || '0px';
       c.shadowColor = warna;
-      c.shadowBlur = 34; c.fillStyle = warna; c.fillText(teks, w / 2, y);
-      c.shadowBlur = 20; c.fillText(teks, w / 2, y);
-      c.shadowBlur = 10; c.fillText(teks, w / 2, y);
-      c.shadowBlur = 4;  c.fillStyle = '#fffdf6'; c.fillText(teks, w / 2, y);
+      [[30, 7, warna], [16, 4, warna], [0, 2, inti]].forEach(function (L) {
+        c.shadowBlur = L[0];
+        c.lineWidth = L[1];
+        c.strokeStyle = L[2];
+        c.fillStyle = L[2];
+        c.strokeText(teks, w / 2, y);
+        c.fillText(teks, w / 2, y);
+      });
       c.shadowBlur = 0;
       if (c.letterSpacing !== undefined) c.letterSpacing = '0px';
     }
 
-    // Garis tipis di atas & bawah tulisan atas — kesan panel futuristik.
-    function garis(y, lebar, warna) {
-      c.strokeStyle = warna; c.lineWidth = 1.5;
-      c.shadowColor = warna; c.shadowBlur = 10;
-      c.beginPath();
-      c.moveTo((w - lebar) / 2, y); c.lineTo((w + lebar) / 2, y);
-      c.stroke();
+    function tabung(jalur, warna, tebal) {
+      c.lineCap = 'round'; c.lineJoin = 'round';
+      c.shadowColor = warna;
+      [[30, tebal, warna], [14, tebal * .65, warna], [0, tebal * .34, '#fff6e0']]
+        .forEach(function (L) {
+          c.shadowBlur = L[0]; c.lineWidth = L[1]; c.strokeStyle = L[2];
+          c.beginPath(); jalur(c); c.stroke();
+        });
       c.shadowBlur = 0;
     }
 
-    // LORDPORS — Orbitron, huruf besar, berjarak lebar
-    garis(h * .10, w * .76, W.neonKuning);
-    tulis('LORDPORS', h * .30, W.neonKuning,
-          '900 40px "Orbitron", ui-monospace, monospace', '7px');
-    garis(h * .50, w * .76, W.neonKuning);
+    var A = W.neonAmber, S = W.neonSian;
 
-    // memento vivere — Cinzel miring, terasa seperti pahatan Latin
-    tulis('memento vivere', h * .76, W.neonBiru,
-          'italic 600 28px "Cinzel", Georgia, serif', '3px');
+    /* KAIT di kiri bawah — bentuk paling khas di acuan.
+       Bukan sudut membulat: tabungnya turun, MELINGKAR BALIK ke kiri,
+       lalu ujungnya menghadap ke dalam lagi. Itu yang membuatnya terbaca
+       sebagai tabung neon yang dibengkokkan tangan. */
+    tabung(function (c) {
+      c.moveTo(w * .20, h * .46);                                   // ujung kait
+      c.quadraticCurveTo(w * .07, h * .46, w * .065, h * .33);      // melingkar balik
+      c.lineTo(w * .065, h * .20);                                  // naik sisi kiri
+      c.quadraticCurveTo(w * .065, h * .085, w * .17, h * .085);    // belok di atas
+      c.lineTo(w * .87, h * .085);                                  // melintang
+      c.quadraticCurveTo(w * .955, h * .085, w * .955, h * .20);    // belok turun
+      c.lineTo(w * .955, h * .32);
+    }, A, 7);
+
+    tulis('LORDPORS', h * .36, A, '#ffd074',
+          '900 40px "Orbitron", ui-monospace, monospace', '7px');
+
+    // garis amber di bawah tulisan — di acuan setebal tabung utamanya
+    tabung(function (c) {
+      c.moveTo(w * .155, h * .565);
+      c.lineTo(w * .70, h * .565);
+    }, A, 6);
+
+    tulis('MEMENTO VIVERE', h * .73, S, '#9df0ff',
+          '700 20px "Orbitron", ui-monospace, monospace', '4px');
+
+    // tabung cyan menyerong di kanan bawah, penyeimbang kait amber
+    tabung(function (c) {
+      c.moveTo(w * .78, h * .59);
+      c.lineTo(w * .915, h * .75);
+      c.lineTo(w * .915, h * .92);
+    }, S, 6);
 
     neonSiap = k;
   }
@@ -435,14 +481,59 @@
   }
 
   /* ---------------- perabot & pernak-pernik ---------------- */
+  /* ---------------- tanaman ----------------
+     Versi lama: satu kotak pot dan empat kotak daun. Terbaca sebagai
+     rambu, bukan tanaman.
+
+     Tiga hal yang memperbaikinya, dan ketiganya kecil:
+       1. Pot MELEBAR KE ATAS. Pot yang sisinya tegak lurus terbaca
+          sebagai ember.
+       2. Garis lampu hangat di kaki pot — di acuan semua pot berdiri di
+          atas cahaya, itu yang menautkannya ke lantai.
+       3. Daun BERLAPIS dengan dua-tiga nada hijau dan panjang berbeda.
+          Daun sama panjang terbaca seperti sisir. */
   function gambarTanaman(x, y, besar) {
-    var s = besar ? 1.4 : 1;
-    kotak(x, y, 11 * s, 9 * s, W.pot);
-    kotak(x, y, 11 * s, 2, W.potGelap);
-    kotak(x + 2 * s, y - 9 * s, 7 * s, 9 * s, W.daun);
-    kotak(x - 1, y - 5 * s, 3 * s, 6 * s, W.daunTua);
-    kotak(x + 8 * s, y - 7 * s, 3 * s, 7 * s, W.daunTua);
-    kotak(x + 4 * s, y - 13 * s, 3 * s, 5 * s, W.daun);
+    var s = besar ? 1.5 : 1;
+    var lb = Math.round(12 * s), tg = Math.round(10 * s);
+
+    // --- daun: dari belakang ke depan ---
+    var pusat = x + lb / 2;
+    var helai = [
+      [-5.0, -10, W.daunTua], [ 5.0, -11, W.daunTua],   // lapis belakang
+      [-3.2, -16, W.daunTua], [ 3.4, -15, W.daunTua],
+      [-1.6, -20, W.daun],    [ 1.8, -19, W.daun],      // lapis tengah
+      [-4.2, -13, W.daun],    [ 4.4, -12, W.daun],
+      [ 0.0, -23, '#3d8a4e'],                           // pucuk paling terang
+      [-2.6, -17, '#3d8a4e'], [ 2.8, -16, '#3d8a4e']
+    ];
+    for (var i = 0; i < helai.length; i++) {
+      var h = helai[i];
+      var hx = pusat + h[0] * s - 1, panjang = Math.abs(h[1]) * s;
+      // batang miring: tiap helai dibuat dari 3 potong yang bergeser
+      for (var j = 0; j < 3; j++) {
+        var bagi = panjang / 3;
+        kotak(hx + h[0] * s * j * .16, y - bagi * (j + 1), 2, bagi + 1, h[2]);
+      }
+    }
+
+    // --- pot: melebar ke atas ---
+    kotak(x - 1, y, lb + 2, 2, W.potGelap);              // bibir pot
+    kotak(x, y, lb, 1, '#a06a48', .8);                   // kilau bibir
+    for (var k = 0; k < tg - 2; k++) {
+      var susut = Math.round(k * .35);
+      kotak(x + susut, y + 2 + k, lb - susut * 2, 1, k < 2 ? W.potGelap : W.pot);
+    }
+    kotak(x + 1, y + 2, 2, tg - 4, '#a06a48', .35);      // sorotan sisi kiri
+
+    // --- garis lampu di kaki pot ---
+    var kaki = y + tg;
+    kotak(x + Math.round((tg - 2) * .35), kaki, lb - Math.round((tg - 2) * .7), 1,
+          W.mejaLampu, .6);
+    var g = ctx.createRadialGradient(pusat * P, kaki * P, 0, pusat * P, kaki * P, 12 * s * P);
+    g.addColorStop(0, 'rgba(245,196,81,.16)');
+    g.addColorStop(1, 'rgba(245,196,81,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect((pusat - 12 * s) * P, (kaki - 8 * s) * P, 24 * s * P, 16 * s * P);
   }
 
   function gambarRak(x, y) {
@@ -469,17 +560,60 @@
     ctx.fillRect((x - 38) * P, (y - 32) * P, 88 * P, 80 * P);
   }
 
+  /* ---------------- jam dinding ----------------
+     Jam LED tujuh ruas, TANPA bingkai — angkanya melayang di dinding,
+     persis seperti foto acuan.
+
+     Yang membuatnya terbaca sebagai LED sungguhan bukan ruas yang
+     menyala, melainkan ruas yang MATI: di jam asli semua ruas tetap
+     samar terlihat sebagai bayangan abu. Tanpa bayangan itu, angkanya
+     cuma teks putih biasa. */
+  var RUAS = {
+    '0':'abcdef', '1':'bc',    '2':'abged', '3':'abgcd', '4':'fgbc',
+    '5':'afgcd', '6':'afgedc', '7':'abc',   '8':'abcdefg', '9':'abcdfg'
+  };
+
+  function gambarAngkaLED(dx, dy, ch, terang) {
+    var w = 7, h = 13, t = 2;                       // lebar, tinggi, tebal ruas
+    var letak = {
+      a: [dx + 1,     dy,         w - 2, t],
+      b: [dx + w - t, dy + 1,     t,     5],
+      c: [dx + w - t, dy + h - 6, t,     5],
+      d: [dx + 1,     dy + h - t, w - 2, t],
+      e: [dx,         dy + h - 6, t,     5],
+      f: [dx,         dy + 1,     t,     5],
+      g: [dx + 1,     dy + 6,     w - 2, t]
+    };
+    var nyala = RUAS[ch] || '';
+    for (var k in letak) {
+      var r = letak[k], on = nyala.indexOf(k) >= 0;
+      // ruas mati: bayangan samar. ruas nyala: putih kebiruan.
+      kotak(r[0], r[1], r[2], r[3], on ? '#e8f6ff' : '#2b3350', on ? terang : .5);
+    }
+  }
+
   function gambarJam(x, y) {
-    kotak(x, y, 38, 18, '#12141f');
-    kotak(x + 1, y + 1, 36, 16, '#0a0c14');
     var d = new Date();
-    var jam = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
-    ctx.font = '700 20px "Orbitron",ui-monospace,monospace';
-    ctx.fillStyle = '#67e8f9';
-    ctx.shadowColor = '#22d3ee'; ctx.shadowBlur = 14;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(jam, (x + 19) * P, (y + 9.5) * P);
-    ctx.shadowBlur = 0; ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+    var teks = ('0' + d.getHours()).slice(-2) + ('0' + d.getMinutes()).slice(-2);
+    var detik = d.getSeconds();
+    var terang = .92;
+
+    // pendar dingin di belakang angka — sumber cahayanya, bukan kotaknya
+    var cx = (x + 18) * P, cy = (y + 7) * P;
+    var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 30 * P);
+    g.addColorStop(0, 'rgba(190,232,255,.16)');
+    g.addColorStop(1, 'rgba(190,232,255,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(cx - 30 * P, cy - 24 * P, 60 * P, 48 * P);
+
+    gambarAngkaLED(x,      y, teks[0], terang);
+    gambarAngkaLED(x + 9,  y, teks[1], terang);
+    // titik dua berkedip tiap detik, seperti jam sungguhan
+    var kedipTitik = detik % 2 ? .28 : .95;
+    kotak(x + 19, y + 3,  2, 2, '#e8f6ff', kedipTitik);
+    kotak(x + 19, y + 8,  2, 2, '#e8f6ff', kedipTitik);
+    gambarAngkaLED(x + 23, y, teks[2], terang);
+    gambarAngkaLED(x + 32, y, teks[3], terang);
   }
 
   function gambarKopi(x, y) {
@@ -489,28 +623,119 @@
   }
 
   /* ---------------- meja ---------------- */
-  function gambarMonitor(mx, my, lb, tg, hidup, t, seed) {
-    kotak(mx - 1, my - 1, lb + 2, tg + 2, W.layarBingkai);
-    kotak(mx, my, lb, tg, hidup ? '#0d1a2e' : W.layarMati);
-    if (hidup) {
-      var warna = [W.kodeHijau, W.kodeBiru, W.kodeUngu, W.kodeKuning];
-      for (var i = 0; i * 3 + 2 < tg; i++) {
-        var w2 = 2 + ((Math.sin(t / 260 + i * 1.4 + seed) * .5 + .5) * (lb - 4)) | 0;
-        ctx.globalAlpha = .5 + .35 * Math.sin(t / 400 + i + seed);
-        kotak(mx + 2, my + 2 + i * 3, w2, 1, warna[(i + seed) % 4]);
-      }
+  /* ---------------- monitor ----------------
+     Dulu semua layar menampilkan hal yang sama: garis kode berkedip.
+     Sembilan layar dengan isi identik terbaca sebagai tekstur, bukan
+     sebagai pekerjaan. Sekarang isinya dipilih dari `seed`, jadi tiap
+     meja menampilkan sesuatu yang berbeda dan tetap tetap begitu —
+     bukan berganti-ganti acak tiap bingkai, yang justru gelisah. */
+  function layarKode(mx, my, lb, tg, t, seed) {
+    var warna = [W.kodeHijau, W.kodeBiru, W.kodeUngu, W.kodeKuning];
+    for (var i = 0; i * 3 + 2 < tg; i++) {
+      var w2 = 2 + ((Math.sin(t / 260 + i * 1.4 + seed) * .5 + .5) * (lb - 4)) | 0;
+      ctx.globalAlpha = .5 + .35 * Math.sin(t / 400 + i + seed);
+      kotak(mx + 2, my + 2 + i * 3, w2, 1, warna[(i + seed) % 4]);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function layarBatang(mx, my, lb, tg, t, seed) {
+    var n = Math.max(3, Math.min(6, (lb - 4) >> 2));
+    var lebar = 2, sela = ((lb - 4) - n * lebar) / Math.max(1, n - 1);
+    for (var i = 0; i < n; i++) {
+      var h = 2 + ((Math.sin(t / 900 + i * 1.7 + seed) * .5 + .5) * (tg - 6)) | 0;
+      kotak(mx + 2 + i * (lebar + sela), my + tg - 2 - h, lebar, h,
+            [W.kodeBiru, W.kodeUngu, W.kodeHijau][(i + seed) % 3], .85);
+    }
+    kotak(mx + 2, my + tg - 2, lb - 4, 1, '#3b4668');       // sumbu
+  }
+
+  function layarGaris(mx, my, lb, tg, t, seed) {
+    var n = lb - 4;
+    for (var i = 0; i < n; i++) {
+      var y0 = (Math.sin((i + seed * 3) / 2.6 + t / 1100) * .5 + .5) * (tg - 6);
+      kotak(mx + 2 + i, my + 2 + y0, 1, 1, W.kodeBiru, .9);
+      // bayangan tipis di bawah garis supaya terbaca sebagai grafik
+      kotak(mx + 2 + i, my + 3 + y0, 1, tg - 5 - y0, W.kodeBiru, .12);
+    }
+    kotak(mx + 2, my + tg - 2, lb - 4, 1, '#3b4668');
+  }
+
+  function layarSimpul(mx, my, lb, tg, t, seed) {
+    var titik = [[.22,.28],[.62,.20],[.45,.55],[.80,.62],[.28,.78]];
+    for (var i = 0; i < titik.length - 1; i++) {
+      var x1 = mx + 2 + titik[i][0] * (lb - 4), y1 = my + 2 + titik[i][1] * (tg - 4);
+      var x2 = mx + 2 + titik[i+1][0] * (lb - 4), y2 = my + 2 + titik[i+1][1] * (tg - 4);
+      ctx.strokeStyle = W.kodeBiru; ctx.globalAlpha = .45;
+      ctx.lineWidth = Math.max(1, P * .4);
+      ctx.beginPath(); ctx.moveTo(x1 * P, y1 * P); ctx.lineTo(x2 * P, y2 * P); ctx.stroke();
       ctx.globalAlpha = 1;
-    } else {
-      kotak(mx + 1, my + 1, lb - 2, 2, '#1a1e2c', .8);
+    }
+    for (var j = 0; j < titik.length; j++) {
+      var kd = .6 + .4 * Math.sin(t / 700 + j + seed);
+      kotak(mx + 1 + titik[j][0] * (lb - 4), my + 1 + titik[j][1] * (tg - 4), 2, 2,
+            j % 2 ? W.kodeHijau : W.kodeBiru, kd);
     }
   }
 
+  function layarPapan(mx, my, lb, tg, t, seed) {
+    // lingkaran kemajuan + dua baris angka
+    var cx = (mx + lb * .68) * P, cy = (my + tg * .45) * P, r = Math.min(lb, tg) * .22 * P;
+    ctx.strokeStyle = '#27314f'; ctx.lineWidth = Math.max(1, P * .7);
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.2832); ctx.stroke();
+    ctx.strokeStyle = W.kodeBiru;
+    var maju = .35 + .3 * (Math.sin(t / 1500 + seed) * .5 + .5);
+    ctx.beginPath(); ctx.arc(cx, cy, r, -1.57, -1.57 + 6.2832 * maju); ctx.stroke();
+    for (var i = 0; i < 3; i++)
+      kotak(mx + 2, my + 3 + i * 4, 3 + ((i + seed) % 4), 2,
+            [W.kodeHijau, W.kodeKuning, W.kodeUngu][i], .8);
+  }
+
+  var LAYAR = [layarKode, layarBatang, layarGaris, layarSimpul, layarPapan];
+
+  function gambarMonitor(mx, my, lb, tg, hidup, t, seed, kaki) {
+    // kaki & leher dulu, supaya badan monitor menimpanya
+    if (kaki) {
+      kotak(mx + lb / 2 - 1, my + tg + 1, 2, 2, '#2b3252');
+      kotak(mx + lb / 2 - 4, my + tg + 3, 8, 1, '#343c60');
+    }
+    kotak(mx - 1, my - 1, lb + 2, tg + 2, W.layarBingkai);   // bingkai
+    kotak(mx - 1, my - 1, lb + 2, 1, '#2a3352');             // kilau tepi atas
+    kotak(mx, my, lb, tg, hidup ? '#0b1730' : W.layarMati);
+
+    if (hidup) {
+      LAYAR[seed % LAYAR.length](mx, my, lb, tg, t, seed);
+      // pendar layar ke ruangan
+      var g = ctx.createRadialGradient((mx + lb / 2) * P, (my + tg / 2) * P, 0,
+                                       (mx + lb / 2) * P, (my + tg / 2) * P, lb * P);
+      g.addColorStop(0, 'rgba(103,232,249,.10)');
+      g.addColorStop(1, 'rgba(103,232,249,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect((mx - lb / 2) * P, (my - tg / 2) * P, lb * 2 * P, tg * 2 * P);
+    } else {
+      kotak(mx + 1, my + 1, lb - 2, 2, '#1a1e2c', .8);       // pantulan mati
+    }
+  }
+
+  /* ---------------- kursi kantor ----------------
+     Dulu cuma dua kotak bertumpuk. Kursi kantor punya bentuk yang sangat
+     dikenali — sandaran kepala, sandaran punggung, sandaran tangan, dan
+     kaki bintang lima. Empat bagian itu yang membuatnya terbaca sebagai
+     kursi kerja, bukan bangku. */
   function gambarKursi(x, y, kosong) {
-    kotak(x + 1, y - 10, 12, 10, W.kursi);
-    kotak(x + 1, y - 10, 12, 1, W.kursiTerang);
-    kotak(x, y, 14, 3, W.kursiTerang);
-    kotak(x + 6, y + 3, 2, 5, '#241f33');
-    kotak(x + 1, y + 8, 12, 2, '#241f33');
+    kotak(x + 3, y - 15, 8, 4, W.kursi);                 // sandaran kepala
+    kotak(x + 4, y - 15, 6, 1, W.kursiTerang);
+    kotak(x + 1, y - 11, 12, 11, W.kursi);               // sandaran punggung
+    kotak(x + 2, y - 10, 10, 1, W.kursiTerang, .8);
+    kotak(x + 2, y - 6, 10, 1, '#1e2338', .6);           // jahitan tengah
+    kotak(x, y - 7, 1, 5, W.kursiTerang);                // sandaran tangan
+    kotak(x + 13, y - 7, 1, 5, W.kursiTerang);
+    kotak(x, y, 14, 3, W.kursiTerang);                   // dudukan
+    kotak(x, y, 14, 1, '#4a5480', .7);
+    kotak(x + 6, y + 3, 2, 4, '#20253c');                // silinder gas
+    kotak(x + 1, y + 7, 12, 1, '#20253c');               // kaki bintang
+    kotak(x + 3, y + 8, 2, 1, '#171b2e');                // roda
+    kotak(x + 9, y + 8, 2, 1, '#171b2e');
   }
 
   function gambarSatuMeja(m, t, ketik) {
@@ -522,6 +747,18 @@
     // Garis lampu kuning tipis di bawah tutup meja. Di referensi inilah
     // yang membuat deretan meja terbaca di ruangan yang gelap.
     kotak(m.x + 2, y + MEJA_H - 5, m.w - 4, 1, W.mejaLampu, .55);
+
+    /* Unit laci. Dipasang di sisi yang JAUH dari kursi, supaya tidak
+       terlihat menembus kaki orang yang duduk. Tiga laci dengan pegangan
+       terang — itu yang membuat meja terbaca sebagai perabot kantor,
+       bukan papan bertumpu. */
+    var lx = (m.laciKanan === false) ? (m.x + 2) : (m.x + m.w - 16);
+    kotak(lx, y + 2, 14, MEJA_H - 4, '#232a48');
+    kotak(lx, y + 2, 14, 1, '#323a60');
+    for (var li = 0; li < 3; li++) {
+      kotak(lx + 1, y + 3 + li * 3, 12, 2, '#2b3354');
+      kotak(lx + 4, y + 4 + li * 3, 6, 1, W.mejaLampu, .5);
+    }
 
     if (m.isi === 'monitor6') {
       // dinding monitor: dua baris tiga layar
@@ -536,11 +773,14 @@
       gambarKursi(m.x + 30, y + MEJA_H + 2);
       gambarKopi(m.x + 6, y + 3);
     } else if (m.isi === 'auditor') {
-      gambarMonitor(m.x + 24, y - 25, 30, 22, ketik, t, 1);
-      gambarMonitor(m.x + 57, y - 21, 23, 18, ketik, t, 2);
-      kotak(m.x + 4, y + 3, 24, 4, '#2a2f44');      // papan ketik
-      kotak(m.x + 30, y + 4, 5, 3, '#2a2f44');      // tetikus
-      gambarKopi(m.x + 72, y + 2);
+      /* Monitor utama di 290..320 (pusat 305), dan auditor duduk di
+         300..311. Papan ketiknya HARUS tepat di bawah keduanya — kalau
+         digeser, lengannya kembali terlihat menggapai menyamping. */
+      gambarMonitor(m.x + 22, y - 25, 30, 22, ketik, t, 1, true);
+      gambarMonitor(m.x + 56, y - 21, 22, 18, ketik, t, 4, true);
+      kotak(m.x + 26, y + 3, 24, 4, '#2a2f44');     // papan ketik, di depannya
+      kotak(m.x + 52, y + 4, 5, 3, '#2a2f44');      // tetikus
+      // Tidak ada cangkir di sini. Hanya meja Porscy yang punya kopi.
     } else if (m.isi === 'meta') {
       /* Masih kosong — menunggu jalur WhatsApp/Instagram disiapkan.
 
@@ -590,7 +830,7 @@
       // bisa duduk di kiri sambil menghadapnya. Waktu meja kosong,
       // monitornya kembali ke tengah agar terlihat rapi.
       var mxm = nyala ? (m.x + m.w - 32) : (m.x + m.w / 2 - 13);
-      gambarMonitor(mxm, y - 22, 26, 19, nyala, t, m === MEJA_SEMUA[2] ? 4 : 3);
+      gambarMonitor(mxm, y - 22, 26, 19, nyala, t, m === MEJA_SEMUA[2] ? 2 : 3, true);
       kotak(mxm + 1, y + 3, 24, 4, '#252a3c');
       if (!nyala) {
         gambarKursi(m.x + m.w / 2 - 7, y + MEJA_H + 2, true);
@@ -624,7 +864,9 @@
         fs *= (MAKS / (lt + fs * 1.25)) * .99;
       }
 
-      var px = (m.x + m.w / 2) * P, py = (y + 8) * P;
+      // y+4, bukan y+8. Papan nama duduk di bagian ATAS muka meja;
+      // ruang di bawahnya disisakan untuk tombol +.
+      var px = (m.x + m.w / 2) * P, py = (y + 4) * P;
       var pw = lt + fs * 1.25, ph = fs * 1.45;
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillStyle = 'rgba(10,8,22,.95)';
@@ -637,32 +879,99 @@
     }
   }
 
-  /* ---------------- wanita auditor ---------------- */
+  /* ---------------- wanita auditor ----------------
+     DUDUK DI KURSI, LURUS MEMBELAKANGI KAMERA.
+
+     Monitornya menyala menghadap kamera. Orang yang membaca layar itu
+     harus berada di sisi yang sama dengan kamera dan memunggunginya —
+     jadi yang benar terlihat cuma punggung, tengkuk, dan rambutnya.
+
+     Dua hal yang dulu salah, dan keduanya sekaligus membuatnya terbaca
+     sebagai orang yang MENGHADAP kamera sambil melayang:
+
+       1. Ada sepetak KULIT di tengah tengkorak. Kepalanya digambar
+          sebagai blok kulit lalu rambut cuma ditempel di atas dan di
+          kedua sisi, menyisakan kulit 6x3 piksel tepat di tengah muka.
+          Pada sosok selebar 13 piksel, petak sebesar itu tidak terbaca
+          sebagai belakang kepala — terbaca sebagai WAJAH. Sekarang
+          seluruh tengkoraknya rambut; kulit hanya muncul di tengkuk,
+          di bawah garis rambut, selebar 4 piksel.
+
+       2. Kursinya tidak kelihatan sama sekali. Sandarannya cuma 19
+          piksel — lebih sempit daripada bentangan lengannya sendiri
+          (yang 17), jadi yang tersisa cuma serpih 2 piksel di tepi,
+          berwarna hampir sama dengan bingkai monitor di belakangnya.
+          Tanpa kursi, sosok yang melayang di depan layar tidak punya
+          apa pun yang memberitahu dia sedang duduk. Sekarang sandaran-
+          nya 24 piksel dengan rim terang dan sandaran tangan menonjol
+          keluar — jelas melingkupi tubuhnya.
+
+     Penanda punggung yang paling kuat justru yang paling sederhana:
+     EKOR KUDA DIGAMBAR DI ATAS KEMEJA. Hitam di atas putih, jatuh lurus
+     di tengah punggung. Dulu ekornya digambar sebelum badan, jadi
+     tertimbun kemeja dan hilang sama sekali.
+
+     Semua simetris terhadap sumbu x+6,5. Kalau menambah sesuatu,
+     tambahkan sepasang — asimetri sekecil apa pun langsung terbaca
+     sebagai badan yang berputar. */
   function gambarAuditor(t, ketik) {
     var x = AUDITOR.x, y = AUDITOR.y;
-    kotak(x - 2, y + 4, 15, 15, W.kursi);
-    kotak(x - 2, y + 4, 15, 1, W.kursiTerang);
-    kotak(x - 1, y + 1, 13, 17, W.rambutHitam);          // rambut panjang
-    kotak(x + 2, y + 8, 9, 10, W.bajuPutih);
-    kotak(x + 2, y + 8, 9, 1, W.bajuPutihBayang);
 
-    var goyang = ketik ? (Math.floor(t / 110) % 2) : 0;
-    kotak(x, y + 11, 3, 6, W.bajuPutih);
-    kotak(x + 10, y + 11, 3, 6, W.bajuPutih);
-    kotak(x, y + 17 - goyang, 3, 2, W.kulit);
-    kotak(x + 10, y + 17 - (1 - goyang), 3, 2, W.kulit);
+    /* --- kursi kerja, digambar DULU supaya dia bersandar di depannya ---
+       Sudut atasnya dipangkas satu piksel di kiri-kanan; tanpa itu
+       sandarannya terbaca sebagai peti, bukan kursi. */
+    kotak(x - 5, y + 12, 24, 13, W.kursi);
+    kotak(x - 6, y + 14, 1, 9, W.kursi);                 // pinggul kiri
+    kotak(x + 19, y + 14, 1, 9, W.kursi);                // pinggul kanan
+    kotak(x - 4, y + 11, 22, 1, W.kursi);                // puncak
+    kotak(x - 4, y + 11, 22, 1, W.kursiTerang, .9);      // rim puncak
+    kotak(x - 5, y + 12, 1, 13, W.kursiTerang, .55);     // rim kiri
+    kotak(x + 18, y + 12, 1, 13, W.kursiTerang, .55);    // rim kanan
+    kotak(x + 6, y + 13, 1, 12, '#1e2338', .45);         // jahitan tengah
+    kotak(x - 8, y + 16, 2, 7, W.kursiTerang, .85);      // sandaran tangan kiri
+    kotak(x + 20, y + 16, 2, 7, W.kursiTerang, .85);     // kanan
 
-    kotak(x + 3, y, 8, 9, W.kulit);                       // kepala
-    kotak(x + 3, y - 1, 8, 3, W.rambutHitam);
-    kotak(x + 2, y, 1, 10, W.rambutHitam);
-    kotak(x + 11, y, 1, 10, W.rambutHitam);
-    kotak(x + 12, y + 3, 2, 8, W.rambutHitam);            // kuncir
+    /* --- kepala dari belakang: seluruhnya rambut, tanpa sepetak kulit --- */
+    kotak(x + 2, y + 1, 10, 11, W.rambutHitam);          // tengkorak
+    kotak(x + 1, y + 4, 1, 7, W.rambutHitam);            // rambut sisi kiri
+    kotak(x + 12, y + 4, 1, 7, W.rambutHitam);           // sisi kanan
+    kotak(x + 3, y, 8, 2, '#1d1822');                    // kilau ubun-ubun
+    kotak(x + 4, y + 2, 6, 1, '#2a2130', .55);
+    kotak(x + 5, y + 12, 4, 2, W.kulitGelap);            // tengkuk
 
-    kotak(x + 4, y + 3, 2, 2, W.kaca, .92);               // kacamata
-    kotak(x + 7, y + 3, 2, 2, W.kaca, .92);
-    kotak(x + 6, y + 3, 1, 1, W.bingkai);
-    kotak(x + 3, y + 3, 1, 1, W.bingkai);
-    kotak(x + 9, y + 3, 1, 1, W.bingkai);
+    /* --- gagang kacamata, sepasang ---
+       Dari belakang inilah satu-satunya bagian kacamata yang memang
+       terlihat. Menggambar lensa di sini akan jadi kebohongan kecil:
+       dari sudut ini lensanya ada di sisi lain kepalanya. */
+    kotak(x, y + 7, 2, 1, W.bingkai, .95);
+    kotak(x + 12, y + 7, 2, 1, W.bingkai, .95);
+    kotak(x, y + 7, 1, 1, '#d8e6ee', .5);                // kilau logam
+    kotak(x + 13, y + 7, 1, 1, '#d8e6ee', .5);
+
+    /* --- punggung berkemeja putih --- */
+    kotak(x + 1, y + 14, 12, 11, W.bajuPutih);
+    kotak(x + 1, y + 14, 12, 1, W.bajuPutihBayang);      // garis bahu
+    kotak(x + 2, y + 14, 3, 1, '#dfe4ee');               // kerah kiri
+    kotak(x + 9, y + 14, 3, 1, '#dfe4ee');               // kerah kanan
+
+    /* --- ekor kuda, DI ATAS kemeja --- */
+    kotak(x + 5, y + 13, 4, 1, '#4a3a58');               // pita ikat
+    kotak(x + 5, y + 14, 4, 9, W.rambutHitam);           // ekor
+    kotak(x + 5, y + 21, 4, 3, '#0f0c14');               // ujung
+    kotak(x + 5, y + 15, 1, 7, '#2c2436', .8);           // helai sorot
+
+    /* --- kedua lengan, simetris, menjulur ke depan ---
+       Kain sampai siku lalu kulit: itu satu-satunya penanda "lengan
+       pendek" pada sosok sekecil ini. Kedua tangan mengetik bergantian,
+       dan ujungnya sampai di y+26 — tepat menyentuh papan ketik di 117. */
+    var kiri = ketik ? (Math.floor(t / 110) % 2) : 0;
+    var kanan = 1 - kiri;
+    kotak(x - 1, y + 16, 3, 5, W.bajuPutih);             // lengan atas kiri
+    kotak(x + 12, y + 16, 3, 5, W.bajuPutih);            // lengan atas kanan
+    kotak(x - 1, y + 20, 3, 1, '#cdd4e2');               // ujung lengan kiri
+    kotak(x + 12, y + 20, 3, 1, '#cdd4e2');              // ujung lengan kanan
+    kotak(x, y + 21 - (ketik ? kiri : 0), 2, 5, W.kulit);      // lengan bawah kiri
+    kotak(x + 12, y + 21 - (ketik ? kanan : 0), 2, 5, W.kulit); // kanan
   }
 
   /* ---------------- Agen 1 (Claude) ----------------
@@ -690,9 +999,10 @@
     var m = MEJA_SEMUA[1];
     var x = m.x + 8, y = m.y - 18;
 
-    // kursi digambar utuh; tubuh di atasnya nanti tembus pandang
-    kotak(x - 2, y + 4, 15, 15, W.kursi);
-    kotak(x - 2, y + 4, 15, 1, W.kursiTerang);
+    /* Kursinya digambar UTUH dan padat, tubuh di atasnya yang tembus
+       pandang. Itu yang membuat ketembusan terbaca: ada benda nyata di
+       belakangnya untuk dilihat menembus. */
+    gambarKursi(x - 2, y + 14, false);
 
     // pendar lembut di sekeliling — menandakan kehadiran, bukan benda
     var nadi = .5 + .5 * Math.sin(t / 620);
@@ -706,8 +1016,10 @@
     ctx.globalAlpha = .84;                       // tembus pandang
 
     kotak(x + 2, y + 8, 9, 10, W.a1Badan);
+    kotak(x + 1, y + 9, 11, 2, W.a1Badan);            // bahu sedikit melebar
     kotak(x + 2, y + 8, 9, 1, W.a1Tepi);
     kotak(x + 2, y + 14, 9, 4, W.a1BadanGelap);
+    kotak(x + 6, y + 10, 1, 8, W.a1Tepi, .35);        // garis tengah badan
 
     // Kedua lengan menjulur ke KANAN, ke arah papan ketik di bawah
     // monitor — memperkuat bacaan bahwa dia menghadap layar.
@@ -778,9 +1090,7 @@
     var m = MEJA_SEMUA[2];
     var x = m.x + 8, y = m.y - 18;
 
-    // kursi digambar utuh; tubuh di atasnya nanti tembus pandang
-    kotak(x - 2, y + 4, 15, 15, W.kursi);
-    kotak(x - 2, y + 4, 15, 1, W.kursiTerang);
+    gambarKursi(x - 2, y + 14, false);
 
     // Denyut sengaja lebih lambat dari Agen 1 (620) supaya kalau kami
     // berdua duduk bersamaan, ruangan tidak berdenyut serempak seperti
@@ -796,8 +1106,10 @@
     ctx.globalAlpha = .72;                       // lebih samar dari Agen 1
 
     kotak(x + 2, y + 8, 9, 10, W.a2Badan);
+    kotak(x + 1, y + 9, 11, 2, W.a2Badan);
     kotak(x + 2, y + 8, 9, 1, W.a2Tepi);
     kotak(x + 2, y + 14, 9, 4, W.a2BadanGelap);
+    kotak(x + 6, y + 10, 1, 8, W.a2Tepi, .35);
 
     // Kedua lengan menjulur ke KANAN, ke papan ketik di bawah monitor —
     // pola yang sama dengan Agen 1, supaya kami terbaca sebagai sepasang.
@@ -846,38 +1158,79 @@
                 agen1.aktif ? 1 : 0);
   }
 
-  /* ---------------- LordPors ---------------- */
+  /* ---------------- LordPors ----------------
+     DIKECILKAN dari 47 ke 36 satuan. Versi sebelumnya terlalu besar
+     untuk ruangan setinggi 190 — dia lebih tinggi dari jendelanya
+     sendiri, dan itu membuat kantornya terasa seperti rumah boneka.
+
+     Dua kali pelajaran yang sama muncul di sesi ini, dan arahnya
+     berlawanan: sosok yang terlalu KECIL tidak bisa memuat detail,
+     sosok yang terlalu BESAR merusak skala ruangan. Ukuran yang benar
+     ditemukan dari perbandingan dengan perabot di sekitarnya, bukan
+     dari keinginan menambah detail.
+
+     Berdiri membelakangi penonton, memandangi kota. Cahaya datang dari
+     BELAKANG, jadi yang menyala tepinya. */
   function gambarPors(t) {
     var x = PORS.x, y = PORS.y;
     var napas = Math.sin(t / 1500) * .4;
 
-    ctx.globalAlpha = .3; kotak(x - 1, y + 27, 13, 2, '#000'); ctx.globalAlpha = 1;
+    ctx.globalAlpha = .36; kotak(x - 1, y + 35, 15, 2, '#000'); ctx.globalAlpha = 1;
 
-    kotak(x + 1, y + 18, 4, 9, W.jeans);
-    kotak(x + 7, y + 18, 4, 9, W.jeans);
-    kotak(x + 1, y + 18, 4, 1, W.jeansGelap);
-    kotak(x + 7, y + 18, 4, 1, W.jeansGelap);
-    kotak(x + 1, y + 27, 4, 2, W.sepatu);                 // sepatu putih
-    kotak(x + 7, y + 27, 4, 2, W.sepatu);
+    // ---- kaki: jeans ----
+    kotak(x + 1, y + 21, 4, 10, W.jeans);
+    kotak(x + 8, y + 21, 4, 10, W.jeans);
+    kotak(x + 1, y + 21, 4, 1, W.jeansGelap);
+    kotak(x + 8, y + 21, 4, 1, W.jeansGelap);
+    kotak(x + 5, y + 22, 3, 9, W.jeansGelap, .8);       // celah antar kaki
+    kotak(x + 1, y + 27, 4, 1, W.jeansGelap, .45);      // lipatan lutut
+    kotak(x + 8, y + 27, 4, 1, W.jeansGelap, .45);
 
-    kotak(x, y + 7 + napas, 12, 11, W.kaosHitam);
-    kotak(x, y + 7 + napas, 12, 1, '#21212b');
-    kotak(x + 5, y + 8 + napas, 1, 10, W.kaosGelap);
-    kotak(x + 2, y + 5 + napas, 8, 3, W.kaosGelap);       // tudung hoodie
+    /* ---- Converse high-top, tampak dari belakang ----
+       Tiga hal yang membuatnya dikenali sekecil ini: kerah mata kaki
+       yang naik melewati ujung celana, sol karet krem, dan garis gelap
+       tipis di antara kanvas dan sol. Tanpa garis itu, keduanya melebur
+       jadi satu blok putih. */
+    for (var S = 0; S < 2; S++) {
+      var sx = x + 1 + S * 7;
+      kotak(sx, y + 30, 4, 2, W.sepatu);                // kerah mata kaki
+      kotak(sx, y + 30, 4, 1, '#ffffff', .8);
+      kotak(sx, y + 32, 4, 2, W.sepatu);                // kanvas tumit
+      kotak(sx + 1, y + 32, 2, 2, '#e2e2e8');
+      kotak(sx, y + 34, 4, 1, '#2a2a33');               // garis pemisah
+      kotak(sx, y + 35, 4, 1, '#efe6d4');               // sol karet
+    }
 
-    kotak(x - 2, y + 8 + napas, 2, 9, W.kaosHitam);
-    kotak(x + 12, y + 8 + napas, 2, 9, W.kaosHitam);
-    kotak(x - 2, y + 17 + napas, 2, 2, W.kulitGelap);
-    kotak(x + 12, y + 17 + napas, 2, 2, W.kulitGelap);
+    // ---- badan: hoodie ----
+    kotak(x, y + 9 + napas, 13, 13, W.kaosHitam);
+    kotak(x, y + 9 + napas, 13, 1, '#25252f');
+    kotak(x + 6, y + 11 + napas, 1, 11, W.kaosGelap, .85);   // jahitan punggung
+    kotak(x + 2, y + 17 + napas, 9, 2, W.kaosGelap, .8);     // kantong
+    kotak(x, y + 20 + napas, 13, 2, W.kaosGelap);            // karet bawah
 
-    kotak(x + 3, y, 7, 8, W.rambutHitam);                 // kepala dari belakang
-    kotak(x + 3, y - 1, 7, 3, '#1d1721');
-    kotak(x + 4, y + 6, 5, 2, W.kulitGelap);              // tengkuk
-    kotak(x + 2, y + 1, 1, 5, W.rambutHitam);
-    kotak(x + 10, y + 1, 1, 5, W.rambutHitam);
+    // ---- lengan ----
+    kotak(x - 2, y + 10 + napas, 2, 11, W.kaosHitam);
+    kotak(x + 13, y + 10 + napas, 2, 11, W.kaosHitam);
+    kotak(x - 2, y + 19 + napas, 2, 2, W.kaosGelap);         // karet pergelangan
+    kotak(x + 13, y + 19 + napas, 2, 2, W.kaosGelap);
+    kotak(x - 2, y + 21 + napas, 2, 2, W.kulitGelap);        // tangan
+    kotak(x + 13, y + 21 + napas, 2, 2, W.kulitGelap);
 
-    kotak(x - 2, y + 8 + napas, 1, 10, '#7d8db5', .55);   // sapuan cahaya
-    kotak(x + 2, y - 1, 1, 8, '#7d8db5', .45);
+    // ---- tudung NAIK ----
+    kotak(x + 2, y, 9, 10, W.kaosGelap);
+    kotak(x + 3, y - 1, 7, 2, W.kaosGelap);                  // puncak
+    kotak(x, y + 6, 13, 4, W.kaosGelap);                     // pangkal di bahu
+    kotak(x + 4, y + 6, 5, 3, '#09080c');                    // rongga dalam
+    kotak(x + 4, y + 10 + napas, 1, 4, '#dcdce2', .8);       // tali tudung
+    kotak(x + 8, y + 10 + napas, 1, 3, '#dcdce2', .6);
+
+    /* ---- sapuan cahaya tepi ----
+       Jendela ada di belakangnya: biru dari kiri, ungu kota dari kanan.
+       Tanpa ini dia jadi lubang hitam di tengah pemandangan terang. */
+    kotak(x - 2, y + 10 + napas, 1, 12, '#93a9de', .7);
+    kotak(x + 2, y - 1, 1, 10, '#93a9de', .6);
+    kotak(x + 3, y - 1, 7, 1, '#aebbe8', .5);
+    kotak(x + 14, y + 10 + napas, 1, 11, '#c084fc', .45);
   }
 
   /* ---------------- balon teks — dipakai semua penghuni ----------------
@@ -1101,7 +1454,11 @@
   }
 
   function gambarTombolTambah(x, y, t) {
-    var r = 5.2, cx = x * P, cy = y * P, rp = r * P;
+    /* Radius 5,2 dulu menabrak papan nama di atasnya — lingkarannya
+       memanjat sampai ke tengah papan. Dikecilkan ke 3,4, dan papan
+       namanya sekaligus dinaikkan. Radius SENTUH (11) tidak ikut
+       dikecilkan: yang perlu kecil gambarnya, bukan sasarannya. */
+    var r = 3.4, cx = x * P, cy = y * P, rp = r * P;
     var nadi = .5 + .5 * Math.sin(t / 780);
 
     var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rp * 2.6);
@@ -1325,27 +1682,31 @@
        kusen jendela berakhir di x=265 (JENDELA.x-3 + JENDELA.w+6), dan
        dinding habis di x=360. Dulu jam dipasang di 262 — masuk ke dalam
        kusen, itu yang terlihat berdempetan. Sekarang:
-         jam  272..310  (jarak 7 dari kusen)
-         rak  318..352  (jarak 8 dari jam, sisa 8 ke tepi kanan)
-       Keduanya dipusatkan di y=29 supaya sejajar: jam 20..38, rak 16..42.
+         jam  272..311  (jarak 7 dari kusen; LED 7 ruas, tanpa bingkai)
+         rak  318..352  (jarak 7 dari jam, sisa 8 ke tepi kanan)
+       Jam kini setinggi 13 (y 22..35), rak 16..42 — keduanya tetap
+       berpusat di sekitar y=29.
        Kalau salah satunya diubah lebarnya, hitung ulang ketiga jarak itu. */
-    gambarJam(272, 20);
+    gambarJam(272, 22);
     gambarRak(318, 26);
     gambarLampu(254, 96, t);
     gambarPors(t);
-    if (auditorHadir()) {
-      gambarAuditor(t, ketik);
-      daftarTombol('auditor-hadir', 'Auditor', AUDITOR.x + 7, AUDITOR.y + 4, 'sosok');
-    } else {
-      // Kursi kosong di tempat dia biasa duduk, bukan kursi yang hilang.
-      // Meja yang kehilangan kursinya terbaca seperti meja yang dibongkar.
-      gambarKursi(AUDITOR.x, AUDITOR.y + 9, true);
-      daftarTombol('auditor', 'Auditor', AUDITOR.x + 7, AUDITOR.y + 3);
-    }
     gambarAgen1(t);
     gambarAgen2(t);
     tentukanPapan();
     for (var i = 0; i < MEJA_SEMUA.length; i++) gambarSatuMeja(MEJA_SEMUA[i], t, ketik);
+
+    /* Auditor digambar SESUDAH meja — dia duduk di antara kamera dan
+       monitornya, jadi tubuhnya menutupi meja, bukan sebaliknya.
+       Agen 1 & 2 tetap digambar SEBELUM meja: mereka duduk di sisi jauh,
+       dan muka meja memang seharusnya menutupi kaki mereka. */
+    if (auditorHadir()) {
+      gambarAuditor(t, ketik);
+      daftarTombol('auditor-hadir', 'Auditor', AUDITOR.x + 6, AUDITOR.y + 5, 'sosok');
+    } else {
+      gambarKursi(AUDITOR.x + 1, AUDITOR.y + 22, true);
+      daftarTombol('auditor', 'Auditor', AUDITOR.x + 8, AUDITOR.y + 13);
+    }
     gambarTanaman(92, 162, true);
     gambarTanaman(340, 168, false);
     for (var b = 0; b < TOMBOL.length; b++)
