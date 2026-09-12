@@ -2337,3 +2337,84 @@ ketika duduk berarti bekerja. Sekarang tidak.
 
 Tiap kursi agen sekarang punya tiga pilihan: mulai bekerja, **duduk
 siaga**, dan tandai selesai.
+
+---
+
+## 12 Sep 2026 — Blaster & Meta punya orangnya
+
+Permintaan Porscy: *"buat 2 karakter lagi untuk blaster berambut merah
+sedangkan meta berambut biru"*.
+
+Dua meja itu sejak dibuat memang kosong — ada monitor, ada kursi, tidak
+ada siapa-siapa. Sekarang keduanya berpenghuni dengan aturan yang sama
+persis dengan auditor dan para agen.
+
+### Satu kerangka tubuh untuk semua manusia
+
+`gambarPenghuni(x, y, r)` sekarang menggambar badan, kepala, tengkuk,
+dan kedua lengan; yang membedakan orangnya cuma tabel `RUPA_ORANG`:
+
+| kunci   | gaya rambut | warna     | penanda        |
+|---------|-------------|-----------|----------------|
+| auditor | ekor        | hitam     | gagang kacamata |
+| blaster | cepak       | `#c8442c` | —              |
+| meta    | bob         | `#3f83d4` | —              |
+
+Auditornya ikut dipindah ke kerangka yang sama. Sebelum ini tiap sosok
+punya fungsinya sendiri, dan itu sudah terbukti mahal: perbaikan
+"menghadap kamera" dulu harus dikerjakan dua kali karena yang satu
+terlewat.
+
+Yang **tidak** disamakan, dan memang tidak boleh: ketiga agen Claude
+tetap tanpa wajah dan tembus pandang. Mereka bukan manusia yang
+kebetulan tidak terlihat wajahnya.
+
+### Kehadirannya dari berkas yang sama
+
+`kehadiran.py` tidak lagi khusus agen bernomor. Penghuni disebut dengan
+**kunci** — `agen1`, `blaster`, `meta` — dan kunci itu langsung jadi nama
+berkas keadaannya. Menambah penghuni ke-6 cukup satu pembungkus tiga
+baris seperti `blaster.py`, tanpa menyentuh `kehadiran.py` sama sekali.
+
+```bash
+python3 blaster.py mulai "menyusun daftar prospek"
+python3 meta.py siaga
+```
+
+### Layarnya sekarang berarti
+
+Monitor Blaster & Meta dulu dipatok **mati** — jalurnya memang belum
+tersambung, dan layar menyala di meja yang belum bisa apa-apa adalah
+janji yang tidak ditepati. Sekarang kehadirannya nyata, jadi layarnya
+mengikuti orangnya seperti meja auditor: ada yang duduk → hidup, kosong
+→ mati. Lampu siaga di bingkainya tetap berkedip pelan walau kosong —
+itu menandai alatnya terpasang, bukan sedang bekerja.
+
+### Dua bug lama yang ketahuan sambil jalan
+
+**1. Tombol kursi terkunci sendiri.** Tombolnya cuma didaftarkan saat
+kursi **kosong**. Artinya begitu ada yang duduk, kursinya tidak bisa
+diklik lagi — padahal justru di situ "Tandai selesai" dibutuhkan.
+Satu-satunya jalan keluar adalah terminal. Sudah begitu sejak menu
+tugas dibuat, dan baru kelihatan sekarang karena Blaster/Meta adalah
+penghuni pertama yang tidak punya jalan lain. Tombolnya sekarang
+didaftarkan di kedua keadaan.
+
+**2. `terapkanAgen` menimpa parameternya sendiri.** Penanda perubahannya
+dulu juga bernama `kunci`, jadi ia menutupi parameter `kunci` di fungsi
+yang sama. Selama kuncinya masih nomor agen hal itu tidak pernah
+kelihatan; begitu stasiun bernama ikut masuk, catatan lognya akan
+berbunyi `"true|bekerja mulai: ..."` alih-alih nama penghuninya. Diganti
+jadi `tanda` sebelum sempat terjadi.
+
+### Daftar tugas dibangkitkan, tidak disalin
+
+Lima penghuni × tiga perintah = 15 entri yang cuma berbeda di namanya —
+di `server.py` **dan** di `tugas.js`. Ditulis satu per satu, tiap
+perbaikan kalimat harus disalin 15 kali dan yang terlewat jadi berbeda
+diam-diam. Keduanya sekarang dibangkitkan dari satu daftar `PENGHUNI`.
+
+Kedua daftar itu **harus sama isinya**. Kalau `tugas.js` punya nama yang
+tidak ada di `server.py`, tombolnya muncul tapi servernya menolak — dan
+daftar putih di `server.py` itu memang sengaja menolak yang tidak
+dikenal, jadi jangan dilonggarkan untuk menutup selisihnya.

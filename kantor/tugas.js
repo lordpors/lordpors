@@ -27,27 +27,6 @@
      plus penanda jujur untuk yang belum. Lebih baik daftar pendek yang
      semuanya jalan daripada daftar panjang yang separuhnya bohong. */
   var DAFTAR = {
-    agen1: [
-      { tugas: 'agen1-mulai',   judul: 'Tandai mulai bekerja', teks: true,
-        catatan: 'Karakternya duduk di meja dan tugasnya muncul di atas kepalanya.' },
-      { tugas: 'agen1-siaga',   judul: 'Duduk siaga',
-        catatan: 'Tetap di kursinya tapi layarnya tidur — hadir, tidak sedang mengerjakan apa pun.' },
-      { tugas: 'agen1-selesai', judul: 'Tandai selesai' }
-    ],
-    agen2: [
-      { tugas: 'agen2-mulai',   judul: 'Tandai mulai bekerja', teks: true,
-        catatan: 'Karakternya duduk di meja dan tugasnya muncul di atas kepalanya.' },
-      { tugas: 'agen2-siaga',   judul: 'Duduk siaga',
-        catatan: 'Tetap di kursinya tapi layarnya tidur — hadir, tidak sedang mengerjakan apa pun.' },
-      { tugas: 'agen2-selesai', judul: 'Tandai selesai' }
-    ],
-    agen3: [
-      { tugas: 'agen3-mulai',   judul: 'Tandai mulai bekerja', teks: true,
-        catatan: 'Karakternya duduk di meja dan tugasnya muncul di atas kepalanya.' },
-      { tugas: 'agen3-siaga',   judul: 'Duduk siaga',
-        catatan: 'Tetap di kursinya tapi layarnya tidur — hadir, tidak sedang mengerjakan apa pun.' },
-      { tugas: 'agen3-selesai', judul: 'Tandai selesai' }
-    ],
     // Kursi auditor KOSONG — dia sedang keluar.
     auditor: [
       { tugas: 'auditor-login', judul: 'Login — pindai QR', qr: true,
@@ -60,17 +39,38 @@
       { tugas: 'auditor-logout', judul: 'Log out',
         catatan: 'Kursinya dikosongkan dan detak dari HP diabaikan sampai login lagi.' },
       { tugas: 'audit-contoh',  judul: 'Jalankan audit daftar contoh' }
-    ],
-    blaster: [
-      { belum: true, judul: 'Nyalakan blast Telegram',
-        catatan: 'Belum tersambung — telegram-blaster/ masih tanpa .env, ' +
-                 'dan akun Telegram-nya belum ditentukan.' }
-    ],
-    meta: [
-      { belum: true, judul: 'Sambungkan WhatsApp / Instagram',
-        catatan: 'Belum tersambung — nomor WA terpisah belum disiapkan.' }
     ]
   };
+
+  /* KEHADIRAN — dibangkitkan, tidak disalin.
+     Lima penghuni x tiga perintah = lima belas entri yang cuma berbeda
+     di namanya. Ditulis satu per satu, tiap perbaikan kalimat harus
+     disalin lima belas kali dan yang terlewat jadi berbeda diam-diam.
+     Daftarnya harus sama dengan PENGHUNI di server.py; kalau tidak,
+     tombolnya ada tapi server menolaknya. */
+  var PENGHUNI = ['agen1', 'agen2', 'agen3', 'blaster', 'meta'];
+
+  PENGHUNI.forEach(function (k) {
+    DAFTAR[k] = [
+      { tugas: k + '-mulai',   judul: 'Tandai mulai bekerja', teks: true,
+        catatan: 'Karakternya duduk di meja dan tugasnya muncul di atas kepalanya.' },
+      { tugas: k + '-siaga',   judul: 'Duduk siaga',
+        catatan: 'Tetap di kursinya tapi layarnya tidur — hadir, tidak sedang mengerjakan apa pun.' },
+      { tugas: k + '-selesai', judul: 'Tandai selesai' }
+    ];
+  });
+
+  /* Tugas yang BELUM bisa dikerjakan, ditambahkan di bawah tombol
+     kehadiran. Sengaja tetap ditulis walau tidak bisa diklik: meja yang
+     menawarkan "duduk siaga" saja tidak menjelaskan meja itu untuk apa.
+     Yang tidak boleh cuma menawarkannya seolah-olah jalan. */
+  DAFTAR.blaster.push(
+    { belum: true, judul: 'Nyalakan blast Telegram',
+      catatan: 'Belum tersambung — telegram-blaster/ masih tanpa .env, ' +
+               'dan akun Telegram-nya belum ditentukan.' });
+  DAFTAR.meta.push(
+    { belum: true, judul: 'Sambungkan WhatsApp / Instagram',
+      catatan: 'Belum tersambung — nomor WA terpisah belum disiapkan.' });
 
   var el = null;
 

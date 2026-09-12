@@ -2,13 +2,12 @@
 """
 Penanda kehadiran Agent 3 di kantor.
 
-    python3 agen3.py mulai "ringkasan singkat tugasnya"
-    python3 agen3.py selesai
+    python3 agen3.py siaga                 duduk, layar tidur
+    python3 agen3.py mulai "<tugas>"       duduk, layar menyala
+    python3 agen3.py pesan "<tugas baru>"  ganti balon saja
+    python3 agen3.py selesai               tinggalkan kursi
 
-Isinya cuma pembungkus. Seluruh logikanya ada di kehadiran.py — termasuk
-penyegar latar yang menjaga kehadiran tetap hidup selama pekerjaan
-berlangsung, dan tiga pengamannya. Satu berkas untuk tiga agen supaya
-perbaikan tidak perlu disalin tiga kali.
+Pembungkus tiga baris. Logikanya ada di kehadiran.py.
 """
 import sys
 from pathlib import Path
@@ -17,4 +16,4 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from kehadiran import utama
 
 if __name__ == "__main__":
-    sys.exit(utama(["3"] + sys.argv[1:]))
+    sys.exit(utama(["agen3"] + sys.argv[1:]))

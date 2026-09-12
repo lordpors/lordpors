@@ -92,54 +92,44 @@ TUGAS = {
         "judul": "Login auditor",
         "fungsi": _auditor_masuk, "teks": False, "latar": False,
     },
-    "agen1-mulai": {
-        "judul": "Tandai mulai bekerja",
-        "argv": [sys.executable, "agen1.py", "mulai"],
-        "kerja": lambda: KANTOR, "teks": True, "latar": False,
-    },
-    "agen1-selesai": {
-        "judul": "Tandai selesai",
-        "argv": [sys.executable, "agen1.py", "selesai"],
-        "kerja": lambda: KANTOR, "teks": False, "latar": False,
-    },
-    "agen2-mulai": {
-        "judul": "Tandai mulai bekerja",
-        "argv": [sys.executable, "agen2.py", "mulai"],
-        "kerja": lambda: KANTOR, "teks": True, "latar": False,
-    },
-    "agen2-selesai": {
-        "judul": "Tandai selesai",
-        "argv": [sys.executable, "agen2.py", "selesai"],
-        "kerja": lambda: KANTOR, "teks": False, "latar": False,
-    },
-    "agen3-mulai": {
-        "judul": "Tandai mulai bekerja",
-        "argv": [sys.executable, "agen3.py", "mulai"],
-        "kerja": lambda: KANTOR, "teks": True, "latar": False,
-    },
-    "agen3-selesai": {
-        "judul": "Tandai selesai",
-        "argv": [sys.executable, "agen3.py", "selesai"],
-        "kerja": lambda: KANTOR, "teks": False, "latar": False,
-    },
-    "agen1-siaga": {
-        "judul": "Duduk siaga", "argv": [sys.executable, "agen1.py", "siaga"],
-        "kerja": lambda: KANTOR, "teks": False, "latar": False,
-    },
-    "agen2-siaga": {
-        "judul": "Duduk siaga", "argv": [sys.executable, "agen2.py", "siaga"],
-        "kerja": lambda: KANTOR, "teks": False, "latar": False,
-    },
-    "agen3-siaga": {
-        "judul": "Duduk siaga", "argv": [sys.executable, "agen3.py", "siaga"],
-        "kerja": lambda: KANTOR, "teks": False, "latar": False,
-    },
     "audit-contoh": {
         "judul": "Jalankan audit daftar contoh",
         "argv": [sys.executable, "jalankan.py", "--berkas", "daftar-contoh.txt"],
         "kerja": lambda: AKAR / "audit", "teks": False, "latar": True,
     },
 }
+
+# ------------------------------------------------------------------
+# KEHADIRAN PENGHUNI — dibangkitkan, tidak disalin.
+#
+# Dulu tiga agen x tiga perintah ditulis satu per satu: sembilan blok
+# yang cuma berbeda di angkanya. Begitu Blaster & Meta ikut punya
+# karakter, jumlahnya jadi lima belas, dan tiap perbaikan harus disalin
+# lima belas kali. Itu pola yang sudah terbukti mahal di berkas lain
+# kantor ini -- gambarAgen1/2/3 pernah begitu, dan yang terlewat jadi
+# berbeda diam-diam.
+#
+# Kuncinya sama persis dengan nama berkas keadaannya (agen1.json,
+# blaster.json, ...) dan dengan nama pembungkusnya (agen1.py,
+# blaster.py). Menambah penghuni ke-6 cukup menambah satu nama di
+# daftar ini.
+# ------------------------------------------------------------------
+PENGHUNI = ("agen1", "agen2", "agen3", "blaster", "meta")
+
+_PERINTAH = (
+    # perintah   judul                     minta teks tugas?
+    ("mulai",   "Tandai mulai bekerja",    True),
+    ("siaga",   "Duduk siaga",             False),
+    ("selesai", "Tandai selesai",          False),
+)
+
+for _k in PENGHUNI:
+    for _p, _judul, _teks in _PERINTAH:
+        TUGAS[f"{_k}-{_p}"] = {
+            "judul": _judul,
+            "argv": [sys.executable, f"{_k}.py", _p],
+            "kerja": lambda: KANTOR, "teks": _teks, "latar": False,
+        }
 
 
 class Penangan(SimpleHTTPRequestHandler):

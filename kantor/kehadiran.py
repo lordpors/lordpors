@@ -64,16 +64,24 @@ BATAS_UMUR = 12 * 3600     # rem terakhir; yang sebenarnya menghentikan: PID ses
 PESAN_SIAGA = "menunggu perintah"
 
 
-def berkas(nomor: int) -> Path:
-    return DIR / f"agen{nomor}.json"
+"""Sejak 12 Sep 2026 berkas ini tidak lagi khusus agen bernomor.
+
+Penghuninya disebut dengan KUNCI: "agen1", "agen2", "agen3", "blaster",
+"meta". Kunci itu langsung jadi nama berkas keadaannya, jadi menambah
+penghuni baru tidak perlu menyentuh berkas ini sama sekali — cukup buat
+pembungkusnya seperti blaster.py."""
 
 
-def berkas_pid(nomor: int) -> Path:
-    return DIR / f".agen{nomor}-penyegar.pid"
+def berkas(kunci: str) -> Path:
+    return DIR / f"{kunci}.json"
 
 
-def tulis(nomor: int, aktif: bool, pesan: str = "", siaga: bool = False) -> None:
-    berkas(nomor).write_text(
+def berkas_pid(kunci: str) -> Path:
+    return DIR / f".{kunci}-penyegar.pid"
+
+
+def tulis(kunci: str, aktif: bool, pesan: str = "", siaga: bool = False) -> None:
+    berkas(kunci).write_text(
         json.dumps({"aktif": aktif, "siaga": siaga, "pesan": pesan,
                     "waktu": time.time()}, ensure_ascii=False),
         encoding="utf-8")
@@ -89,9 +97,9 @@ def hidup(pid: int) -> bool:
         return True          # ada, cuma milik pengguna lain
 
 
-def matikan_penyegar(nomor: int) -> bool:
+def matikan_penyegar(kunci: str) -> bool:
     """Hentikan penyegar yang mungkin masih jalan. Aman dipanggil berulang."""
-    p = berkas_pid(nomor)
+    p = berkas_pid(kunci)
     if not p.is_file():
         return False
     try:
@@ -108,7 +116,7 @@ def matikan_penyegar(nomor: int) -> bool:
     return True
 
 
-def jalankan_penyegar(nomor: int, pesan: str, siaga: bool = False) -> None:
+def jalankan_penyegar(kunci: str, pesan: str, siaga: bool = False) -> None:
     """Proses latar: segarkan cap waktu sampai salah satu pengaman kena."""
     mulai = time.time()
     pemilik = os.environ.get("KEHADIRAN_PEMILIK")
@@ -123,12 +131,12 @@ def jalankan_penyegar(nomor: int, pesan: str, siaga: bool = False) -> None:
             break
         # `selesai` menghapus berkas PID — itu tanda berhenti yang paling
         # cepat sampai, tanpa perlu menunggu sinyal.
-        if not berkas_pid(nomor).is_file():
+        if not berkas_pid(kunci).is_file():
             return
 
         d = {}
         try:
-            d = json.loads(berkas(nomor).read_text(encoding="utf-8"))
+            d = json.loads(berkas(kunci).read_text(encoding="utf-8"))
         except Exception:
             pass
         # Kalau ada yang menandai selesai di sela-sela, jangan hidupkan lagi.
@@ -138,14 +146,14 @@ def jalankan_penyegar(nomor: int, pesan: str, siaga: bool = False) -> None:
         # Pesannya dibaca ulang tiap putaran: kalau ada yang mengubahnya
         # lewat `pesan`, penyegar ikut membawa yang baru — bukan menimpa
         # kembali dengan teks lama.
-        tulis(nomor, True, d.get("pesan", pesan), bool(d.get("siaga")))
+        tulis(kunci, True, d.get("pesan", pesan), bool(d.get("siaga")))
 
-    berkas_pid(nomor).unlink(missing_ok=True)
+    berkas_pid(kunci).unlink(missing_ok=True)
 
 
-def mulai(nomor: int, pesan: str, siaga: bool = False) -> str:
-    matikan_penyegar(nomor)
-    tulis(nomor, True, pesan, siaga)
+def mulai(kunci: str, pesan: str, siaga: bool = False) -> str:
+    matikan_penyegar(kunci)
+    tulis(kunci, True, pesan, siaga)
 
     lingkungan = dict(os.environ)
     # PID sesi Claude yang memanggil, supaya penyegar ikut mati bersamanya.
@@ -153,61 +161,61 @@ def mulai(nomor: int, pesan: str, siaga: bool = False) -> str:
     lingkungan["KEHADIRAN_PEMILIK"] = pemilik
 
     anak = subprocess.Popen(
-        [sys.executable, str(Path(__file__).resolve()), "--penyegar", str(nomor), pesan],
+        [sys.executable, str(Path(__file__).resolve()), "--penyegar", str(kunci), pesan],
         env=lingkungan, start_new_session=True,
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL)
-    berkas_pid(nomor).write_text(str(anak.pid), encoding="utf-8")
+    berkas_pid(kunci).write_text(str(anak.pid), encoding="utf-8")
     keadaan = "SIAGA" if siaga else "BEKERJA"
     return f"{keadaan} — {pesan}  [penyegar {anak.pid}, tiap {JEDA_SEGAR}s]"
 
 
-def selesai(nomor: int) -> str:
-    ada = matikan_penyegar(nomor)
-    tulis(nomor, False)
+def selesai(kunci: str) -> str:
+    ada = matikan_penyegar(kunci)
+    tulis(kunci, False)
     return "meninggalkan meja" + ("  [penyegar dihentikan]" if ada else "")
 
 
-def pesan_baru(nomor: int, teks: str) -> str:
+def pesan_baru(kunci: str, teks: str) -> str:
     """Ganti teks balon TANPA menyentuh penyegar yang sedang jalan.
 
     Ini yang membuat balonnya bisa mengikuti pekerjaan yang berganti-ganti
     sepanjang sesi: cukup satu tulisan ke berkas, penyegar membacanya pada
     putaran berikutnya."""
     try:
-        d = json.loads(berkas(nomor).read_text(encoding="utf-8"))
+        d = json.loads(berkas(kunci).read_text(encoding="utf-8"))
     except Exception:
         d = {}
     if not d.get("aktif"):
-        return mulai(nomor, teks)
-    tulis(nomor, True, teks, False)
+        return mulai(kunci, teks)
+    tulis(kunci, True, teks, False)
     return f"BEKERJA — {teks}"
 
 
 def utama(argv) -> int:
     if len(argv) >= 3 and argv[0] == "--penyegar":
-        jalankan_penyegar(int(argv[1]), argv[2], "--siaga" in argv)
+        jalankan_penyegar(argv[1], argv[2], "--siaga" in argv)
         return 0
 
     if len(argv) < 2:
         print(__doc__)
         return 1
 
-    nomor = int(argv[0])
+    kunci = argv[0]
     perintah = argv[1].lower()
 
     if perintah in ("mulai", "start", "on"):
-        kabar = mulai(nomor, " ".join(argv[2:]) or "bekerja")
+        kabar = mulai(kunci, " ".join(argv[2:]) or "bekerja")
     elif perintah in ("siaga", "idle"):
-        kabar = mulai(nomor, PESAN_SIAGA, siaga=True)
+        kabar = mulai(kunci, PESAN_SIAGA, siaga=True)
     elif perintah in ("pesan", "kabar"):
-        kabar = pesan_baru(nomor, " ".join(argv[2:]) or "bekerja")
+        kabar = pesan_baru(kunci, " ".join(argv[2:]) or "bekerja")
     elif perintah in ("selesai", "stop", "off"):
-        kabar = selesai(nomor)
+        kabar = selesai(kunci)
     else:
         print(__doc__)
         return 1
 
-    print(f"  Agent {nomor}: {kabar}")
+    print(f"  {kunci}: {kabar}")
     return 0
 
 
