@@ -1201,8 +1201,8 @@
        sedang bicara, supaya balon mereka tidak saling menutupi. */
     var tingkat = 0;
     for (var n = 1; n < nomor; n++) if (AGEN[n] && AGEN[n].aktif) tingkat++;
-    gambarBalon((a.pesan || 'bekerja').slice(0, 34),
-                (x + 5) * P, (y + 1) * P, r.tanda, '#f2edf6', tingkat);
+    gambarBalon((a.pesan || 'bekerja').slice(0, 28),
+                (x + 5) * P, atasPapanNama(m), r.tanda, '#f2edf6', tingkat);
   }
 
   function gambarAgen1(t) { gambarAgenDuduk(1, t); }
@@ -1335,12 +1335,29 @@
     }
   }
 
+  /* Tepi ATAS papan nama sebuah meja, dalam satuan gambar.
+     Dipakai untuk menaruh balon tugas tepat di atasnya, jadi tumpukannya
+     dari bawah ke atas: kepala -> label status -> papan nama -> balon.
+     Dihitung ulang tiap dipanggil karena tinggi papan ikut lebar layar. */
+  function atasPapanNama(m) {
+    var fs = pxLayar(8, 10);
+    var jarakAtas = (m.isi === 'auditor') ? 25 : 21;
+    return (m.y - jarakAtas) * P - fs * 1.45 - 4;
+  }
+
   /* pusatX/bawahY dalam satuan gambar (sudah dikali P).
      tingkat 0 = balon menempel di atas kepala; 1 = ditumpuk satu tingkat
      lebih tinggi, dipakai kalau dua agen bicara bersamaan. */
   function gambarBalon(teks, pusatX, bawahY, warnaTepi, warnaTeks, tingkat) {
-    var fs = pxLayar(12, 16);
-    var maxW = LEBAR * P * .94;
+    /* DIKECILKAN. Versi sebelumnya 12-16px dengan lebar sampai 94%
+       panggung — satu balon saja melintang hampir seluruh layar, dan
+       tiga agen yang bicara bersamaan jadi dinding teks.
+
+       Sekarang 8-11px dan maksimal 55% panggung. Teksnya juga dipotong
+       lebih pendek: tugas yang tidak muat lebih baik terpenggal jelas
+       daripada memaksa balonnya melebar. */
+    var fs = pxLayar(8, 11);
+    var maxW = LEBAR * P * .55;
     var lt, gw, pad;
 
     /* Teks panjang di layar sempit bisa membuat balon lebih lebar dari
@@ -1465,8 +1482,8 @@
     if (!gelembung || t > gelembung.sampai) return;
     // Naik setinggi label status kalau labelnya sedang tampil, supaya
     // keduanya tidak saling menimpa di atas kepala yang sama.
-    gambarBalon(gelembung.teks, (AUDITOR.x + 5) * P,
-                (AUDITOR.y + 1) * P - tinggiStatus(),
+    gambarBalon(gelembung.teks.slice(0, 28), (AUDITOR.x + 5) * P,
+                atasPapanNama(MEJA_AUDITOR),
                 gelembung.warna, '#eef1f8', 0);
   }
 
