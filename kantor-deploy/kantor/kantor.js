@@ -54,6 +54,8 @@
     lemari:'#2a3050', lemariAtas:'#39406a',
     daun:'#2f6b3e', daunTua:'#245530', pot:'#8b5a3c', potGelap:'#6b4530',
     lampuHangat:'#ffcf87', kursi:'#262c46', kursiTerang:'#39415f',
+    colaMerah:'#d2232a', colaMerahTua:'#8f151b', colaMerahMuda:'#e8474e',
+    colaPutih:'#f2f2f2', colaKaca:'#0f1c36', colaBotol:'#3a1a1c',
     kayu:'#4a3628', logam:'#3a4054',
     hijau:'#34d399', kuning:'#fcd34d', abu:'#8b98ab',
     // Agen 1 — sengaja tidak memakai warna kulit. Lihat catatan di
@@ -577,21 +579,90 @@
     kotak(x + 18, y + 4, 13, 10, '#3a2f3f');
   }
 
-  function gambarLampu(x, y, t) {
-    kotak(x + 3, y + 12, 7, 2, W.logam);
-    kotak(x + 5, y + 2, 3, 11, W.logam);
-    kotak(x - 1, y - 4, 14, 7, '#c9a57a');
-    kotak(x - 1, y - 4, 14, 2, '#e0bd91');
-    var k = .82 + .18 * Math.sin(t / 1100);
-    var g = ctx.createRadialGradient((x + 6) * P, (y + 6) * P, 0,
-                                     (x + 6) * P, (y + 6) * P, 44 * P);
-    g.addColorStop(0, 'rgba(255,207,135,' + (.20 * k) + ')');
-    g.addColorStop(1, 'rgba(255,207,135,0)');
+  /* ---------------- mesin minuman ----------------
+     Menggantikan lampu berdiri yang dulu ada di samping jendela.
+
+     Ukurannya diturunkan dari skala ruangan, bukan dikira-kira: bahu
+     manusia di panggung ini 12 satuan = 0,45 m, jadi 1 satuan = 3,75 cm.
+     Mesin minuman nyata 1,8 x 0,9 m = 48 x 24 satuan. Dipakai 44 x 24
+     supaya tidak terlalu menjulang di atas LordPors yang 36.
+
+     Cahayanya TETAP, tidak berkedip. Ruangan ini sudah punya cukup
+     benda berdenyut — lampu siaga, antena, tanda wajah agen. Satu lagi
+     yang berkedip cuma menambah gelisah. */
+  function gambarMesinCola(x, y, t) {
+    var W_ = 24, H_ = 44;
+
+    // bayangan di lantai
+    ctx.globalAlpha = .3;
+    kotak(x - 1, y + H_ - 1, W_ + 2, 2, '#000');
+    ctx.globalAlpha = 1;
+
+    // --- badan merah ---
+    kotak(x, y, W_, H_, W.colaMerah);
+    kotak(x, y, W_, 1, W.colaMerahMuda);                 // kilau tepi atas
+    kotak(x, y, 1, H_, W.colaMerahMuda, .5);             // kilau sisi kiri
+    kotak(x + W_ - 1, y, 1, H_, W.colaMerahTua);         // bayangan sisi kanan
+    kotak(x, y + H_ - 3, W_, 3, W.colaMerahTua);         // kaki
+
+    /* --- kepala mesin: pita putih melengkung ---
+       Lengkung khas itu tidak mungkin digambar sebagai kurva pada pita
+       setinggi 2 satuan. Yang terbaca justru pita lurus dengan ujung
+       naik-turun satu piksel — otak melengkapi sisanya. */
+    kotak(x + 1, y + 2, W_ - 2, 4, W.colaMerahTua);
+    kotak(x + 2, y + 3, W_ - 4, 2, W.colaPutih);
+    kotak(x + 2, y + 3, 4, 1, W.colaMerah);
+    kotak(x + W_ - 6, y + 4, 4, 1, W.colaMerah);
+
+    // --- kaca depan ---
+    var kx = x + 2, ky = y + 8, kw = 14, kh = 22;
+    kotak(kx - 1, ky - 1, kw + 2, kh + 2, '#2a0a0c');    // bingkai kaca
+    kotak(kx, ky, kw, kh, W.colaKaca);
+
+    /* Botol: tiga baris, empat lajur. Tutupnya diberi satu piksel merah
+       supaya terbaca sebagai botol, bukan sekadar kotak gelap. */
+    for (var br = 0; br < 3; br++) {
+      for (var lj = 0; lj < 4; lj++) {
+        var bx = kx + 1 + lj * 3, by = ky + 2 + br * 7;
+        kotak(bx, by, 2, 5, W.colaBotol);
+        kotak(bx, by, 2, 1, W.colaMerah);                // tutup
+        kotak(bx, by + 2, 1, 3, '#5a2a2e', .8);          // kilau badan botol
+      }
+      kotak(kx, ky + 7 + br * 7, kw, 1, '#1a2b4a');      // rak
+    }
+
+    // pantulan kaca — satu garis miring, cukup untuk menandai kaca
+    ctx.globalAlpha = .10;
+    kotak(kx + 2, ky, 3, kh, '#ffffff');
+    ctx.globalAlpha = 1;
+
+    // --- panel kanan: tombol & slot ---
+    var px_ = x + 17;
+    kotak(px_, y + 8, 6, 22, W.colaMerahTua);
+    for (var tb = 0; tb < 4; tb++) {
+      kotak(px_ + 1, y + 10 + tb * 4, 4, 2, '#2a2f44');
+      kotak(px_ + 2, y + 10 + tb * 4, 2, 1, W.colaMerahMuda, .8);
+    }
+    kotak(px_ + 1, y + 27, 4, 2, '#f5c451', .9);         // lampu "siap"
+
+    // --- mulut pengambilan ---
+    kotak(x + 3, y + 33, 12, 6, '#1a0507');
+    kotak(x + 3, y + 33, 12, 1, W.colaMerahTua);
+    kotak(x + 4, y + 34, 10, 1, '#2e0d10', .8);
+
+    /* --- cahaya dari kacanya ke lantai & dinding ---
+       Inilah yang membuat mesin terbaca MENYALA, bukan lemari merah.
+       Warnanya merah hangat supaya menyatu dengan lantai kayu, bukan
+       bertengkar dengan cyan di seberang ruangan. */
+    var g = ctx.createRadialGradient((x + 9) * P, (y + 20) * P, 0,
+                                     (x + 9) * P, (y + 20) * P, 34 * P);
+    g.addColorStop(0, 'rgba(226,71,78,.18)');
+    g.addColorStop(1, 'rgba(226,71,78,0)');
     ctx.fillStyle = g;
-    ctx.fillRect((x - 38) * P, (y - 32) * P, 88 * P, 80 * P);
+    ctx.fillRect((x - 26) * P, (y - 12) * P, 76 * P, 76 * P);
   }
 
-  /* ---------------- jam dinding ----------------
+  /* ---------------- jam dinding ----------------  /* ---------------- jam dinding ----------------
      Jam LED tujuh ruas, TANPA bingkai — angkanya melayang di dinding,
      persis seperti foto acuan.
 
@@ -1776,7 +1847,7 @@
        Kalau salah satunya diubah lebarnya, hitung ulang ketiga jarak itu. */
     gambarJam(262, 22);
     gambarRak(318, 26);
-    gambarLampu(268, 96, t);
+    gambarMesinCola(264, 60, t);
     gambarPors(t);
 
     tentukanPapan();
