@@ -2418,3 +2418,63 @@ Kedua daftar itu **harus sama isinya**. Kalau `tugas.js` punya nama yang
 tidak ada di `server.py`, tombolnya muncul tapi servernya menolak — dan
 daftar putih di `server.py` itu memang sengaja menolak yang tidak
 dikenal, jadi jangan dilonggarkan untuk menutup selisihnya.
+
+---
+
+## 12 Sep 2026 — Balon: naik ke lapis paling atas, diam kalau menganggur
+
+Dua permintaan Porscy sekaligus: balonnya hilang kalau tidak ada
+pekerjaan, dan posisinya paling atas — balon Blaster tertutup kursi
+LordPors di sebelahnya.
+
+### Kenapa balon ikut tertimbun
+
+Sosoknya memang harus digambar **sebelum** lapis `'kursi'`, supaya
+kursinya menutupi separuh badan seperti orang yang benar-benar duduk.
+Itu urutan yang sudah dibetulkan tiga kali dan tidak boleh diutak-atik
+lagi. Tapi balonnya digambar di dalam fungsi sosok, jadi ia ikut turun
+ke bawah lapis kursi.
+
+Memindahkan panggilan balonnya ke baris terakhir fungsi sosok tidak
+menolong — `'kursi'` tetap digambar sesudah **seluruh** sosok selesai,
+bukan sesudah masing-masing.
+
+### Antrian
+
+`gambarBalon()` sekarang tidak melukis apa-apa, ia cuma mencatat ke
+`ANTRE_BALON`. Seluruh antriannya dituang oleh `siramBalon()` di baris
+terakhir `bingkai()` — sesudah kursi, tanaman, tombol, dan label status.
+Yang melukis sungguhan namanya `lukisBalon()`.
+
+Pemanggilnya tidak berubah sama sekali. Itu yang membuat cara ini
+dipilih daripada memindahkan ketiga panggilannya keluar: ketiga sosok
+tetap menghitung posisi balonnya sendiri, di tempat ia tahu ukurannya.
+
+Antriannya dikosongkan di **awal** bingkai, bukan cuma sesudah dituang,
+supaya bingkai yang keluar lebih awal tidak meninggalkan balon yang
+tergambar dua kali.
+
+### Balon diam kalau menganggur
+
+Agen siaga sekarang tidak berbalon. Duduk siaga sudah terlihat dari
+sosoknya yang ada di kursi dan layarnya yang tidur; balon bertuliskan
+"menunggu perintah" cuma menambah kotak teks yang tidak memberi kabar
+apa-apa — dan balon yang selalu muncul berhenti berarti *ada yang sedang
+dikerjakan*, padahal justru itu gunanya.
+
+Blaster & Meta sudah begitu sejak dibuat. Sekarang ketiga agen ikut.
+
+Efek sampingnya harus ikut dibetulkan: penumpukan balon dulu dihitung
+dari agen yang **aktif**. Agen siaga yang tidak lagi berbalon tetap
+dihitung, jadi balon agen sesudahnya melayang satu tingkat di atas ruang
+kosong. Sekarang dihitung dari yang benar-benar berbalon.
+
+### Harness ikut memeriksa urutan
+
+`uji.mjs` sekarang merekam urutan panggilan kanvas dan melapor
+`urutan: OK — balon di atas semua kotak`. Urutan gambar sudah tiga kali
+lolos sampai Porscy yang menemukannya di layar; satu baris pemeriksaan
+lebih murah daripada putaran keempat.
+
+Diperiksa juga keadaan sebaliknya — semua penghuni siaga → `balon tidak
+tergambar`, tanpa galat.
