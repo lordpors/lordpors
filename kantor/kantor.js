@@ -796,20 +796,93 @@
     }
   }
 
-  function gambarSatuMeja(m, t, ketik) {
+  /* ---------------- meja: DUA LAPIS ----------------
+
+     Meja tidak bisa digambar sekali jalan, dan ini sebabnya:
+
+       monitor  ada di sisi JAUH meja  -> harus di BELAKANG orangnya
+       badan meja ada di sisi DEKAT    -> harus di DEPAN orangnya
+
+     Sekali jalan memaksa memilih salah satu. Kalau meja digambar sebelum
+     orangnya, badan mejanya tertimbun dan orangnya tampak melayang di
+     atas meja. Kalau sesudah, monitornya menimbun kepala orangnya.
+
+     Jadi dipanggil dua kali per bingkai:
+       'belakang' - monitor, barang di atas meja, kursi kosong
+       'depan'    - badan meja, laci, papan ketik, papan nama
+
+     Karakter digambar di antara keduanya. */
+  function gambarSatuMeja(m, t, ketik, lapis) {
     var y = m.y;
+    var belakang = (lapis === 'belakang');
+
+    if (belakang) {
+      if (m.isi === 'monitor6') {
+        for (var r = 0; r < 2; r++)
+          for (var c = 0; c < 3; c++)
+            gambarMonitor(m.x + 2 + c * 18, y - 32 + r * 16, 16, 14, true, t, r * 3 + c);
+        gambarKursi(m.x + 21, y + MEJA_H + 2);
+
+      } else if (m.isi === 'auditor') {
+        // Layar menyala karena auditornya ADA, bukan karena irama
+        // "mengetik" yang dulu berkedip sendiri. Meja kosong = layar mati.
+        var adaDia = auditorHadir();
+        gambarMonitor(m.x + 6, y - 23, 24, 18, adaDia, t, 1, true);
+        gambarMonitor(m.x + 32, y - 19, 13, 14, adaDia, t, 4, true);
+
+      } else if (m.isi === 'meta') {
+        /* Ponsel berdiri, bukan monitor: yang dikerjakan di meja ini
+           nanti percakapan di aplikasi orang. Birunya sengaja beda dari
+           merah antena blaster supaya dua meja depan tidak tertukar. */
+        var hp = m.x + m.w / 2 - 4;
+        kotak(hp, y - 12, 8, 12, '#2a2f44');
+        kotak(hp + 1, y - 11, 6, 9, '#1b2438');
+        kotak(hp + 1, y - 11, 6, 2, '#3b82f6', .32);
+        var denyut = .16 + .22 * Math.sin(t / 1600);
+        kotak(hp + 1, y - 18, 6, 4, '#3b82f6', denyut);
+        kotak(hp + 2, y - 14, 2, 2, '#3b82f6', denyut);
+        gambarKursi(m.x + m.w / 2 - 7, y + MEJA_H + 2, true);
+        daftarTombol('meta', 'Meta', m.x + m.w / 2, y + MEJA_H - 3);
+
+      } else if (m.isi === 'blaster') {
+        /* Sengaja TANPA monitor tinggi: meja ini di barisan depan, dan
+           layar setinggi milik meja agen akan menutupi meja di belakangnya. */
+        var bx = m.x + m.w / 2 - 9;
+        kotak(bx, y - 8, 18, 8, '#2a2f44');
+        kotak(bx, y - 8, 18, 1, '#3f4760');
+        kotak(bx + 8, y - 5, 8, 1, '#1b2030');
+        kotak(bx + 2, y - 5, 4, 2, '#67e8f9', .45);
+        kotak(bx + 15, y - 16, 1, 8, W.logam);
+        kotak(bx + 14, y - 18, 3, 2, '#f87171', .2 + .3 * Math.sin(t / 1400));
+        gambarKursi(m.x + m.w / 2 - 7, y + MEJA_H + 2, true);
+        daftarTombol('blaster', 'Blaster', m.x + m.w / 2, y + MEJA_H - 3);
+
+      } else {
+        /* Meja agen. `isi` memilih BENTUK meja, bukan siapa yang duduk —
+           kehadiran datang dari agen1.json & agen2.json. */
+        var agen = (m === MEJA_SEMUA[1]) ? agen1 : (m === MEJA_SEMUA[2]) ? agen2 : null;
+        var nyala = !!(agen && agen.aktif);
+        var mxm = nyala ? (m.x + m.w - 24) : (m.x + m.w / 2 - 10);
+        gambarMonitor(mxm, y - 19, 20, 15, nyala, t, m === MEJA_SEMUA[2] ? 2 : 3, true);
+        if (!nyala) {
+          gambarKursi(m.x + m.w / 2 - 7, y + MEJA_H + 2, true);
+          daftarTombol(m === MEJA_SEMUA[1] ? 'agen1' : 'agen2',
+                       m === MEJA_SEMUA[1] ? 'Agent 1' : 'Agent 2',
+                       m.x + m.w / 2, y + MEJA_H - 3);
+        }
+      }
+      return;
+    }
+
+    // ---------------- lapis DEPAN: badan meja ----------------
     kotak(m.x, y + MEJA_H - 3, m.w, 3, W.mejaKaki);
     kotak(m.x, y, m.w, MEJA_H - 3, W.meja);
     kotak(m.x, y, m.w, 2, W.mejaAtas);
     kotak(m.x, y, m.w, 1, W.mejaGaris, .75);          // urat kayu tepi atas
-    // Garis lampu kuning tipis di bawah tutup meja. Di referensi inilah
-    // yang membuat deretan meja terbaca di ruangan yang gelap.
     kotak(m.x + 2, y + MEJA_H - 5, m.w - 4, 1, W.mejaLampu, .55);
 
-    /* Unit laci. Dipasang di sisi yang JAUH dari kursi, supaya tidak
-       terlihat menembus kaki orang yang duduk. Tiga laci dengan pegangan
-       terang — itu yang membuat meja terbaca sebagai perabot kantor,
-       bukan papan bertumpu. */
+    /* Unit laci, di sisi yang JAUH dari kursi supaya tidak terlihat
+       menembus kaki orang yang duduk. */
     var lx = (m.laciKanan === false) ? (m.x + 2) : (m.x + m.w - 12);
     kotak(lx, y + 2, 10, MEJA_H - 4, '#232a48');
     kotak(lx, y + 2, 10, 1, '#323a60');
@@ -818,107 +891,30 @@
       kotak(lx + 3, y + 4 + li * 3, 4, 1, W.mejaLampu, .5);
     }
 
+    // barang DI ATAS meja — di depan orangnya
     if (m.isi === 'monitor6') {
-      // dinding monitor: dua baris tiga layar
-      for (var r = 0; r < 2; r++)
-        for (var c = 0; c < 3; c++)
-          gambarMonitor(m.x + 2 + c * 18, y - 32 + r * 16, 16, 14, true, t, r * 3 + c);
       kotak(m.x + 13, y + 3, 26, 5, '#2a2f44');            // papan ketik RGB
       for (var i = 0; i < 7; i++)
         kotak(m.x + 15 + i * 3.4, y + 4, 2, 3,
               ['#f87171','#fbbf24','#4ade80','#22d3ee','#a78bfa'][i % 5], .85);
       kotak(m.x + 42, y + 4, 4, 3, '#2a2f44');            // tetikus
-      gambarKursi(m.x + 21, y + MEJA_H + 2);
-      gambarKopi(m.x + 3, y + 3);
+      gambarKopi(m.x + 3, y + 3);                         // hanya meja Porscy
     } else if (m.isi === 'auditor') {
-      /* Monitor utama di 290..320 (pusat 305), dan auditor duduk di
-         300..311. Papan ketiknya HARUS tepat di bawah keduanya — kalau
-         digeser, lengannya kembali terlihat menggapai menyamping. */
-      /* Layar menyala karena auditornya ADA, bukan karena irama
-         "mengetik" yang dulu berkedip sendiri. Meja kosong = layar mati. */
-      var adaDia = auditorHadir();
-      /* Monitor utama 290..314 (pusat 302); auditor duduk 298..307.
-         Papan ketiknya HARUS tepat di bawah keduanya. */
-      gambarMonitor(m.x + 6, y - 23, 24, 18, adaDia, t, 1, true);
-      gambarMonitor(m.x + 32, y - 19, 13, 14, adaDia, t, 4, true);
-      kotak(m.x + 9, y + 3, 18, 4, '#2a2f44');      // papan ketik, di depannya
-      kotak(m.x + 30, y + 4, 4, 3, '#2a2f44');      // tetikus
-      // Tidak ada cangkir di sini. Hanya meja Porscy yang punya kopi.
-    } else if (m.isi === 'meta') {
-      /* Masih kosong — menunggu jalur WhatsApp/Instagram disiapkan.
-
-         Bentuknya ponsel berdiri, bukan monitor: yang dikerjakan di meja
-         ini nanti percakapan di aplikasi orang, bukan pekerjaan layar
-         besar. Birunya sengaja beda dari merah antena blaster, supaya
-         dua meja depan ini tidak tertukar sekali lihat.
-
-         Denyutnya lambat dan redup karena belum ada yang berjalan. */
-      var hp = m.x + m.w / 2 - 4;
-      kotak(hp, y - 12, 8, 12, '#2a2f44');                 // badan ponsel
-      kotak(hp + 1, y - 11, 6, 9, '#1b2438');              // layar, mati
-      kotak(hp + 1, y - 11, 6, 2, '#3b82f6', .32);         // pita kepala
-      var denyut = .16 + .22 * Math.sin(t / 1600);
-      kotak(hp + 1, y - 18, 6, 4, '#3b82f6', denyut);      // gelembung pesan
-      kotak(hp + 2, y - 14, 2, 2, '#3b82f6', denyut);      // ekor gelembungnya
-      gambarKursi(m.x + m.w / 2 - 7, y + MEJA_H + 2, true);
-      daftarTombol('meta', 'Meta', m.x + m.w / 2, y + MEJA_H - 3);
-
-    } else if (m.isi === 'blaster') {
-      /* Masih kosong — menunggu blast pertama dinyalakan.
-
-         Sengaja TANPA monitor tinggi. Meja ini di barisan depan, dan
-         layar setinggi milik meja agen akan menjulur ke atas menutupi
-         meja di belakangnya. Yang ada cuma kotak pengirim beserta
-         antenanya, supaya sekali lihat ketahuan meja ini untuk apa. */
-      var bx = m.x + m.w / 2 - 9;
-      kotak(bx, y - 8, 18, 8, '#2a2f44');              // kotak pengirim
-      kotak(bx, y - 8, 18, 1, '#3f4760');
-      kotak(bx + 8, y - 5, 8, 1, '#1b2030');
-      kotak(bx + 2, y - 5, 4, 2, '#67e8f9', .45);      // lampu siaga, redup
-      kotak(bx + 15, y - 16, 1, 8, W.logam);           // antena
-      // Kedipnya lambat dan redup: belum ada yang dikirim. Kalau nanti
-      // blaster benar-benar jalan, di sinilah tempat mempercepatnya.
-      kotak(bx + 14, y - 18, 3, 2, '#f87171', .2 + .3 * Math.sin(t / 1400));
-      gambarKursi(m.x + m.w / 2 - 7, y + MEJA_H + 2, true);
-      daftarTombol('blaster', 'Blaster', m.x + m.w / 2, y + MEJA_H - 3);
-
-    } else {
-      /* Meja agen menyala kalau penghuninya sedang bekerja. `isi` tetap
-         false di MEJA_SEMUA — kolom itu memilih BENTUK meja (dinding
-         monitor / meja auditor / meja polos), bukan siapa yang duduk.
-         Kehadiran ditentukan di sini, dari agen1.json & agen2.json. */
-      var agen = (m === MEJA_SEMUA[1]) ? agen1 : (m === MEJA_SEMUA[2]) ? agen2 : null;
-      var nyala = !!(agen && agen.aktif);
-      // Kalau agennya ada, monitornya digeser ke KANAN meja supaya dia
-      // bisa duduk di kiri sambil menghadapnya. Waktu meja kosong,
-      // monitornya kembali ke tengah agar terlihat rapi.
-      var mxm = nyala ? (m.x + m.w - 24) : (m.x + m.w / 2 - 10);
-      gambarMonitor(mxm, y - 19, 20, 15, nyala, t, m === MEJA_SEMUA[2] ? 2 : 3, true);
-      kotak(mxm + 1, y + 3, 18, 4, '#252a3c');
-      if (!nyala) {
-        gambarKursi(m.x + m.w / 2 - 7, y + MEJA_H + 2, true);
-        daftarTombol(m === MEJA_SEMUA[1] ? 'agen1' : 'agen2',
-                     m === MEJA_SEMUA[1] ? 'Agent 1' : 'Agent 2',
-                     m.x + m.w / 2, y + MEJA_H - 3);
-      }
+      kotak(m.x + 9, y + 3, 18, 4, '#2a2f44');            // papan ketik
+      kotak(m.x + 30, y + 4, 4, 3, '#2a2f44');            // tetikus
+    } else if (m.isi !== 'meta' && m.isi !== 'blaster') {
+      var ag = (m === MEJA_SEMUA[1]) ? agen1 : (m === MEJA_SEMUA[2]) ? agen2 : null;
+      var ny = !!(ag && ag.aktif);
+      kotak((ny ? (m.x + m.w - 24) : (m.x + m.w / 2 - 10)) + 1, y + 3, 18, 4, '#252a3c');
     }
 
     if (m.nama) {
       /* Papan nama kena penyakit yang sama dengan balon teks: angka px
-         tetap di ruang gambar yang ikut diperkecil CSS. Lihat catatan
-         panjang di atas pxLayar(). Di sini targetnya 11px — sedikit di
-         bawah balon teks, karena papan nama keterangan, bukan kabar.
-
-         Batasnya LEBAR MEJA ITU SENDIRI, bukan jarak antar meja. Dulu
-         dipatok 78 satuan seni — lebih lebar dari mejanya (68), jadi di
-         ponsel papannya menjorok keluar dan menutupi monitor di atas
-         meja. Papan nama tidak boleh lebih lebar dari meja yang ia beri
-         nama. Kalau tidak muat: "Porscy's" dibuang dulu, baru hurufnya
-         dikecilkan. */
+         tetap di ruang gambar yang ikut diperkecil CSS. Lihat pxLayar().
+         Batasnya LEBAR MEJA ITU SENDIRI — papan nama tidak boleh lebih
+         lebar dari meja yang ia beri nama. */
       var MAKS = m.w * P;
       var fs = pxLayar(8, 10);
-      // Bentuk pendek/panjangnya sudah diputuskan tentukanPapan() untuk
-      // seluruh ruangan; di sini tinggal mengecilkan kalau masih meleset.
       var nama = papanPendek ? m.nama.replace(/^.*?'s\s*/, '') : m.nama, lt;
       for (var coba = 0; coba < 8; coba++) {
         ctx.font = '700 ' + fs.toFixed(1) + 'px "Poppins",ui-monospace,monospace';
@@ -926,9 +922,6 @@
         if (lt + fs * 1.25 <= MAKS) break;
         fs *= (MAKS / (lt + fs * 1.25)) * .99;
       }
-
-      // y+4, bukan y+8. Papan nama duduk di bagian ATAS muka meja;
-      // ruang di bawahnya disisakan untuk tombol +.
       var px = (m.x + m.w / 2) * P, py = (y + 4) * P;
       var pw = lt + fs * 1.25, ph = fs * 1.45;
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -943,73 +936,68 @@
   }
 
   /* ---------------- wanita auditor ----------------
-     Membelakangi kamera, simetris, berskala sama dengan Agen 1 & 2.
+     DUDUK DI KURSINYA — dan itu ditentukan oleh perbandingan lebar,
+     bukan oleh posisi.
 
-     DUA KESALAHAN YANG DIPERBAIKI DI SINI, dan keduanya tidak terlihat
-     sebagai "gaya gambar" melainkan sebagai cacat:
+     Versi sebelumnya badannya selebar sandaran punggung (9 lawan 12) dan
+     kepalanya selebar bantalan kepala. Hasilnya sosoknya MENUTUPI
+     kursinya habis — yang terlihat cuma orang melayang, tanpa kursi.
 
-     1. KEPALANYA DULU BERBIDANG KULIT DI TENGAH. Rambut cuma menutupi
-        bagian atas dan kedua sisi, menyisakan kulit 4x5 satuan tepat di
-        tengah belakang kepala. Dari belakang, bidang kulit sebesar itu
-        terbaca sebagai WAJAH — itu sebabnya dia tampak menghadap kamera.
-        Sekarang rambut menutupi SELURUH tengkorak; kulit hanya muncul di
-        tengkuk, di bawah garis rambut.
+     Angka yang membuatnya terbaca duduk:
 
-     2. SOSOKNYA LEBIH BESAR DARI KURSINYA. 26 satuan di kursi setinggi
-        24: kepalanya menjulang di atas bantalan kepala, badannya
-        menjulur di bawah sandaran. Sekarang 18 satuan, sama dengan agen,
-        jadi kursinya memeluk seperti seharusnya.
+       sandaran punggung  12 satuan   badan  8   -> 2 satuan tersisa tiap sisi
+       bantalan kepala     8 satuan   kepala 6   -> 1 satuan tersisa tiap sisi
 
-     Semua simetris terhadap sumbu x+6,5. Menambah sesuatu berarti
-     menambah sepasang. */
+     Sisa itulah kursinya. Kalau badannya dilebarkan lagi, kursinya
+     hilang lagi. */
   function gambarAuditor(t) {
     var x = AUDITOR.x, y = AUDITOR.y;
 
-    // kursi yang sama persis dengan milik Agen 1 & 2
-    gambarKursi(x - 2, y + 14, false);
+    /* Kursi digambar DULU, sosoknya menumpang di atasnya.
+       Sama persis dengan kursi Agen 1 & 2 — satu fungsi, satu bentuk. */
+    gambarKursi(x - 2, y + 17, false);
 
-    // --- ekor kuda: lurus di tengah punggung, di belakang badan ---
-    kotak(x + 4, y + 1, 5, 3, W.rambutHitam);
-    kotak(x + 4, y + 2, 5, 1, '#4a3a58');                // pita ikat
-    kotak(x + 5, y + 4, 3, 11, W.rambutHitam);           // ekor
-    kotak(x + 5, y + 11, 3, 4, '#0f0c14');               // ujung
+    // --- ekor kuda: di tengah punggung, di depan sandaran ---
+    kotak(x + 4, y + 4, 3, 3, W.rambutHitam);
+    kotak(x + 4, y + 5, 3, 1, '#4a3a58');                // pita ikat
+    kotak(x + 4, y + 7, 2, 10, W.rambutHitam);           // ekor
+    kotak(x + 4, y + 13, 2, 4, '#0f0c14');               // ujung
 
-    // --- badan: kemeja kantor putih ---
-    kotak(x + 2, y + 8, 9, 10, W.bajuPutih);
-    kotak(x + 2, y + 8, 9, 1, W.bajuPutihBayang);
-    kotak(x + 6, y + 9, 1, 9, W.bajuPutihBayang, .5);    // jahitan punggung
-    kotak(x + 2, y + 15, 9, 3, W.bajuPutihBayang, .35);
-    kotak(x + 3, y + 8, 2, 1, '#dfe4ee');                // kerah kiri
-    kotak(x + 8, y + 8, 2, 1, '#dfe4ee');                // kerah kanan
+    // --- badan: 8 satuan, lebih sempit dari sandaran 12 ---
+    kotak(x + 1, y + 11, 8, 9, W.bajuPutih);
+    kotak(x + 1, y + 11, 8, 1, W.bajuPutihBayang);
+    kotak(x + 4, y + 12, 1, 8, W.bajuPutihBayang, .5);   // jahitan punggung
+    kotak(x + 1, y + 17, 8, 3, W.bajuPutihBayang, .3);
+    kotak(x + 2, y + 11, 2, 1, '#dfe4ee');               // kerah kiri
+    kotak(x + 6, y + 11, 2, 1, '#dfe4ee');               // kerah kanan
 
     /* --- kedua lengan, simetris, diam ---
        Kain sampai siku lalu kulit: penanda "lengan pendek". */
-    kotak(x, y + 10, 2, 4, W.bajuPutih);                 // lengan atas kiri
-    kotak(x + 11, y + 10, 2, 4, W.bajuPutih);            // lengan atas kanan
-    kotak(x, y + 13, 2, 1, '#cdd4e2');                   // ujung lengan
-    kotak(x + 11, y + 13, 2, 1, '#cdd4e2');
-    kotak(x, y + 14, 2, 2, W.kulit);                     // lengan bawah kiri
-    kotak(x + 11, y + 14, 2, 2, W.kulit);                // lengan bawah kanan
+    kotak(x - 1, y + 12, 2, 4, W.bajuPutih);
+    kotak(x + 9, y + 12, 2, 4, W.bajuPutih);
+    kotak(x - 1, y + 15, 2, 1, '#cdd4e2');               // ujung lengan
+    kotak(x + 9, y + 15, 2, 1, '#cdd4e2');
+    kotak(x - 1, y + 16, 2, 2, W.kulit);                 // lengan bawah
+    kotak(x + 9, y + 16, 2, 2, W.kulit);
 
-    /* --- kepala: SELURUHNYA RAMBUT ---
-       Tidak ada satu pun bidang kulit di sini. Dari belakang, tengkorak
-       memang tertutup rambut sepenuhnya. */
-    kotak(x + 2, y, 9, 9, W.rambutHitam);
-    kotak(x + 3, y - 1, 7, 1, W.rambutHitam);            // ubun-ubun
-    kotak(x + 3, y - 1, 7, 1, '#241d2c', .6);            // kilau
-    kotak(x + 2, y + 1, 1, 7, '#241d2c', .5);            // sisi kiri lebih gelap
-    kotak(x + 10, y + 1, 1, 7, '#241d2c', .5);           // sisi kanan
+    /* --- kepala: 6 satuan, SELURUHNYA RAMBUT ---
+       Tidak ada satu pun bidang kulit di sini. Bidang kulit di tengah
+       belakang kepala terbaca sebagai wajah — itu bug yang membuat dia
+       tampak menghadap kamera. */
+    kotak(x + 2, y + 3, 6, 8, W.rambutHitam);
+    kotak(x + 3, y + 2, 4, 1, W.rambutHitam);            // ubun-ubun
+    kotak(x + 3, y + 2, 4, 1, '#241d2c', .6);            // kilau
+    kotak(x + 2, y + 4, 1, 6, '#241d2c', .45);           // sisi kiri
+    kotak(x + 7, y + 4, 1, 6, '#241d2c', .45);           // sisi kanan
 
-    // --- tengkuk: satu-satunya kulit yang terlihat, di bawah rambut ---
-    kotak(x + 5, y + 8, 3, 1, W.kulitGelap);
+    // --- tengkuk: satu-satunya kulit yang terlihat ---
+    kotak(x + 4, y + 10, 2, 1, W.kulitGelap);
 
     /* --- gagang kacamata, sepasang ---
        Dari belakang inilah satu-satunya bagian kacamata yang memang
-       terlihat. Menggambar lensa di sini akan jadi kebohongan kecil. */
-    kotak(x + 1, y + 5, 2, 1, W.bingkai, .95);
-    kotak(x + 10, y + 5, 2, 1, W.bingkai, .95);
-    kotak(x + 1, y + 5, 1, 1, '#d8e6ee', .5);
-    kotak(x + 11, y + 5, 1, 1, '#d8e6ee', .5);
+       terlihat. Lensa di sini akan jadi kebohongan kecil. */
+    kotak(x + 1, y + 7, 1, 1, W.bingkai, .95);
+    kotak(x + 8, y + 7, 1, 1, W.bingkai, .95);
   }
 
   /* ---------------- Agen 1 (Claude) ----------------
@@ -1729,22 +1717,32 @@
     gambarRak(318, 26);
     gambarLampu(254, 96, t);
     gambarPors(t);
+
+    tentukanPapan();
+
+    /* URUTAN KEDALAMAN, dari jauh ke dekat:
+         1. monitor & barang di sisi jauh meja
+         2. orang yang duduk
+         3. badan meja di sisi dekat
+       Itulah sebabnya meja digambar dua kali. Menukar urutan ini akan
+       membuat orangnya melayang di atas meja, atau kepalanya tertimbun
+       monitor — dua-duanya pernah terjadi. */
+    for (var i = 0; i < MEJA_SEMUA.length; i++)
+      gambarSatuMeja(MEJA_SEMUA[i], t, ketik, 'belakang');
+
     gambarAgen1(t);
     gambarAgen2(t);
-    tentukanPapan();
-    for (var i = 0; i < MEJA_SEMUA.length; i++) gambarSatuMeja(MEJA_SEMUA[i], t, ketik);
-
-    /* Auditor digambar SESUDAH meja — dia duduk di antara kamera dan
-       monitornya, jadi tubuhnya menutupi meja, bukan sebaliknya.
-       Agen 1 & 2 tetap digambar SEBELUM meja: mereka duduk di sisi jauh,
-       dan muka meja memang seharusnya menutupi kaki mereka. */
     if (auditorHadir()) {
       gambarAuditor(t);
-      daftarTombol('auditor-hadir', 'Auditor', AUDITOR.x + 6, AUDITOR.y + 4, 'sosok');
+      daftarTombol('auditor-hadir', 'Auditor', AUDITOR.x + 5, AUDITOR.y + 7, 'sosok');
     } else {
-      gambarKursi(AUDITOR.x, AUDITOR.y + 25, true);
-      daftarTombol('auditor', 'Auditor', AUDITOR.x + 8, AUDITOR.y + 13);
+      gambarKursi(AUDITOR.x - 2, AUDITOR.y + 17, true);
+      daftarTombol('auditor', 'Auditor', AUDITOR.x + 5, AUDITOR.y + 10);
     }
+
+    for (var j = 0; j < MEJA_SEMUA.length; j++)
+      gambarSatuMeja(MEJA_SEMUA[j], t, ketik, 'depan');
+
     gambarTanaman(92, 162, true);
     gambarTanaman(340, 168, false);
     for (var b = 0; b < TOMBOL.length; b++)
