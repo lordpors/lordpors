@@ -2236,3 +2236,55 @@ Selisih 0,5 pada agen tidak terhindarkan: badannya selebar 9 satuan
 
 Angka tetap yang tersisa — permadani, jam, rak, lampu berdiri, tanaman —
 semuanya **tidak bergantung pada posisi meja**, jadi aman dibiarkan.
+
+---
+
+## Penyegar latar untuk kehadiran agen (12 September 2026)
+
+### Masalahnya: kehadiran bergantung ingatan
+
+`agenN.py mulai` dulu cuma menulis SATU cap waktu. Ambang basi 5 menit,
+jadi dua hal buruk sekaligus:
+
+- pekerjaan lebih dari 5 menit -> agennya menghilang di tengah kerja
+- lupa memanggil `selesai` -> agennya duduk sampai 5 menit percuma
+
+Keduanya benar-benar terjadi. Yang kedua **berulang kali**: Claude
+memanggil `mulai` lalu lupa `selesai`, dan Porscy yang menemukannya dari
+layar. Kehadiran yang bergantung pada ingatan bukan kehadiran yang bisa
+dipercaya.
+
+### Sekarang
+
+`mulai` menyalakan proses latar yang menyegarkan cap waktunya tiap 60
+detik. `selesai` mematikannya. Terukur: umur cap waktu tidak pernah
+lewat 10 detik selama penyegar hidup, dan berhenti total begitu
+`selesai` dipanggil.
+
+### TIGA PENGAMAN — supaya penyegar tidak jadi masalah baru
+
+1. **Batas umur 20 menit.** Berhenti sendiri apa pun yang terjadi. Lupa
+   `selesai` berarti kursinya kosong dalam 25 menit (20 + ambang basi 5),
+   bukan selamanya.
+2. **Ikut sesi pemanggilnya.** PID sesi Claude dicatat saat `mulai`;
+   begitu sesinya mati, penyegarnya ikut berhenti.
+3. **Satu penyegar per agen.** `mulai` selalu mematikan yang lama dulu,
+   jadi tidak menumpuk.
+
+Ditambah dua rem di dalam putarannya: berhenti kalau berkas PID hilang
+(itu yang dilakukan `selesai`), dan berhenti kalau `aktif` sudah `false`
+— jadi ada yang menandai selesai dari mana pun, penyegar ikut berhenti.
+
+### Tiga berkas agen jadi pembungkus
+
+Seluruh logika pindah ke `kehadiran.py`; `agen1.py`, `agen2.py`,
+`agen3.py` tinggal tiga baris. Sebelumnya ketiganya salinan penuh — dan
+perbaikan yang harus disalin tiga kali sudah terbukti mahal di berkas
+lain kantor ini.
+
+### Catatan uji
+
+`pgrep -f "kehadiran.py --penyegar 2"` melaporkan proses yang sebenarnya
+tidak ada: polanya mencocokkan perintah shell yang sedang menjalankan
+pgrep itu sendiri. Sudah dua kali tertipu ini di sesi yang sama. Pakai
+`ps -eo pid,cmd | grep ... | grep -v zsh` kalau ingin yakin.

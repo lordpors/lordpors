@@ -2,33 +2,19 @@
 """
 Penanda kehadiran Agent 3 di kantor.
 
-Kembarannya agen1.py & agen2.py. Menulis agen3.json, yang dibaca
-kantor.js tiap 8 detik.
-
-    python3 agen3.py mulai "memperbaiki gelembung teks"
+    python3 agen3.py mulai "ringkasan singkat tugasnya"
     python3 agen3.py selesai
 
-Status dianggap basi setelah 5 menit -- jadi kalau sesi berhenti di
-tengah jalan, mejanya kosong sendiri tanpa perlu dibereskan.
+Isinya cuma pembungkus. Seluruh logikanya ada di kehadiran.py — termasuk
+penyegar latar yang menjaga kehadiran tetap hidup selama pekerjaan
+berlangsung, dan tiga pengamannya. Satu berkas untuk tiga agen supaya
+perbaikan tidak perlu disalin tiga kali.
 """
-import json, sys, time
+import sys
 from pathlib import Path
 
-NOMOR  = 3
-DIR    = Path(__file__).resolve().parent
-BERKAS = DIR / f"agen{NOMOR}.json"
-
-def tulis(aktif: bool, pesan: str = ""):
-    isi = {"aktif": aktif, "pesan": pesan, "waktu": time.time()}
-    BERKAS.write_text(json.dumps(isi, ensure_ascii=False), encoding="utf-8")
-    print(f"  Agent {NOMOR}: {'BEKERJA — ' + pesan if aktif else 'meninggalkan meja'}")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from kehadiran import utama
 
 if __name__ == "__main__":
-    cmd = (sys.argv[1] if len(sys.argv) > 1 else "").lower()
-    if cmd in ("mulai", "start", "on"):
-        tulis(True, " ".join(sys.argv[2:]) or "bekerja")
-    elif cmd in ("selesai", "stop", "off"):
-        tulis(False)
-    else:
-        print(__doc__)
-        sys.exit(1)
+    sys.exit(utama(["3"] + sys.argv[1:]))
