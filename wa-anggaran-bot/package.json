@@ -1,0 +1,18 @@
+{
+  "name": "wa-anggaran-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bot anggaran grup WhatsApp (Baileys). Nomor terpisah, bukan blast.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "6.7.22",
+    "pino": "^9.6.0",
+    "qrcode-terminal": "^0.12.0"
+  }
+}

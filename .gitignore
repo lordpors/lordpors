@@ -1,0 +1,99 @@
+# ============================================================
+#  APA YANG BOLEH KE GITHUB — DAFTAR IZIN, BUKAN DAFTAR LARANG
+#
+#  Folder ini berisi 11 berkas rahasia: .env gateway porsblast,
+#  token Blob Vercel, tiga kunci kantor, dan nanti auth/ berisi
+#  kredensial sesi WhatsApp. Satu `git add .` yang ceroboh akan
+#  menerbitkan semuanya, dan riwayat git tidak melupakan.
+#
+#  Maka aturannya dibalik: SEMUA DITOLAK LEBIH DULU, lalu yang
+#  benar-benar ingin dicadangkan diizinkan satu per satu. Berkas
+#  baru yang belum dipikirkan otomatis TIDAK ikut -- itu arah
+#  kesalahan yang aman.
+#
+#  Menambah sesuatu ke cadangan = menambah satu baris "!" di
+#  bawah. Kalau ragu, jangan.
+# ============================================================
+
+# tolak semuanya
+*
+
+# tapi tetap boleh menelusuri folder -- tanpa baris ini, tidak ada
+# satu pun aturan "!" di bawah yang pernah kena
+!*/
+
+# ---------- catatan kerja ----------
+!/.gitignore
+!/PROGRES.md
+!/cadangan.sh
+
+# ---------- kantor (kode, bukan keadaan) ----------
+!kantor/*.py
+!kantor/*.js
+!kantor/*.html
+!kantor/*.sh
+# agen1.json, auditor.json, qr-auditor.json, auditor-jeda.json sengaja
+# TIDAK ikut: itu keadaan sesaat, bukan data. Mencadangkannya cuma
+# membuat riwayat penuh perubahan yang tidak berarti apa-apa.
+
+# ---------- kantor versi Vercel ----------
+!kantor-deploy/*.js
+!kantor-deploy/*.html
+!kantor-deploy/*.json
+!kantor-deploy/api/*.js
+!kantor-deploy/robots.txt
+
+# ---------- modul audit ----------
+!audit/*.py
+!audit/*.txt
+!audit/*.csv
+
+# ---------- bot anggaran ----------
+!wa-anggaran-bot/src/*
+!wa-anggaran-bot/scripts/*
+!wa-anggaran-bot/package.json
+!wa-anggaran-bot/package-lock.json
+!wa-anggaran-bot/README.md
+# INI YANG PALING PENTING DICADANGKAN. Kalau PC rusak atau nomor
+# WhatsApp diblokir, berkas inilah yang membuat progresnya tidak
+# hilang -- tinggal pasang WhatsApp baru dan lanjut.
+!wa-anggaran-bot/data/*.json
+
+# ============================================================
+#  PENOLAKAN TEGAS — ditulis paling akhir supaya menang atas
+#  aturan "!" apa pun di atasnya, termasuk yang ditambahkan
+#  nanti tanpa berpikir panjang.
+# ============================================================
+.env
+.env.*
+*.env
+.kunci-*
+auth/
+**/auth/**
+*creds*.json
+node_modules/
+.vercel/
+venv/
+__pycache__/
+*.pyc
+*.log
+*.tgz
+*.zip
+unggahan/
+lampiran*/
+
+# ------------------------------------------------------------
+#  Sub-proyek yang PUNYA repo sendiri.
+#
+#  porsblast dan kawan-kawan sudah ada di GitHub masing-masing
+#  (lihat remote di ~/projects/). Mencadangkannya lagi di sini
+#  cuma menggandakan, dan .gitignore bersarang miliknya sempat
+#  menarik masuk berkas yang tidak diminta.
+#
+#  Cadangan ini fokus: kantor, audit, bot anggaran, catatan kerja.
+# ------------------------------------------------------------
+/porsblast/
+/porsblast-next/
+/porsblast-scraper/
+/telegram-blaster/
+/lihat-contoh.jpg

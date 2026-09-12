@@ -1,0 +1,3 @@
+# Halaman ini pribadi. Jangan diindeks.
+User-agent: *
+Disallow: /
