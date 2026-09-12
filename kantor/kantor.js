@@ -98,14 +98,16 @@
        meja, dan tanaman kecil yang mulai di x=339. */
     { x: 266, y: 160, w: 64, nama: "Porscy's Meta", isi: 'meta' }
   ];
-  // Duduk di sisi kiri meja; monitornya digeser ke kanan supaya
-  // dia tidak tertutup layarnya sendiri.
-  /* Duduk TEPAT DI DEPAN monitor utamanya.
-     Dulu x=272 — ujung kiri meja, sementara monitornya mulai di 292.
-     Lengannya terpaksa menjulur ke samping untuk menggapai papan ketik,
-     dan itulah yang membuatnya terbaca "menghadap samping". Yang salah
-     posisinya, bukan gambarnya. */
-  var AUDITOR = { x: 299, y: 89 };
+  /* Duduk TEPAT DI DEPAN monitor utamanya, di kursi, membelakangi kamera.
+
+     x=299: dulu 272 — ujung kiri meja sementara monitornya mulai di 292,
+     jadi lengannya menjulur menyamping untuk menggapai papan ketik.
+
+     y=92: dulu 89, dan itu membuatnya melayang setinggi layar alih-alih
+     duduk. Tutup meja ada di y=114; dengan y=92 bahunya jatuh di 106 dan
+     tangannya sampai ke papan ketik di 117 — badannya terpotong meja di
+     tempat yang benar untuk orang yang sedang duduk. */
+  var AUDITOR = { x: 299, y: 92 };
 
   /* ---------------- dinding bata ---------------- */
   var bataPola = null;
@@ -878,79 +880,98 @@
   }
 
   /* ---------------- wanita auditor ----------------
-     LURUS DARI BELAKANG, simetris, duduk di tengah kursinya.
+     DUDUK DI KURSI, LURUS MEMBELAKANGI KAMERA.
 
-     Versi sebelumnya terbaca "menghadap samping" karena dua hal
-     sekaligus, dan keduanya sudah diperbaiki:
+     Monitornya menyala menghadap kamera. Orang yang membaca layar itu
+     harus berada di sisi yang sama dengan kamera dan memunggunginya —
+     jadi yang benar terlihat cuma punggung, tengkuk, dan rambutnya.
 
-       1. Posisinya. Dia duduk di ujung kiri meja sementara monitornya
-          di kanan, jadi lengannya menjulur menyamping untuk menggapai.
-          Sekarang dia duduk tepat di depan monitor & papan ketiknya.
+     Dua hal yang dulu salah, dan keduanya sekaligus membuatnya terbaca
+     sebagai orang yang MENGHADAP kamera sambil melayang:
 
-       2. Gambarnya. Lengannya digambar hanya ke satu sisi. Dari belakang,
-          kedua lengan harus TERLIHAT SAMA — melebar sedikit dari bahu
-          lalu masuk ke depan. Asimetri sekecil apa pun langsung terbaca
-          sebagai badan yang berputar.
+       1. Ada sepetak KULIT di tengah tengkorak. Kepalanya digambar
+          sebagai blok kulit lalu rambut cuma ditempel di atas dan di
+          kedua sisi, menyisakan kulit 6x3 piksel tepat di tengah muka.
+          Pada sosok selebar 13 piksel, petak sebesar itu tidak terbaca
+          sebagai belakang kepala — terbaca sebagai WAJAH. Sekarang
+          seluruh tengkoraknya rambut; kulit hanya muncul di tengkuk,
+          di bawah garis rambut, selebar 4 piksel.
 
-     Semua yang digambar di sini simetris terhadap sumbu x+6,5. Kalau
-     menambah sesuatu, tambahkan sepasang. */
+       2. Kursinya tidak kelihatan sama sekali. Sandarannya cuma 19
+          piksel — lebih sempit daripada bentangan lengannya sendiri
+          (yang 17), jadi yang tersisa cuma serpih 2 piksel di tepi,
+          berwarna hampir sama dengan bingkai monitor di belakangnya.
+          Tanpa kursi, sosok yang melayang di depan layar tidak punya
+          apa pun yang memberitahu dia sedang duduk. Sekarang sandaran-
+          nya 24 piksel dengan rim terang dan sandaran tangan menonjol
+          keluar — jelas melingkupi tubuhnya.
+
+     Penanda punggung yang paling kuat justru yang paling sederhana:
+     EKOR KUDA DIGAMBAR DI ATAS KEMEJA. Hitam di atas putih, jatuh lurus
+     di tengah punggung. Dulu ekornya digambar sebelum badan, jadi
+     tertimbun kemeja dan hilang sama sekali.
+
+     Semua simetris terhadap sumbu x+6,5. Kalau menambah sesuatu,
+     tambahkan sepasang — asimetri sekecil apa pun langsung terbaca
+     sebagai badan yang berputar. */
   function gambarAuditor(t, ketik) {
     var x = AUDITOR.x, y = AUDITOR.y;
 
-    // --- kursi kerja, dia duduk di tengahnya ---
-    kotak(x - 3, y + 10, 19, 15, W.kursi);
-    kotak(x - 2, y + 11, 17, 1, W.kursiTerang, .8);
-    kotak(x - 3, y + 18, 19, 1, '#1e2338', .55);
-    kotak(x - 1, y + 12, 1, 10, W.kursiTerang, .5);      // sandaran tangan kiri
-    kotak(x + 13, y + 12, 1, 10, W.kursiTerang, .5);     // sandaran tangan kanan
-    kotak(x + 5, y + 25, 3, 3, '#20253c');               // silinder gas
+    /* --- kursi kerja, digambar DULU supaya dia bersandar di depannya ---
+       Sudut atasnya dipangkas satu piksel di kiri-kanan; tanpa itu
+       sandarannya terbaca sebagai peti, bukan kursi. */
+    kotak(x - 5, y + 12, 24, 13, W.kursi);
+    kotak(x - 6, y + 14, 1, 9, W.kursi);                 // pinggul kiri
+    kotak(x + 19, y + 14, 1, 9, W.kursi);                // pinggul kanan
+    kotak(x - 4, y + 11, 22, 1, W.kursi);                // puncak
+    kotak(x - 4, y + 11, 22, 1, W.kursiTerang, .9);      // rim puncak
+    kotak(x - 5, y + 12, 1, 13, W.kursiTerang, .55);     // rim kiri
+    kotak(x + 18, y + 12, 1, 13, W.kursiTerang, .55);    // rim kanan
+    kotak(x + 6, y + 13, 1, 12, '#1e2338', .45);         // jahitan tengah
+    kotak(x - 8, y + 16, 2, 7, W.kursiTerang, .85);      // sandaran tangan kiri
+    kotak(x + 20, y + 16, 2, 7, W.kursiTerang, .85);     // kanan
 
-    // --- ekor kuda: lurus di tengah punggung ---
-    kotak(x + 4, y + 2, 6, 3, W.rambutHitam);
-    kotak(x + 4, y + 3, 6, 1, '#4a3a58');                // pita ikat
-    kotak(x + 5, y + 5, 4, 13, W.rambutHitam);           // ekor
-    kotak(x + 5, y + 14, 4, 4, '#0f0c14');               // ujung
-    kotak(x + 5, y + 6, 1, 11, '#2c2436', .8);           // helai sorot
-
-    // --- badan: kemeja kantor putih ---
-    kotak(x + 1, y + 13, 12, 12, W.bajuPutih);
-    kotak(x + 1, y + 13, 12, 1, W.bajuPutihBayang);
-    kotak(x + 6, y + 14, 2, 11, W.bajuPutihBayang, .55); // jahitan punggung
-    kotak(x + 1, y + 22, 12, 2, W.bajuPutihBayang, .4);
-    kotak(x + 2, y + 13, 3, 1, '#dfe4ee');               // kerah kiri
-    kotak(x + 9, y + 13, 3, 1, '#dfe4ee');               // kerah kanan
-
-    /* --- kedua lengan, simetris, masuk ke depan ---
-       Kain sampai siku lalu kulit: itu satu-satunya penanda "lengan
-       pendek" pada sosok sekecil ini. Kedua tangan mengetik bergantian. */
-    var kiri = ketik ? (Math.floor(t / 110) % 2) : 0;
-    var kanan = 1 - kiri;
-    kotak(x - 1, y + 15, 3, 5, W.bajuPutih);             // lengan atas kiri
-    kotak(x + 12, y + 15, 3, 5, W.bajuPutih);            // lengan atas kanan
-    kotak(x - 1, y + 19, 3, 1, '#cdd4e2');               // ujung lengan kiri
-    kotak(x + 12, y + 19, 3, 1, '#cdd4e2');              // ujung lengan kanan
-    kotak(x, y + 20 - (ketik ? kiri : 0), 2, 3, W.kulit);    // lengan bawah kiri
-    kotak(x + 12, y + 20 - (ketik ? kanan : 0), 2, 3, W.kulit); // kanan
-
-    // --- kepala dari belakang ---
-    kotak(x + 3, y + 3, 8, 9, W.kulit);
-    kotak(x + 4, y + 10, 6, 2, W.kulitGelap);            // tengkuk
-
-    // --- rambut menutupi tengkorak & kedua sisi ---
-    kotak(x + 2, y + 1, 10, 6, W.rambutHitam);
-    kotak(x + 2, y + 3, 2, 8, W.rambutHitam);            // sisi kiri
-    kotak(x + 10, y + 3, 2, 8, W.rambutHitam);           // sisi kanan
+    /* --- kepala dari belakang: seluruhnya rambut, tanpa sepetak kulit --- */
+    kotak(x + 2, y + 1, 10, 11, W.rambutHitam);          // tengkorak
+    kotak(x + 1, y + 4, 1, 7, W.rambutHitam);            // rambut sisi kiri
+    kotak(x + 12, y + 4, 1, 7, W.rambutHitam);           // sisi kanan
     kotak(x + 3, y, 8, 2, '#1d1822');                    // kilau ubun-ubun
     kotak(x + 4, y + 2, 6, 1, '#2a2130', .55);
+    kotak(x + 5, y + 12, 4, 2, W.kulitGelap);            // tengkuk
 
     /* --- gagang kacamata, sepasang ---
        Dari belakang inilah satu-satunya bagian kacamata yang memang
        terlihat. Menggambar lensa di sini akan jadi kebohongan kecil:
        dari sudut ini lensanya ada di sisi lain kepalanya. */
-    kotak(x + 1, y + 6, 2, 1, W.bingkai, .95);
-    kotak(x + 11, y + 6, 2, 1, W.bingkai, .95);
-    kotak(x + 1, y + 6, 1, 1, '#d8e6ee', .5);            // kilau logam
-    kotak(x + 12, y + 6, 1, 1, '#d8e6ee', .5);
+    kotak(x, y + 7, 2, 1, W.bingkai, .95);
+    kotak(x + 12, y + 7, 2, 1, W.bingkai, .95);
+    kotak(x, y + 7, 1, 1, '#d8e6ee', .5);                // kilau logam
+    kotak(x + 13, y + 7, 1, 1, '#d8e6ee', .5);
+
+    /* --- punggung berkemeja putih --- */
+    kotak(x + 1, y + 14, 12, 11, W.bajuPutih);
+    kotak(x + 1, y + 14, 12, 1, W.bajuPutihBayang);      // garis bahu
+    kotak(x + 2, y + 14, 3, 1, '#dfe4ee');               // kerah kiri
+    kotak(x + 9, y + 14, 3, 1, '#dfe4ee');               // kerah kanan
+
+    /* --- ekor kuda, DI ATAS kemeja --- */
+    kotak(x + 5, y + 13, 4, 1, '#4a3a58');               // pita ikat
+    kotak(x + 5, y + 14, 4, 9, W.rambutHitam);           // ekor
+    kotak(x + 5, y + 21, 4, 3, '#0f0c14');               // ujung
+    kotak(x + 5, y + 15, 1, 7, '#2c2436', .8);           // helai sorot
+
+    /* --- kedua lengan, simetris, menjulur ke depan ---
+       Kain sampai siku lalu kulit: itu satu-satunya penanda "lengan
+       pendek" pada sosok sekecil ini. Kedua tangan mengetik bergantian,
+       dan ujungnya sampai di y+26 — tepat menyentuh papan ketik di 117. */
+    var kiri = ketik ? (Math.floor(t / 110) % 2) : 0;
+    var kanan = 1 - kiri;
+    kotak(x - 1, y + 16, 3, 5, W.bajuPutih);             // lengan atas kiri
+    kotak(x + 12, y + 16, 3, 5, W.bajuPutih);            // lengan atas kanan
+    kotak(x - 1, y + 20, 3, 1, '#cdd4e2');               // ujung lengan kiri
+    kotak(x + 12, y + 20, 3, 1, '#cdd4e2');              // ujung lengan kanan
+    kotak(x, y + 21 - (ketik ? kiri : 0), 2, 5, W.kulit);      // lengan bawah kiri
+    kotak(x + 12, y + 21 - (ketik ? kanan : 0), 2, 5, W.kulit); // kanan
   }
 
   /* ---------------- Agen 1 (Claude) ----------------
