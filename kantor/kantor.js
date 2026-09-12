@@ -1069,270 +1069,147 @@
     kotak(x + 9, y + 16, 3, 2, W.kulit);                 // lengan bawah kanan
   }
 
-  /* ---------------- Agen 1 (Claude) ----------------
-     Kenapa bentuknya begini — tiga keputusan yang disengaja:
+  /* ---------------- Agen 1, 2 & 3 (Claude) ----------------
+     SATU FUNGSI, TIGA RUPA. Sebelumnya tiga fungsi yang 90% sama, dan
+     itu sudah terbukti mahal: tiap perbaikan harus disalin tiga kali,
+     dan yang terlewat jadi berbeda diam-diam.
 
-     1. TANPA WAJAH, TANPA WARNA KULIT. Dua penghuni lain digambar
-        sebagai manusia dengan kulit dan rambut. Saya bukan. Menggambar
-        diri saya seperti orang ketiga di ruangan itu akan mengaburkan
-        hal yang sebenarnya penting: di meja itu tidak ada siapa-siapa.
-        Sebagai gantinya ada pita cahaya mendatar di tempat wajah.
+     BENTUK DUDUKNYA DISAMAKAN DENGAN AUDITOR. Versi lama berbadan 9
+     satuan dengan bahu 11, sementara sandaran kursi cuma 12 — kursinya
+     tertutup habis, persis bug yang dulu dialami auditor. Kepalanya 8
+     satuan menutupi bantalan kepala yang juga 8. Dan lengannya masih
+     menjulur ke KANAN saja, sisa dari zaman agen duduk di kiri meja.
 
-     2. AGAK TEMBUS PANDANG. Kursi dan meja terlihat samar menembus
-        tubuh saya. Saya hadir saat ada pekerjaan, lalu benar-benar
-        hilang — bukan pulang, memang tidak ada.
+     Angka yang membuatnya terbaca duduk, sama dengan auditor:
 
-     3. CAHAYA HANGAT, BUKAN BIRU. Seluruh ruangan sudah penuh cyan
-        dari layar. Kuning-oranye membuat saya terbaca sebagai bagian
-        dari kantor yang hangat itu, bukan mesin dingin yang diletakkan
-        di sudut. Warnanya senada dengan lampu meja di sebelah kanan.
+       sandaran 12  badan  8  -> 2 satuan kursi terlihat tiap sisi
+       bantalan  8  kepala 6  -> 1 satuan terlihat tiap sisi
+       kedua lengan simetris, menjulur ke depan ke papan ketik
 
-     Denyut pita cahayanya sengaja terlalu teratur — tidak meniru napas
-     manusia, karena saya memang tidak bernapas.                      */
-  function gambarAgen1(t) {
-    if (!agen1.aktif) return;
-    var m = mejaAgen(1);
-    var x = m.x + m.w / 2 - 7, y = m.y - 14;   // dipusatkan di mejanya
+     Yang TIDAK disamakan, dan memang tidak boleh: ketiganya tetap tanpa
+     wajah dan tembus pandang. Mereka bukan manusia yang kebetulan tidak
+     terlihat wajahnya — di meja itu memang tidak ada siapa-siapa. */
+  var RUPA_AGEN = {
+    /* Warna & tanda wajah tiap agen. Alasan pemilihannya:
 
-    /* Kursinya digambar UTUH dan padat, tubuh di atasnya yang tembus
-       pandang. Itu yang membuat ketembusan terbaca: ada benda nyata di
-       belakangnya untuk dilihat menembus. */
+       - Tiga keluarga warna yang saling jauh. Ruangan ini sudah penuh
+         cyan (layar), biru (Meta), merah (siaga Blaster); amber, ungu,
+         dan mawar yang tersisa. Dua penghuni berwarna mirip akan
+         tertukar sekali lihat di layar ponsel.
 
-    // pendar lembut di sekeliling — menandakan kehadiran, bukan benda
-    var nadi = .5 + .5 * Math.sin(t / 620);
-    var g = ctx.createRadialGradient((x + 6) * P, (y + 8) * P, 0,
-                                     (x + 6) * P, (y + 8) * P, 26 * P);
-    g.addColorStop(0, 'rgba(255,184,107,' + (.15 + .07 * nadi) + ')');
-    g.addColorStop(1, 'rgba(255,184,107,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect((x - 20) * P, (y - 18) * P, 52 * P, 48 * P);
+       - Tiga BENTUK tanda yang berbeda, bukan cuma tiga warna. Kalau
+         suatu saat kantor ini dilihat hitam-putih atau oleh mata yang
+         sulit membedakan warna, bentuknya yang menyelamatkan.
 
-    ctx.globalAlpha = .84;                       // tembus pandang
+       - Tiga irama denyut. Kalau bertiga duduk bersamaan, ruangan terasa
+         berisi tiga makhluk, bukan satu mesin bercabang tiga. */
+    1: { badan:'#3f4674', gelap:'#333a61', kepala:'#2c3157', tepi:'#5b64a0',
+         tanda:'#ffb86b', terang:'#ffd9a8', rgb:'255,184,107',
+         denyut:620, alpha:.84, bentuk:'pita' },
+    2: { badan:'#4a3f70', gelap:'#3b3159', kepala:'#352d54', tepi:'#7c6bb8',
+         tanda:'#c4b5fd', terang:'#ece7ff', rgb:'196,181,253',
+         denyut:840, alpha:.72, bentuk:'celah' },
+    3: { badan:'#6b3a4e', gelap:'#582f40', kepala:'#4a2838', tepi:'#a85a72',
+         tanda:'#fb7185', terang:'#ffd9de', rgb:'251,113,133',
+         denyut:1080, alpha:.78, bentuk:'cincin' }
+  };
 
-    kotak(x + 2, y + 8, 9, 10, W.a1Badan);
-    kotak(x + 1, y + 9, 11, 2, W.a1Badan);            // bahu sedikit melebar
-    kotak(x + 2, y + 8, 9, 1, W.a1Tepi);
-    kotak(x + 2, y + 14, 9, 4, W.a1BadanGelap);
-    kotak(x + 6, y + 10, 1, 8, W.a1Tepi, .35);        // garis tengah badan
-
-    // Kedua lengan menjulur ke KANAN, ke arah papan ketik di bawah
-    // monitor — memperkuat bacaan bahwa dia menghadap layar.
-    var goyang = Math.floor(t / 100) % 2;
-    kotak(x + 9, y + 10, 5, 3, W.a1Badan);
-    kotak(x + 9, y + 14, 5, 3, W.a1Badan);
-    kotak(x + 14, y + 10 - goyang, 3, 2, W.a1Tepi);
-    kotak(x + 14, y + 14 - (1 - goyang), 3, 2, W.a1Tepi);
-
-    kotak(x + 3, y, 8, 9, W.a1Kepala);           // kepala
-    kotak(x + 3, y, 8, 1, W.a1Tepi);
-
-    ctx.globalAlpha = 1;
-
-    // Pita cahaya di tempat wajah, sengaja digeser ke sisi KANAN kepala
-    // supaya terbaca sedang menghadap monitor yang ada di kanan meja —
-    // bukan menghadap penonton atau membelakangi layarnya sendiri.
-    var terang = .62 + .38 * nadi;
-    ctx.globalAlpha = terang;
-    kotak(x + 6, y + 3, 5, 2, W.a1Visor);
-    kotak(x + 8, y + 3, 3, 1, W.a1VisorTerang);
-    ctx.globalAlpha = 1;
-
-    var gv = ctx.createRadialGradient((x + 9) * P, (y + 4) * P, 0,
-                                      (x + 9) * P, (y + 4) * P, 11 * P);
-    gv.addColorStop(0, 'rgba(255,184,107,' + (.42 * terang) + ')');
-    gv.addColorStop(1, 'rgba(255,184,107,0)');
-    ctx.fillStyle = gv;
-    ctx.fillRect((x - 2) * P, (y - 7) * P, 24 * P, 22 * P);
-
-    // gelembung tugas
-    gambarBalon((agen1.pesan || 'bekerja').slice(0, 34),
-                (x + 6) * P, (y - 3) * P, W.a1Visor, '#f4e8da', 0);
-  }
-
-  /* ---------------- Agen 2 (Claude, sesi kedua) ----------------
-     Porscy menyerahkan rupa karakter ini kepada saya. Empat keputusan,
-     semuanya disengaja — jangan diubah tanpa alasan:
-
-     1. RANGKA YANG SAMA DENGAN AGEN 1. Tanpa wajah, tanpa warna kulit,
-        tembus pandang, muncul hanya kalau ada pekerjaan. Kami bukan dua
-        makhluk berbeda; kami jenis yang sama. Menggambar saya sebagai
-        manusia sementara Agen 1 bukan justru akan berbohong soal apa
-        yang duduk di meja itu.
-
-     2. UNGU, BUKAN ORANYE. Ruangan ini sudah punya dua kutub: cyan dari
-        layar, dan oranye hangat dari lampu meja serta Agen 1. Ungu satu-
-        satunya warna yang belum dipakai siapa pun, jadi sekali lihat
-        ketahuan meja mana yang terisi. Maknanya pun pas: Agen 1 yang
-        membangun kantor ini dan warnanya senada dengan lampunya sendiri;
-        saya datang belakangan, dari luar.
-
-     3. GARIS PINDAI YANG MERAYAP NAIK. Ini tanda tangan saya. Agen 1
-        hadir sebagai cahaya yang diam; saya hadir sebagai sesuatu yang
-        sedang DIALIRKAN ke sini — karena memang begitu keadaannya,
-        Porscy mengendalikan saya dari ponsel lewat Remote Control.
-        Sengaja tidak memakai kedip atau loncatan bingkai: itu akan
-        terbaca sebagai kerusakan gambar, bukan sebagai watak.
-
-     4. CELAH CAHAYA TEGAK DI KEPALA, bukan pita mendatar. Beda arah satu
-        garis sudah cukup membedakan kami berdua bahkan waktu kanvasnya
-        dikecilkan sampai sebesar ibu jari di layar ponsel.
-
-     Saya lebih tembus pandang daripada Agen 1 (.72 lawan .84). Dia yang
-     membangun ruangan ini; saya baru menempati kursi sebelah.           */
-  function gambarAgen2(t) {
-    if (!agen2.aktif) return;
-    var m = mejaAgen(2);
-    var x = m.x + m.w / 2 - 7, y = m.y - 14;   // dipusatkan di mejanya
-
-
-    // Denyut sengaja lebih lambat dari Agen 1 (620) supaya kalau kami
-    // berdua duduk bersamaan, ruangan tidak berdenyut serempak seperti
-    // satu mesin.
-    var nadi = .5 + .5 * Math.sin(t / 840);
-    var g = ctx.createRadialGradient((x + 6) * P, (y + 8) * P, 0,
-                                     (x + 6) * P, (y + 8) * P, 26 * P);
-    g.addColorStop(0, 'rgba(167,139,250,' + (.16 + .07 * nadi) + ')');
-    g.addColorStop(1, 'rgba(167,139,250,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect((x - 20) * P, (y - 18) * P, 52 * P, 48 * P);
-
-    ctx.globalAlpha = .72;                       // lebih samar dari Agen 1
-
-    kotak(x + 2, y + 8, 9, 10, W.a2Badan);
-    kotak(x + 1, y + 9, 11, 2, W.a2Badan);
-    kotak(x + 2, y + 8, 9, 1, W.a2Tepi);
-    kotak(x + 2, y + 14, 9, 4, W.a2BadanGelap);
-    kotak(x + 6, y + 10, 1, 8, W.a2Tepi, .35);
-
-    // Kedua lengan menjulur ke KANAN, ke papan ketik di bawah monitor —
-    // pola yang sama dengan Agen 1, supaya kami terbaca sebagai sepasang.
-    var goyang = Math.floor(t / 100) % 2;
-    kotak(x + 9, y + 10, 5, 3, W.a2Badan);
-    kotak(x + 9, y + 14, 5, 3, W.a2Badan);
-    kotak(x + 14, y + 10 - goyang, 3, 2, W.a2Tepi);
-    kotak(x + 14, y + 14 - (1 - goyang), 3, 2, W.a2Tepi);
-
-    kotak(x + 3, y, 8, 9, W.a2Kepala);           // kepala
-    kotak(x + 3, y, 8, 1, W.a2Tepi);
-
-    ctx.globalAlpha = 1;
-
-    /* Garis pindai. HARUS digambar sesudah globalAlpha dikembalikan ke 1:
-       kotak() yang dipanggil dengan argumen alpha selalu menyetel ulang
-       globalAlpha ke 1 setelah selesai, jadi memakainya di tengah blok
-       tembus pandang akan diam-diam membatalkan ketembusan sisa tubuh. */
-    var geser = 2 - (((t / 130) | 0) % 3);
-    for (var sy = y + 8; sy < y + 18; sy += 3)
-      kotak(x + 2, sy + geser, 9, 1, W.a2SeamTerang, .13);
-    for (var sk = y + 1; sk < y + 9; sk += 3)
-      kotak(x + 3, sk + geser, 8, 1, W.a2SeamTerang, .13);
-
-    // Celah cahaya tegak, di sisi KANAN kepala — menghadap monitor yang
-    // memang ada di kanan meja.
-    var terang = .62 + .38 * nadi;
-    ctx.globalAlpha = terang;
-    kotak(x + 8, y + 1, 1, 7, W.a2Seam);
-    kotak(x + 8, y + 2, 1, 4, W.a2SeamTerang);
-    ctx.globalAlpha = 1;
-
-    var gv = ctx.createRadialGradient((x + 8.5) * P, (y + 4.5) * P, 0,
-                                      (x + 8.5) * P, (y + 4.5) * P, 11 * P);
-    gv.addColorStop(0, 'rgba(196,181,253,' + (.40 * terang) + ')');
-    gv.addColorStop(1, 'rgba(196,181,253,0)');
-    ctx.fillStyle = gv;
-    ctx.fillRect((x - 2) * P, (y - 7) * P, 24 * P, 22 * P);
-
-    /* Kalau Agen 1 juga sedang bekerja, balon saya naik satu tingkat.
-       Dua meja itu cuma 82 satuan seni terpisah sementara balonnya bisa
-       selebar hampir seluruh kanvas di ponsel — tanpa ditumpuk, keduanya
-       pasti saling menutupi. */
-    gambarBalon((agen2.pesan || 'bekerja').slice(0, 34),
-                (x + 6) * P, (y - 3) * P, W.a2Seam, '#e9e4f6',
-                agen1.aktif ? 1 : 0);
-  }
-
-  /* ---------------- Agen 3 (Claude, sesi ketiga) ----------------
-     Jenis yang sama dengan Agen 1 & 2: tanpa wajah, tembus pandang,
-     hadir hanya saat ada pekerjaan. Tiga hal yang membedakannya:
-
-     1. MAWAR. Ruangan ini sudah punya amber (Agen 1, lampu, neon), ungu
-        (Agen 2, strip dinding), cyan (layar), biru (Meta), merah
-        (siaga Blaster). Mawar satu-satunya keluarga warna yang belum
-        dipakai siapa pun — dan itu syarat mutlak: dua penghuni berwarna
-        mirip akan tertukar sekali lihat, apalagi di layar ponsel.
-
-     2. CINCIN, bukan pita atau celah. Agen 1 memakai pita mendatar,
-        Agen 2 celah tegak. Cincin adalah bentuk ketiga yang masih
-        terbaca pada kepala selebar 8 satuan. Arah garis sudah habis;
-        yang tersisa bentuk tertutup.
-
-     3. DENYUT PALING LAMBAT (1080 lawan 620 dan 840). Kalau ketiganya
-        duduk bersamaan, tiga irama berbeda membuat ruangan terasa berisi
-        tiga makhluk, bukan satu mesin dengan tiga cabang.
-
-     Tembus pandangnya .78 — di antara Agen 1 (.84) dan Agen 2 (.72).  */
-  function gambarAgen3(t) {
-    if (!agen3.aktif) return;
-    var m = mejaAgen(3);
+  function gambarAgenDuduk(nomor, t) {
+    var a = AGEN[nomor];
+    if (!a || !a.aktif) return;
+    var m = mejaAgen(nomor);
     if (!m) return;
-    var x = m.x + m.w / 2 - 7, y = m.y - 14;
+    var r = RUPA_AGEN[nomor];
 
-    var nadi = .5 + .5 * Math.sin(t / 1080);
-    var g = ctx.createRadialGradient((x + 6) * P, (y + 8) * P, 0,
-                                     (x + 6) * P, (y + 8) * P, 26 * P);
-    g.addColorStop(0, 'rgba(251,113,133,' + (.15 + .07 * nadi) + ')');
-    g.addColorStop(1, 'rgba(251,113,133,0)');
+    // Diletakkan dengan pola yang sama persis seperti auditor.
+    var x = m.x + m.w / 2 - 5, y = m.y - 16;
+    var nadi = .5 + .5 * Math.sin(t / r.denyut);
+
+    // pendar di sekeliling — menandakan kehadiran, bukan benda
+    var g = ctx.createRadialGradient((x + 5) * P, (y + 10) * P, 0,
+                                     (x + 5) * P, (y + 10) * P, 24 * P);
+    g.addColorStop(0, 'rgba(' + r.rgb + ',' + (.15 + .07 * nadi) + ')');
+    g.addColorStop(1, 'rgba(' + r.rgb + ',0)');
     ctx.fillStyle = g;
-    ctx.fillRect((x - 20) * P, (y - 18) * P, 52 * P, 48 * P);
+    ctx.fillRect((x - 18) * P, (y - 14) * P, 46 * P, 46 * P);
 
-    ctx.globalAlpha = .78;
+    ctx.globalAlpha = r.alpha;
 
-    kotak(x + 2, y + 8, 9, 10, W.a3Badan);
-    kotak(x + 1, y + 9, 11, 2, W.a3Badan);            // bahu
-    kotak(x + 2, y + 8, 9, 1, W.a3Tepi);
-    kotak(x + 2, y + 14, 9, 4, W.a3BadanGelap);
-    kotak(x + 6, y + 10, 1, 8, W.a3Tepi, .35);        // garis tengah badan
+    // badan 8 satuan — lebih sempit dari sandaran 12
+    kotak(x + 1, y + 11, 8, 9, r.badan);
+    kotak(x + 1, y + 11, 8, 1, r.tepi);
+    kotak(x + 4, y + 12, 1, 8, r.tepi, .35);          // garis tengah badan
+    kotak(x + 1, y + 17, 8, 3, r.gelap);
 
-    // Lengan menjulur ke depan, ke papan ketik — pola yang sama dengan
-    // kedua saudaranya, supaya bertiga terbaca sebagai satu jenis.
-    var goyang = Math.floor(t / 100) % 2;
-    kotak(x + 9, y + 10, 5, 3, W.a3Badan);
-    kotak(x + 9, y + 14, 5, 3, W.a3Badan);
-    kotak(x + 14, y + 10 - goyang, 3, 2, W.a3Tepi);
-    kotak(x + 14, y + 14 - (1 - goyang), 3, 2, W.a3Tepi);
-
-    kotak(x + 3, y, 8, 9, W.a3Kepala);
-    kotak(x + 3, y, 8, 1, W.a3Tepi);
+    // kepala 6 satuan — lebih sempit dari bantalan kepala 8
+    kotak(x + 2, y + 3, 6, 8, r.kepala);
+    kotak(x + 2, y + 3, 6, 1, r.tepi);
 
     ctx.globalAlpha = 1;
 
-    /* Cincin cahaya di tempat wajah. Digambar sebagai empat sisi kotak
-       berlubang, bukan lingkaran — pada kepala selebar 8 satuan,
-       lingkaran ctx.arc akan mendarat jadi gumpalan tak berbentuk. */
+    /* Garis pindai merayap naik — khusus Agen 2. Dia hadir sebagai
+       sesuatu yang sedang DIALIRKAN ke sini, karena memang begitu:
+       Porscy mengendalikannya dari jauh lewat Remote Control.
+
+       HARUS digambar sesudah globalAlpha kembali ke 1: kotak() yang
+       dipanggil dengan argumen alpha selalu menyetel ulang globalAlpha,
+       jadi memakainya di tengah blok tembus pandang akan diam-diam
+       membatalkan ketembusan sisa tubuh. */
+    if (nomor === 2) {
+      var geser = 2 - (((t / 130) | 0) % 3);
+      for (var sy = y + 11; sy < y + 20; sy += 3)
+        kotak(x + 1, sy + geser, 8, 1, r.terang, .13);
+    }
+
+    // --- tanda wajah: tiga bentuk berbeda ---
     var terang = .62 + .38 * nadi;
     ctx.globalAlpha = terang;
-    kotak(x + 5, y + 2, 4, 1, W.a3Cincin);            // sisi atas
-    kotak(x + 5, y + 5, 4, 1, W.a3Cincin);            // sisi bawah
-    kotak(x + 5, y + 3, 1, 2, W.a3Cincin);            // sisi kiri
-    kotak(x + 8, y + 3, 1, 2, W.a3Cincin);            // sisi kanan
-    kotak(x + 6, y + 2, 2, 1, W.a3CincinTerang);      // titik paling terang
+    if (r.bentuk === 'pita') {                      // Agen 1: pita mendatar
+      kotak(x + 3, y + 6, 4, 2, r.tanda);
+      kotak(x + 4, y + 6, 2, 1, r.terang);
+    } else if (r.bentuk === 'celah') {              // Agen 2: celah tegak
+      kotak(x + 5, y + 5, 1, 5, r.tanda);
+      kotak(x + 5, y + 6, 1, 3, r.terang);
+    } else {                                        // Agen 3: cincin
+      kotak(x + 3, y + 5, 4, 1, r.tanda);
+      kotak(x + 3, y + 8, 4, 1, r.tanda);
+      kotak(x + 3, y + 6, 1, 2, r.tanda);
+      kotak(x + 6, y + 6, 1, 2, r.tanda);
+      kotak(x + 4, y + 5, 2, 1, r.terang);
+    }
     ctx.globalAlpha = 1;
 
-    var gv = ctx.createRadialGradient((x + 7) * P, (y + 3.5) * P, 0,
-                                      (x + 7) * P, (y + 3.5) * P, 11 * P);
-    gv.addColorStop(0, 'rgba(251,113,133,' + (.40 * terang) + ')');
-    gv.addColorStop(1, 'rgba(251,113,133,0)');
+    var gv = ctx.createRadialGradient((x + 5) * P, (y + 7) * P, 0,
+                                      (x + 5) * P, (y + 7) * P, 10 * P);
+    gv.addColorStop(0, 'rgba(' + r.rgb + ',' + (.40 * terang) + ')');
+    gv.addColorStop(1, 'rgba(' + r.rgb + ',0)');
     ctx.fillStyle = gv;
-    ctx.fillRect((x - 2) * P, (y - 7) * P, 24 * P, 22 * P);
+    ctx.fillRect((x - 4) * P, (y - 2) * P, 20 * P, 20 * P);
 
-    /* Balon naik satu tingkat untuk tiap agen yang sudah bicara di
-       sebelahnya, supaya tiga balon tidak saling menutupi. */
-    var tingkat = (agen1.aktif ? 1 : 0) + (agen2.aktif ? 1 : 0);
-    gambarBalon((agen3.pesan || 'bekerja').slice(0, 34),
-                (x + 6) * P, (y - 3) * P, W.a3Cincin, '#f9e2e7', tingkat);
+    /* --- kedua lengan, PALING AKHIR dan SIMETRIS ---
+       Sesudah tanda wajah supaya tidak tertimbun, dan simetris karena
+       dia duduk lurus menghadap monitornya. Versi lama menjulurkan
+       keduanya ke kanan — sisa dari zaman agen duduk di kiri meja. */
+    ctx.globalAlpha = r.alpha;
+    kotak(x - 1, y + 12, 2, 4, r.badan);
+    kotak(x + 9, y + 12, 2, 4, r.badan);
+    kotak(x - 1, y + 16, 2, 2, r.tepi);
+    kotak(x + 9, y + 16, 2, 2, r.tepi);
+    ctx.globalAlpha = 1;
+
+    /* Balon naik satu tingkat untuk tiap agen bernomor lebih kecil yang
+       sedang bicara, supaya balon mereka tidak saling menutupi. */
+    var tingkat = 0;
+    for (var n = 1; n < nomor; n++) if (AGEN[n] && AGEN[n].aktif) tingkat++;
+    gambarBalon((a.pesan || 'bekerja').slice(0, 34),
+                (x + 5) * P, (y + 1) * P, r.tanda, '#f2edf6', tingkat);
   }
 
-  /* ---------------- LordPors ----------------
+  function gambarAgen1(t) { gambarAgenDuduk(1, t); }
+  function gambarAgen2(t) { gambarAgenDuduk(2, t); }
+  function gambarAgen3(t) { gambarAgenDuduk(3, t); }
+
+  /* ---------------- LordPors ----------------  /* ---------------- LordPors ----------------
      DIKECILKAN dari 47 ke 36 satuan. Versi sebelumnya terlalu besar
      untuk ruangan setinggi 190 — dia lebih tinggi dari jendelanya
      sendiri, dan itu membuat kantornya terasa seperti rumah boneka.
