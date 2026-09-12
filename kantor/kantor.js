@@ -48,7 +48,7 @@
     kaosHitam:'#17161c', kaosGelap:'#0f0e13', jeans:'#2c3d61', jeansGelap:'#20304d',
     sepatu:'#e8e8e8',
     neonKuning:'#ffd93d', neonBiru:'#4db8ff',
-    neonUngu:'#c026d3', neonSian:'#22d3ee',
+    neonUngu:'#c026d3', neonSian:'#2ad4f0', neonAmber:'#ffa424',
     lampuGantung:'#f5c451', balok:'#2b3152',
     permadani:'#1c2547', permadaniTepi:'#2a3766',
     lemari:'#2a3050', lemariAtas:'#39406a',
@@ -76,7 +76,7 @@
   /* ---------------- tata letak ---------------- */
   var JENDELA = { x: 112, y: 12, w: 150, h: 88 };
   var NEON    = { x: 8,   y: 14, w: 104, h: 54 };
-  var PORS    = { x: 176, y: 62 };   // kaki mendarat di y=107, tepat di lantai
+  var PORS    = { x: 176, y: 60 };   // sol mendarat di y=107, tepat di lantai
 
   var MEJA_H = 16;
   var MEJA_SEMUA = [
@@ -100,7 +100,7 @@
   ];
   // Duduk di sisi kiri meja; monitornya digeser ke kanan supaya
   // dia tidak tertutup layarnya sendiri.
-  var AUDITOR = { x: 272, y: 96 };
+  var AUDITOR = { x: 271, y: 91 };
 
   /* ---------------- dinding bata ---------------- */
   var bataPola = null;
@@ -280,9 +280,9 @@
     k.width = w; k.height = h;
     var c = k.getContext('2d');
 
-    /* Tiga lapis untuk tiap tulisan: pendar luar yang lebar, pendar
-       dalam yang rapat, lalu inti hampir putih. Itu yang membuat tabung
-       neon terasa berisi cahaya, bukan sekadar teks berwarna. */
+    /* Tiga lapis untuk tiap unsur: pendar luar yang lebar, pendar dalam
+       yang rapat, lalu inti hampir putih. Itu yang membuat tabung neon
+       terasa BERISI cahaya, bukan sekadar garis berwarna. */
     function tulis(teks, y, warna, font, spasi) {
       c.font = font;
       c.textAlign = 'center'; c.textBaseline = 'middle';
@@ -291,62 +291,64 @@
       c.shadowBlur = 34; c.fillStyle = warna; c.fillText(teks, w / 2, y);
       c.shadowBlur = 20; c.fillText(teks, w / 2, y);
       c.shadowBlur = 10; c.fillText(teks, w / 2, y);
-      c.shadowBlur = 4;  c.fillStyle = '#fffdf6'; c.fillText(teks, w / 2, y);
+      c.shadowBlur = 4;  c.fillStyle = '#fff6e0'; c.fillText(teks, w / 2, y);
       c.shadowBlur = 0;
       if (c.letterSpacing !== undefined) c.letterSpacing = '0px';
     }
 
-    /* KURUNG NEON di sekeliling LORDPORS.
-
-       Di acuan, tabungnya tidak mengelilingi penuh — ia naik dari kiri
-       bawah, membelok di atas, lalu berhenti. Kurung yang tidak menutup
-       itu yang membuatnya terbaca sebagai papan neon buatan tangan,
-       bukan kotak yang digambar komputer. Menutupnya penuh justru
-       menghilangkan ciri itu. */
-    function kurung() {
-      var kiri = w * .06, kanan = w * .94, atas = h * .09, bawah = h * .50;
-      var r = h * .12;
-      c.strokeStyle = W.neonKuning;
+    /* Satu jalur tabung, digambar tiga kali dengan tebal & pendar menurun.
+       `jalur` menerima konteks supaya bentuknya ditulis sekali saja —
+       menulis jalur yang sama tiga kali adalah cara termudah membuat
+       ketiganya diam-diam berbeda. */
+    function tabung(jalur, warna) {
       c.lineCap = 'round'; c.lineJoin = 'round';
-      c.shadowColor = W.neonKuning;
-      [[26, 3.2], [12, 2.4], [0, 1.4]].forEach(function (lapis, i) {
-        c.shadowBlur = lapis[0];
-        c.lineWidth = lapis[1];
-        c.strokeStyle = i === 2 ? '#fffdf6' : W.neonKuning;
-        c.beginPath();
-        c.moveTo(kiri + r, bawah);        // kaki kiri bawah
-        c.lineTo(kiri, bawah - r);
-        c.lineTo(kiri, atas + r);         // naik
-        c.lineTo(kiri + r, atas);         // belok kanan
-        c.lineTo(kanan - r * 2.2, atas);  // melintang di atas
-        c.stroke();
-        // potongan pendek di kanan bawah — ujung tabung yang tidak menutup
-        c.beginPath();
-        c.moveTo(kanan, atas + r * 1.4);
-        c.lineTo(kanan, bawah - r);
-        c.lineTo(kanan - r, bawah);
-        c.stroke();
-      });
+      c.shadowColor = warna;
+      [[30, 5.0, warna], [14, 3.2, warna], [0, 1.6, '#fff6e0']]
+        .forEach(function (L) {
+          c.shadowBlur = L[0]; c.lineWidth = L[1]; c.strokeStyle = L[2];
+          c.beginPath(); jalur(c); c.stroke();
+        });
       c.shadowBlur = 0;
     }
 
-    kurung();
-    tulis('LORDPORS', h * .30, W.neonKuning,
+    var A = W.neonAmber, S = W.neonSian;
+
+    /* Tabung utama, mengikuti acuan: KAIT di kiri bawah yang melengkung
+       balik ke dalam, naik di sisi kiri, membelok di atas, melintang ke
+       kanan, lalu turun pendek dan berhenti.
+
+       Kaitnya itu ciri paling khas di acuan — tanpa kait, ini cuma kotak
+       yang kurang satu sisi. */
+    tabung(function (c) {
+      c.moveTo(w * .17, h * .52);          // ujung kait, di dalam
+      c.quadraticCurveTo(w * .04, h * .52, w * .05, h * .38);
+      c.lineTo(w * .05, h * .20);          // naik
+      c.quadraticCurveTo(w * .05, h * .08, w * .16, h * .08);
+      c.lineTo(w * .88, h * .08);          // melintang di atas
+      c.quadraticCurveTo(w * .96, h * .08, w * .96, h * .20);
+      c.lineTo(w * .96, h * .30);          // turun pendek lalu berhenti
+    }, A);
+
+    tulis('LORDPORS', h * .40, A,
           '900 40px "Orbitron", ui-monospace, monospace', '7px');
 
-    /* MEMENTO VIVERE — huruf besar, cyan, sejajar dengan LORDPORS.
-       Versi lama memakai Cinzel miring; itu serif klasik yang bertengkar
-       dengan seluruh ruangan yang serba piksel. */
-    tulis('MEMENTO VIVERE', h * .74, W.neonSian,
-          '700 21px "Orbitron", ui-monospace, monospace', '4px');
+    // garis amber di bawah LORDPORS — di acuan ia tidak selebar tulisannya
+    tabung(function (c) {
+      c.moveTo(w * .17, h * .62);
+      c.lineTo(w * .72, h * .62);
+    }, A);
 
-    // garis cyan tipis di bawahnya, seperti tabung kedua di acuan
-    c.strokeStyle = W.neonSian; c.shadowColor = W.neonSian;
-    c.shadowBlur = 14; c.lineWidth = 2;
-    c.beginPath();
-    c.moveTo(w * .14, h * .90); c.lineTo(w * .86, h * .90);
-    c.stroke();
-    c.shadowBlur = 0;
+    tulis('MEMENTO VIVERE', h * .78, S,
+          '700 20px "Orbitron", ui-monospace, monospace', '4px');
+
+    /* Tabung cyan di kanan: turun menyerong lalu tegak. Di acuan inilah
+       yang menyeimbangkan kait amber di kiri bawah — tanpa itu papan
+       neonnya berat sebelah. */
+    tabung(function (c) {
+      c.moveTo(w * .80, h * .66);
+      c.lineTo(w * .92, h * .80);
+      c.lineTo(w * .92, h * .96);
+    }, S);
 
     neonSiap = k;
   }
@@ -781,7 +783,7 @@
       kotak(hp + 1, y - 18, 6, 4, '#3b82f6', denyut);      // gelembung pesan
       kotak(hp + 2, y - 14, 2, 2, '#3b82f6', denyut);      // ekor gelembungnya
       gambarKursi(m.x + m.w / 2 - 7, y + MEJA_H + 2, true);
-      daftarTombol('meta', 'Meta', m.x + m.w / 2, y + MEJA_H - 3);
+      daftarTombol('meta', 'Meta', m.x + m.w / 2, y + MEJA_H - 1);
 
     } else if (m.isi === 'blaster') {
       /* Masih kosong — menunggu blast pertama dinyalakan.
@@ -800,7 +802,7 @@
       // blaster benar-benar jalan, di sinilah tempat mempercepatnya.
       kotak(bx + 14, y - 18, 3, 2, '#f87171', .2 + .3 * Math.sin(t / 1400));
       gambarKursi(m.x + m.w / 2 - 7, y + MEJA_H + 2, true);
-      daftarTombol('blaster', 'Blaster', m.x + m.w / 2, y + MEJA_H - 3);
+      daftarTombol('blaster', 'Blaster', m.x + m.w / 2, y + MEJA_H - 1);
 
     } else {
       /* Meja agen menyala kalau penghuninya sedang bekerja. `isi` tetap
@@ -819,7 +821,7 @@
         gambarKursi(m.x + m.w / 2 - 7, y + MEJA_H + 2, true);
         daftarTombol(m === MEJA_SEMUA[1] ? 'agen1' : 'agen2',
                      m === MEJA_SEMUA[1] ? 'Agent 1' : 'Agent 2',
-                     m.x + m.w / 2, y + MEJA_H - 3);
+                     m.x + m.w / 2, y + MEJA_H - 1);
       }
     }
 
@@ -847,7 +849,9 @@
         fs *= (MAKS / (lt + fs * 1.25)) * .99;
       }
 
-      var px = (m.x + m.w / 2) * P, py = (y + 8) * P;
+      // y+4, bukan y+8. Papan nama duduk di bagian ATAS muka meja;
+      // ruang di bawahnya disisakan untuk tombol +.
+      var px = (m.x + m.w / 2) * P, py = (y + 4) * P;
       var pw = lt + fs * 1.25, ph = fs * 1.45;
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillStyle = 'rgba(10,8,22,.95)';
@@ -861,61 +865,80 @@
   }
 
   /* ---------------- wanita auditor ----------------
-     Dilihat dari BELAKANG-samping, seperti di referensi: yang menghadap
-     penonton adalah punggung dan rambutnya, layarnya ada di depannya.
-     Itu penting — wajah menghadap penonton akan membuatnya terlihat
-     berpose untuk kita, bukan sedang bekerja.
+     Tampak TIGA PEREMPAT dari belakang: badannya menghadap layar di
+     kanan, tapi kepalanya sedikit berpaling sehingga pipi, kacamata,
+     dan ujung hidungnya terlihat di tepi kanan siluetnya.
 
-     Urutan gambar: kursi, rambut lapis belakang, badan, kepala, rambut
-     lapis depan, lalu headphone. Salah urutan dan rambutnya akan
-     menutupi headphone-nya sendiri. */
+     Kenapa bukan murni dari belakang: Porscy ingin dia terbaca sebagai
+     "wanita berkacamata", dan kacamata mustahil terlihat dari belakang.
+     Kenapa bukan menghadap penonton: itu akan membuatnya berpose untuk
+     kita, bukan bekerja. Tiga perempat menjawab keduanya.
+
+     Urutan gambar penting: kursi, ekor kuda, badan, lengan, kepala,
+     rambut depan, lalu kacamata. Kacamata harus paling akhir — kalau
+     didahului rambut, gagangnya tertimbun. */
   function gambarAuditor(t, ketik) {
     var x = AUDITOR.x, y = AUDITOR.y;
 
-    // kursi kerja, terlihat di balik punggungnya
-    kotak(x - 3, y + 5, 16, 15, W.kursi);
-    kotak(x - 2, y + 6, 14, 1, W.kursiTerang, .8);
-    kotak(x - 3, y + 12, 16, 1, '#1e2338', .6);
-    kotak(x + 4, y + 20, 2, 3, '#20253c');
-    kotak(x - 1, y + 23, 12, 1, '#20253c');
+    // --- kursi kerja ---
+    kotak(x - 3, y + 10, 17, 16, W.kursi);
+    kotak(x - 2, y + 11, 15, 1, W.kursiTerang, .8);
+    kotak(x - 3, y + 18, 17, 1, '#1e2338', .6);
+    kotak(x + 4, y + 26, 2, 3, '#20253c');
+    kotak(x - 1, y + 29, 12, 1, '#20253c');
 
-    // rambut lapis belakang — jatuh menutupi punggung
-    kotak(x, y + 2, 13, 16, W.rambutHitam);
-    kotak(x + 1, y + 14, 11, 4, '#0f0c14');            // ujung rambut, lebih gelap
+    /* --- ekor kuda ---
+       Diikat TINGGI di belakang kepala, lalu jatuh ke punggung. Pita
+       ikatnya sengaja diberi warna berbeda: tanpa itu, rambut terikat
+       tidak terbaca berbeda dari rambut tergerai. */
+    kotak(x + 4, y + 1, 7, 3, W.rambutHitam);            // sanggul ikat
+    kotak(x + 5, y + 2, 5, 1, '#3a2f45');                // pita
+    kotak(x + 5, y + 4, 5, 13, W.rambutHitam);           // ekor jatuh
+    kotak(x + 6, y + 13, 4, 5, '#0f0c14');               // ujung lebih gelap
+    kotak(x + 5, y + 5, 1, 11, '#241d2c', .8);           // helai sorot
 
-    // badan: atasan putih
-    kotak(x + 2, y + 9, 9, 10, W.bajuPutih);
-    kotak(x + 2, y + 9, 9, 1, W.bajuPutihBayang);
-    kotak(x + 2, y + 15, 9, 1, W.bajuPutihBayang, .7);
+    // --- badan: kemeja kantor putih lengan pendek ---
+    kotak(x + 2, y + 13, 10, 13, W.bajuPutih);
+    kotak(x + 2, y + 13, 10, 1, W.bajuPutihBayang);
+    kotak(x + 6, y + 14, 1, 12, W.bajuPutihBayang, .7);  // jahitan punggung
+    kotak(x + 2, y + 24, 10, 2, W.bajuPutihBayang, .5);  // bayangan pinggang
+    kotak(x + 3, y + 13, 2, 2, '#dfe4ee');               // kerah
+    kotak(x + 9, y + 13, 2, 2, '#dfe4ee');
 
-    // lengan menjulur ke KANAN, ke papan ketik di depannya
+    /* --- lengan pendek: kain sampai siku, sisanya kulit ---
+       Ini satu-satunya penanda "lengan pendek" pada sosok sekecil ini.
+       Kalau seluruh lengan putih, ia terbaca lengan panjang. */
     var goyang = ketik ? (Math.floor(t / 110) % 2) : 0;
-    kotak(x + 10, y + 11, 4, 3, W.bajuPutih);
-    kotak(x + 10, y + 15, 4, 3, W.bajuPutih);
-    kotak(x + 14, y + 12 - goyang, 2, 2, W.kulit);
-    kotak(x + 14, y + 16 - (1 - goyang), 2, 2, W.kulit);
+    kotak(x + 11, y + 15, 4, 4, W.bajuPutih);            // kain lengan atas
+    kotak(x + 11, y + 15, 4, 1, W.bajuPutihBayang);
+    kotak(x + 14, y + 17 - goyang, 3, 2, W.kulit);       // lengan bawah, kulit
+    kotak(x + 11, y + 20, 4, 4, W.bajuPutih);
+    kotak(x + 14, y + 21 - (1 - goyang), 3, 2, W.kulit);
 
-    // kepala (tengkuk terlihat, wajah membelakangi)
-    kotak(x + 3, y + 1, 8, 9, W.kulit);
-    kotak(x + 4, y + 8, 6, 2, W.kulitGelap);           // tengkuk
+    // --- kepala ---
+    kotak(x + 3, y + 3, 9, 10, W.kulit);                 // tengkorak & pipi
+    kotak(x + 10, y + 6, 2, 5, W.kulit);                 // pipi kanan menonjol
+    kotak(x + 12, y + 8, 1, 2, W.kulit);                 // ujung hidung
+    kotak(x + 4, y + 11, 6, 2, W.kulitGelap);            // rahang/tengkuk
+    kotak(x + 10, y + 10, 2, 1, '#e8a5a5', .55);         // rona pipi
 
-    // rambut lapis depan — menutupi ubun-ubun & sisi kepala
-    kotak(x + 2, y - 1, 10, 6, W.rambutHitam);
-    kotak(x + 2, y + 1, 2, 8, W.rambutHitam);
-    kotak(x + 10, y + 1, 2, 8, W.rambutHitam);
-    kotak(x + 3, y - 2, 8, 2, '#1d1822');              // kilau ubun-ubun
+    // --- rambut depan menutupi ubun-ubun & sisi ---
+    kotak(x + 2, y + 1, 11, 4, W.rambutHitam);
+    kotak(x + 2, y + 3, 2, 8, W.rambutHitam);            // sisi kiri
+    kotak(x + 11, y + 3, 2, 4, W.rambutHitam);           // sisi kanan, lebih pendek
+    kotak(x + 3, y, 9, 2, '#1d1822');                    // kilau ubun-ubun
+    kotak(x + 4, y + 4, 5, 1, '#2a2130', .7);            // poni
 
-    /* Headphone. Satu ciri kecil yang langsung memberi tahu penonton
-       bahwa dia sedang bekerja serius, bukan sekadar duduk. */
-    kotak(x + 2, y - 2, 10, 1, W.logam);               // bando
-    kotak(x + 1, y - 1, 1, 3, W.logam);
-    kotak(x + 12, y - 1, 1, 3, W.logam);
-    kotak(x + 11, y + 2, 3, 4, '#2b3252');             // cangkang telinga kanan
-    kotak(x + 11, y + 3, 1, 2, W.kodeBiru, .7);        // lampu kecil
-    kotak(x, y + 2, 3, 4, '#242b48');                  // sisi kiri, lebih gelap
-
-    // cangkir kopi di sisi mejanya
-    gambarKopi(x - 6, y + 17);
+    /* --- kacamata ---
+       Lensa di pipi kanan yang terlihat, gagang menyusur ke belakang.
+       Kilau satu piksel di sudut lensa — itu yang membuat kaca terbaca
+       sebagai kaca, bukan lubang. */
+    kotak(x + 10, y + 7, 3, 3, W.kaca, .55);             // lensa kanan
+    kotak(x + 10, y + 7, 3, 1, W.bingkai);               // bingkai atas
+    kotak(x + 10, y + 9, 3, 1, W.bingkai);               // bingkai bawah
+    kotak(x + 13, y + 7, 1, 3, W.bingkai);               // sisi luar
+    kotak(x + 4, y + 7, 6, 1, W.bingkai, .85);           // gagang ke telinga
+    kotak(x + 12, y + 7, 1, 1, '#ffffff', .85);          // kilau lensa
   }
 
   /* ---------------- Agen 1 (Claude) ----------------
@@ -1115,20 +1138,32 @@
     var x = PORS.x, y = PORS.y;
     var napas = Math.sin(t / 1500) * .5;
 
-    ctx.globalAlpha = .38; kotak(x - 1, y + 43, 18, 2, '#000'); ctx.globalAlpha = 1;
+    ctx.globalAlpha = .38; kotak(x - 1, y + 45, 18, 2, '#000'); ctx.globalAlpha = 1;
 
     // ---- kaki: jeans ----
-    kotak(x + 2, y + 27, 5, 15, W.jeans);
-    kotak(x + 9, y + 27, 5, 15, W.jeans);
+    kotak(x + 2, y + 27, 5, 13, W.jeans);
+    kotak(x + 9, y + 27, 5, 13, W.jeans);
     kotak(x + 2, y + 27, 5, 1, W.jeansGelap);
     kotak(x + 9, y + 27, 5, 1, W.jeansGelap);
-    kotak(x + 7, y + 28, 2, 14, W.jeansGelap, .8);      // celah antar kaki
+    kotak(x + 7, y + 28, 2, 12, W.jeansGelap, .8);      // celah antar kaki
     kotak(x + 2, y + 35, 5, 1, W.jeansGelap, .45);      // lipatan lutut
     kotak(x + 9, y + 35, 5, 1, W.jeansGelap, .45);
-    kotak(x + 2, y + 42, 5, 3, W.sepatu);               // sepatu putih
-    kotak(x + 9, y + 42, 5, 3, W.sepatu);
-    kotak(x + 2, y + 44, 5, 1, '#b9b9c0');              // sol
-    kotak(x + 9, y + 44, 5, 1, '#b9b9c0');
+    /* --- Converse high-top, tampak dari belakang ---
+       Tiga hal yang membuat Converse dikenali bahkan sekecil ini:
+       kerah mata kaki yang naik melewati ujung celana, sol karet TEBAL
+       berwarna krem, dan garis gelap tipis di antara kanvas dan sol.
+       Tanpa garis itu, sol krem dan kanvas putih melebur jadi satu blok. */
+    for (var S = 0; S < 2; S++) {
+      var sx = x + 2 + S * 7;
+      kotak(sx, y + 39, 5, 3, W.sepatu);                // kerah mata kaki
+      kotak(sx, y + 39, 5, 1, '#ffffff', .85);
+      kotak(sx + 1, y + 40, 3, 1, '#c9c9d2');           // lubang tali
+      kotak(sx, y + 42, 5, 2, W.sepatu);                // kanvas belakang
+      kotak(sx + 1, y + 42, 3, 2, '#e2e2e8');           // tumit
+      kotak(sx, y + 44, 5, 1, '#2a2a33');               // garis pemisah
+      kotak(sx, y + 45, 5, 2, '#efe6d4');               // sol karet krem
+      kotak(sx, y + 46, 5, 1, '#d6c9ae');               // bawah sol, lebih gelap
+    }
 
     // ---- badan: hoodie ----
     kotak(x, y + 11 + napas, 16, 17, W.kaosHitam);
@@ -1389,7 +1424,11 @@
   }
 
   function gambarTombolTambah(x, y, t) {
-    var r = 5.2, cx = x * P, cy = y * P, rp = r * P;
+    /* Radius 5,2 dulu menabrak papan nama di atasnya — lingkarannya
+       memanjat sampai ke tengah papan. Dikecilkan ke 3,4, dan papan
+       namanya sekaligus dinaikkan. Radius SENTUH (11) tidak ikut
+       dikecilkan: yang perlu kecil gambarnya, bukan sasarannya. */
+    var r = 3.4, cx = x * P, cy = y * P, rp = r * P;
     var nadi = .5 + .5 * Math.sin(t / 780);
 
     var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rp * 2.6);
