@@ -22,12 +22,24 @@
   var LANTAI_Y = 104;
 
   var W = {
-    bata:'#241a1c', bataGaris:'#1a1214', bataTerang:'#2d2124',
-    lantai1:'#3d2c20', lantai2:'#452f22', lantaiGaris:'#2b1d15',
-    langit:'#070a18', gedung:'#0e1430', gedungTerang:'#141d42',
+    /* Dinding BIRU DONGKER, bukan bata cokelat.
+       Ini perubahan paling menentukan dari referensi: bata hangat membuat
+       ruangan terbaca sebagai kafe, bukan kantor malam. Nila gelap dengan
+       nat kebiruan memberi neon tempat berpijak — warna panas di atas
+       dinding panas saling meredam. */
+    bata:'#222845', bataGaris:'#161a30', bataTerang:'#2e3556',
+    /* Lantai kayu hangat dengan papan panjang dan pantulan. Kontras
+       hangat-dingin inilah yang membuat ruangan terasa dalam. */
+    lantai1:'#7a4e22', lantai2:'#8a5a28', lantaiGaris:'#5a3617',
+    lantaiKilau:'#a06c33', lantaiGelap:'#4a2c12',
+    langit:'#070a18', gedung:'#171f4a', gedungTerang:'#24205e', gedungUngu:'#3a1f5c',
     jendelaKota:'#ffd98a', jendelaKota2:'#7dd3fc', jendelaKota3:'#c4b5fd',
     bulan:'#f6f3e6', kusen:'#3a2f3f',
-    meja:'#5a4231', mejaAtas:'#6f5341', mejaKaki:'#3a2a1f',
+    /* Meja: TUTUP kayu, BADAN gelap. Kalau seluruh mejanya cokelat
+       seperti dulu, ia lenyap ke dalam lantai kayu yang baru. Badan
+       gelap memberi mejanya siluet sendiri. */
+    meja:'#2c3354', mejaAtas:'#a97038', mejaKaki:'#1d2340',
+    mejaGaris:'#c08a45', mejaLampu:'#f5c451',
     layarMati:'#12141f', layarBingkai:'#1c2030',
     kodeHijau:'#4ade80', kodeBiru:'#67e8f9', kodeUngu:'#c4b5fd', kodeKuning:'#fcd34d',
     kulit:'#e8c4a0', kulitGelap:'#d8ab82',
@@ -36,8 +48,12 @@
     kaosHitam:'#17161c', kaosGelap:'#0f0e13', jeans:'#2c3d61', jeansGelap:'#20304d',
     sepatu:'#e8e8e8',
     neonKuning:'#ffd93d', neonBiru:'#4db8ff',
+    neonUngu:'#c026d3', neonSian:'#22d3ee',
+    lampuGantung:'#f5c451', balok:'#2b3152',
+    permadani:'#1c2547', permadaniTepi:'#2a3766',
+    lemari:'#2a3050', lemariAtas:'#39406a',
     daun:'#2f6b3e', daunTua:'#245530', pot:'#8b5a3c', potGelap:'#6b4530',
-    lampuHangat:'#ffcf87', kursi:'#2a2438', kursiTerang:'#3a3150',
+    lampuHangat:'#ffcf87', kursi:'#262c46', kursiTerang:'#39415f',
     kayu:'#4a3628', logam:'#3a4054',
     hijau:'#34d399', kuning:'#fcd34d', abu:'#8b98ab',
     // Agen 1 — sengaja tidak memakai warna kulit. Lihat catatan di
@@ -97,43 +113,75 @@
     c.fillRect(0, 0, 15 * P, 3 * P);
     c.fillRect(0, 4 * P, 7 * P, 3 * P);
     c.fillRect(8 * P, 4 * P, 7 * P, 3 * P);
+    // Sorotan di TEPI ATAS tiap bata. Satu piksel ini yang membuat
+    // dindingnya terbaca sebagai balok bersusun, bukan tekstur rata.
     c.fillStyle = W.bataTerang;
     c.fillRect(0, 0, 15 * P, 1 * P);
     c.fillRect(0, 4 * P, 7 * P, 1 * P);
+    c.fillRect(8 * P, 4 * P, 7 * P, 1 * P);
     bataPola = ctx.createPattern(k, 'repeat');
   }
 
-  /* ---------------- kota malam di balik jendela ---------------- */
-  var gedungKota = [], bintang = [];
+  /* ---------------- kota malam di balik jendela ----------------
+     DUA LAPIS, dan itu yang membuat jendelanya terasa dalam. Lapis jauh
+     lebih pendek, lebih pucat, dan tanpa lampu menyala; lapis dekat lebih
+     tinggi, pekat, penuh jendela menyala. Satu lapis saja akan terbaca
+     seperti stiker yang ditempel di kaca. */
+  var gedungJauh = [], gedungKota = [], bintang = [], awan = [];
   (function () {
-    var x = 0;
-    while (x < JENDELA.w) {
-      var lb = 7 + ((Math.random() * 10) | 0);
-      var tg = 16 + ((Math.random() * 46) | 0);
-      var lampu = [];
-      for (var gy = 2; gy < tg - 3; gy += 4) {
-        for (var gx = 2; gx < lb - 2; gx += 3) {
-          if (Math.random() > 0.42) {
-            lampu.push({ x: gx, y: gy, w: Math.random() > .7 ? 2 : 1,
-                         c: Math.random() > .82 ? W.jendelaKota2
-                            : (Math.random() > .93 ? W.jendelaKota3 : W.jendelaKota),
-                         k: Math.random() * 6.28 });
+    function bikin(kumpulan, lbMin, lbAcak, tgMin, tgAcak, padatLampu, jarak) {
+      var x = -4;
+      while (x < JENDELA.w) {
+        var lb = lbMin + ((Math.random() * lbAcak) | 0);
+        var tg = tgMin + ((Math.random() * tgAcak) | 0);
+        var lampu = [];
+        if (padatLampu > 0) {
+          for (var gy = 2; gy < tg - 3; gy += 4) {
+            for (var gx = 2; gx < lb - 2; gx += 3) {
+              if (Math.random() > padatLampu) {
+                lampu.push({ x: gx, y: gy, w: Math.random() > .72 ? 2 : 1,
+                             c: Math.random() > .80 ? W.jendelaKota2
+                                : (Math.random() > .92 ? W.jendelaKota3 : W.jendelaKota),
+                             k: Math.random() * 6.28 });
+              }
+            }
           }
         }
+        // Siluetnya diambil dari tiga warna berbeda supaya deretannya
+        // tidak terbaca seperti satu blok panjang.
+        var nada = Math.random();
+        kumpulan.push({
+          x: x, w: lb, t: tg, lampu: lampu,
+          c: nada > .72 ? W.gedungUngu : (nada > .42 ? W.gedungTerang : W.gedung),
+          // antena hanya pada gedung tinggi, dan tidak semuanya
+          antena: tg > 34 && Math.random() > .55
+        });
+        x += lb + jarak + ((Math.random() * 3) | 0);
       }
-      gedungKota.push({ x: x, w: lb, t: tg, lampu: lampu,
-                        gelap: Math.random() > .5 });
-      x += lb + 1 + ((Math.random() * 3) | 0);
     }
-    for (var i = 0; i < 26; i++)
-      bintang.push({ x: Math.random() * JENDELA.w, y: Math.random() * 34,
+    bikin(gedungJauh, 9, 12, 12, 22, 0, 2);
+    bikin(gedungKota, 7, 10, 18, 44, 0.42, 1);
+
+    for (var i = 0; i < 30; i++)
+      bintang.push({ x: Math.random() * JENDELA.w, y: Math.random() * 32,
                      k: Math.random() * 6.28 });
+    for (var j = 0; j < 5; j++)
+      awan.push({ x: Math.random() * JENDELA.w, y: 6 + Math.random() * 20,
+                  w: 10 + ((Math.random() * 16) | 0) });
   })();
 
   function gambarJendela(t) {
     var J = JENDELA;
-    kotak(J.x - 3, J.y - 3, J.w + 6, J.h + 6, W.kusen);
-    kotak(J.x, J.y, J.w, J.h, W.langit);
+    kotak(J.x - 4, J.y - 4, J.w + 8, J.h + 8, W.kusen);
+    kotak(J.x - 2, J.y - 2, J.w + 4, J.h + 4, '#20263f');
+
+    // langit bergradasi: lebih terang di dekat kaki langit kota
+    var lg = ctx.createLinearGradient(0, J.y * P, 0, (J.y + J.h) * P);
+    lg.addColorStop(0, '#070a18');
+    lg.addColorStop(.62, '#111a3d');
+    lg.addColorStop(1, '#22184a');
+    ctx.fillStyle = lg;
+    ctx.fillRect(J.x * P, J.y * P, J.w * P, J.h * P);
 
     for (var i = 0; i < bintang.length; i++) {
       var b = bintang[i];
@@ -142,8 +190,15 @@
     }
     ctx.globalAlpha = 1;
 
+    // awan tipis — kotak memanjang, sengaja tanpa lengkung
+    for (var a = 0; a < awan.length; a++) {
+      var w = awan[a];
+      kotak(J.x + (w.x | 0), J.y + (w.y | 0), Math.min(w.w, J.w - w.x), 2, '#2b3566', .5);
+      kotak(J.x + (w.x | 0) + 2, J.y + (w.y | 0) - 1, Math.min(w.w - 5, J.w - w.x), 1, '#313d78', .45);
+    }
+
     // bulan purnama
-    var bx = J.x + J.w * .84, by = J.y + 16, r = 7;
+    var bx = J.x + J.w * .84, by = J.y + 15, r = 7;
     var g = ctx.createRadialGradient(bx * P, by * P, 0, bx * P, by * P, r * P * 3.6);
     g.addColorStop(0, 'rgba(246,243,230,.34)');
     g.addColorStop(1, 'rgba(246,243,230,0)');
@@ -151,30 +206,54 @@
     ctx.fillRect((bx - r * 3.6) * P, (by - r * 3.6) * P, r * 7.2 * P, r * 7.2 * P);
     ctx.fillStyle = W.bulan;
     ctx.beginPath(); ctx.arc(bx * P, by * P, r * P, 0, 6.2832); ctx.fill();
-    ctx.fillStyle = '#e2ddc9';
+    ctx.fillStyle = '#ddd8c2';
     ctx.beginPath(); ctx.arc((bx - 2) * P, (by - 1.6) * P, 1.7 * P, 0, 6.2832); ctx.fill();
     ctx.beginPath(); ctx.arc((bx + 2.3) * P, (by + 2) * P, 1.1 * P, 0, 6.2832); ctx.fill();
 
-    // panorama gedung
     var dasar = J.y + J.h;
-    for (var i = 0; i < gedungKota.length; i++) {
-      var b2 = gedungKota[i];
-      if (J.x + b2.x > J.x + J.w) break;
-      var lb = Math.min(b2.w, J.w - b2.x);
-      kotak(J.x + b2.x, dasar - b2.t, lb, b2.t, b2.gelap ? W.gedung : W.gedungTerang);
-      for (var j = 0; j < b2.lampu.length; j++) {
-        var L = b2.lampu[j];
-        if (L.x + L.w > lb) continue;
-        ctx.globalAlpha = .55 + .45 * Math.sin(t / 1700 + L.k);
-        kotak(J.x + b2.x + L.x, dasar - b2.t + L.y, L.w, 1, L.c);
+
+    function deret(kumpulan, redup) {
+      for (var i = 0; i < kumpulan.length; i++) {
+        var b2 = kumpulan[i];
+        if (b2.x >= J.w) break;
+        var mulai = Math.max(0, b2.x);
+        var lb = Math.min(b2.w - (mulai - b2.x), J.w - mulai);
+        if (lb <= 0) continue;
+        ctx.globalAlpha = redup;
+        kotak(J.x + mulai, dasar - b2.t, lb, b2.t, b2.c);
+        // tepi atas sedikit lebih terang — memisahkan gedung dari langit
+        kotak(J.x + mulai, dasar - b2.t, lb, 1, '#3c4a8c');
+        if (b2.antena && mulai === b2.x) {
+          kotak(J.x + mulai + (lb >> 1), dasar - b2.t - 4, 1, 4, '#2a3363');
+          ctx.globalAlpha = redup * (.45 + .55 * Math.sin(t / 520 + b2.x));
+          kotak(J.x + mulai + (lb >> 1) - 0, dasar - b2.t - 5, 1, 1, '#ff5d8f');
+        }
+        ctx.globalAlpha = 1;
+
+        for (var j = 0; j < b2.lampu.length; j++) {
+          var L = b2.lampu[j];
+          if (mulai + L.x + L.w > J.x + J.w - J.x) continue;
+          if (L.x + L.w > lb) continue;
+          ctx.globalAlpha = .55 + .45 * Math.sin(t / 1700 + L.k);
+          kotak(J.x + mulai + L.x, dasar - b2.t + L.y, L.w, 1, L.c);
+        }
+        ctx.globalAlpha = 1;
       }
-      ctx.globalAlpha = 1;
     }
 
-    // kusen pembagi — tiga panel
+    deret(gedungJauh, .45);
+    deret(gedungKota, 1);
+
+    /* Kusen pembagi — DUA baris, TIGA kolom, seperti di referensi.
+       Digambar paling akhir supaya kacanya terlihat berada di belakang. */
     kotak(J.x + J.w / 3 - 1, J.y, 2, J.h, W.kusen);
     kotak(J.x + J.w * 2 / 3 - 1, J.y, 2, J.h, W.kusen);
-    kotak(J.x, J.y + J.h * .42, J.w, 2, W.kusen);
+    kotak(J.x, J.y + J.h * .45 - 1, J.w, 2, W.kusen);
+
+    // pantulan tipis di kaca
+    ctx.globalAlpha = .05;
+    kotak(J.x, J.y, J.w / 3 - 1, J.h * .45, '#ffffff');
+    ctx.globalAlpha = 1;
   }
 
   /* ---------------- neon ---------------- */
@@ -260,25 +339,99 @@
   }
 
   /* ---------------- ruangan ---------------- */
+
+  /* Lampu gantung langit-langit. Tiga hal dalam satu: batang penggantung,
+     kap, dan KERUCUT CAHAYA yang jatuh ke bawah. Kerucutnya yang paling
+     penting — tanpa itu lampunya cuma hiasan menempel, dengan itu ruangan
+     jadi punya sumber cahaya yang terbaca. */
+  function gambarLampuGantung(x, t, ke) {
+    var nadi = .92 + .08 * Math.sin(t / 1300 + ke * 2.1);
+    kotak(x + 2, 0, 2, 5, W.logam);                  // batang
+    kotak(x - 2, 5, 9, 2, '#3c4468');                // kap atas
+    kotak(x - 1, 7, 7, 2, W.lampuGantung);           // bola
+    kotak(x, 9, 5, 1, '#fff3c4', .9);                // titik paling terang
+
+    var g = ctx.createLinearGradient(0, 9 * P, 0, 62 * P);
+    g.addColorStop(0, 'rgba(245,196,81,' + (.20 * nadi) + ')');
+    g.addColorStop(1, 'rgba(245,196,81,0)');
+    ctx.fillStyle = g;
+    // kerucut melebar ke bawah
+    ctx.beginPath();
+    ctx.moveTo((x - 1) * P, 9 * P);
+    ctx.lineTo((x + 6) * P, 9 * P);
+    ctx.lineTo((x + 18) * P, 62 * P);
+    ctx.lineTo((x - 13) * P, 62 * P);
+    ctx.closePath(); ctx.fill();
+  }
+
+  /* Strip neon tegak di dinding samping. Di referensi inilah yang membuat
+     tepi ruangan tidak mati — sudut gelap tanpa cahaya membuat adegan
+     terasa terpotong, bukan berlanjut ke luar bingkai. */
+  function gambarStripNeon(x, warna, t, fase) {
+    var nadi = .72 + .28 * Math.sin(t / 900 + fase);
+    var atas = 8, bawah = LANTAI_Y - 6;
+    ctx.globalAlpha = nadi;
+    kotak(x, atas, 2, bawah - atas, warna);
+    kotak(x, atas, 1, bawah - atas, '#ffffff', .35);
+    ctx.globalAlpha = 1;
+
+    var cx = (x + 1) * P, cy = ((atas + bawah) / 2) * P;
+    var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 26 * P);
+    g.addColorStop(0, 'rgba(255,255,255,0)');
+    ctx.fillStyle = warna;
+    ctx.globalAlpha = .11 * nadi;
+    ctx.fillRect((x - 7) * P, atas * P, 16 * P, (bawah - atas) * P);
+    ctx.globalAlpha = 1;
+  }
+
   function gambarRuangan(t) {
     if (!bataPola) siapkanBata();
     ctx.fillStyle = bataPola;
     ctx.fillRect(0, 0, LEBAR * P, LANTAI_Y * P);
-    kotak(0, LANTAI_Y - 2, LEBAR, 2, '#17100f');
 
-    for (var y = LANTAI_Y; y < TINGGI; y += 7) {
-      kotak(0, y, LEBAR, 7, ((y / 7) | 0) % 2 ? W.lantai1 : W.lantai2);
-      kotak(0, y, LEBAR, 1, W.lantaiGaris);
+    // balok langit-langit + garis neon tipis di bawahnya
+    kotak(0, 0, LEBAR, 4, W.balok);
+    kotak(0, 4, LEBAR, 1, W.neonKuning, .55);
+
+    gambarStripNeon(1, W.neonUngu, t, 0);
+    gambarStripNeon(LEBAR - 3, W.neonSian, t, 1.7);
+
+    for (var L = 0; L < 4; L++) gambarLampuGantung([52, 146, 216, 300][L], t, L);
+
+    // pinggiran lantai
+    kotak(0, LANTAI_Y - 3, LEBAR, 3, '#141726');
+
+    /* LANTAI PAPAN KAYU.
+       Barisnya bergantian terang-gelap, dan tiap baris punya sambungan
+       tegak yang digeser setengah papan. Penggeseran itu yang membuatnya
+       terbaca sebagai papan bersusun, bukan ubin kotak-kotak. */
+    var TINGGI_PAPAN = 6, PANJANG_PAPAN = 34;
+    for (var y = LANTAI_Y, baris = 0; y < TINGGI; y += TINGGI_PAPAN, baris++) {
+      kotak(0, y, LEBAR, TINGGI_PAPAN, baris % 2 ? W.lantai1 : W.lantai2);
+      kotak(0, y, LEBAR, 1, W.lantaiKilau, .22);           // urat atas papan
+      kotak(0, y + TINGGI_PAPAN - 1, LEBAR, 1, W.lantaiGaris);
+      var geser = (baris % 2) * (PANJANG_PAPAN / 2);
+      for (var x = geser; x < LEBAR; x += PANJANG_PAPAN)
+        kotak(x, y, 1, TINGGI_PAPAN - 1, W.lantaiGelap, .5);
     }
 
-    // cahaya bulan jatuh dari jendela ke lantai
-    var g = ctx.createRadialGradient(
-      (JENDELA.x + JENDELA.w * .6) * P, LANTAI_Y * P, 0,
-      (JENDELA.x + JENDELA.w * .6) * P, LANTAI_Y * P, 90 * P);
-    g.addColorStop(0, 'rgba(198,214,255,.10)');
-    g.addColorStop(1, 'rgba(198,214,255,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(60 * P, LANTAI_Y * P, 230 * P, (TINGGI - LANTAI_Y) * P);
+    /* Pantulan jendela di lantai. Lantai kayu malam hari memantul; tanpa
+       ini kayunya terlihat seperti kertas. Sengaja lebar dan lembut —
+       pantulan tajam akan terbaca sebagai genangan air. */
+    var pr = ctx.createLinearGradient(0, LANTAI_Y * P, 0, TINGGI * P);
+    pr.addColorStop(0, 'rgba(198,214,255,.16)');
+    pr.addColorStop(.55, 'rgba(198,214,255,.05)');
+    pr.addColorStop(1, 'rgba(198,214,255,0)');
+    ctx.fillStyle = pr;
+    ctx.fillRect((JENDELA.x - 14) * P, LANTAI_Y * P,
+                 (JENDELA.w + 28) * P, (TINGGI - LANTAI_Y) * P);
+
+    /* Permadani. Di referensi ia menutup lantai tengah-depan dan menahan
+       pandangan supaya tidak jatuh keluar bingkai. Ditaruh di antara meja
+       Blaster (habis di x=84) dan meja Meta (mulai x=266). */
+    kotak(118, 172, 128, 18, W.permadaniTepi);
+    kotak(120, 174, 124, 14, W.permadani);
+    kotak(124, 176, 116, 1, '#33427a', .7);
   }
 
   /* ---------------- perabot & pernak-pernik ---------------- */
@@ -365,6 +518,10 @@
     kotak(m.x, y + MEJA_H - 3, m.w, 3, W.mejaKaki);
     kotak(m.x, y, m.w, MEJA_H - 3, W.meja);
     kotak(m.x, y, m.w, 2, W.mejaAtas);
+    kotak(m.x, y, m.w, 1, W.mejaGaris, .75);          // urat kayu tepi atas
+    // Garis lampu kuning tipis di bawah tutup meja. Di referensi inilah
+    // yang membuat deretan meja terbaca di ruangan yang gelap.
+    kotak(m.x + 2, y + MEJA_H - 5, m.w - 4, 1, W.mejaLampu, .55);
 
     if (m.isi === 'monitor6') {
       // dinding monitor: dua baris tiga layar
