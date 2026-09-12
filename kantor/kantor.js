@@ -347,101 +347,51 @@
     k.width = w; k.height = h;
     var c = k.getContext('2d');
 
-    /* Huruf neon harus PADAT, bukan berongga: strokeText di samping
-       fillText pada tiap lapis. Stroke menggemukkan glif dari luar, fill
-       mengisi dalamnya. Intinya tidak dibuat putih — di acuan hurufnya
-       tetap amber, cuma sedikit lebih terang di tengah. */
+    /* TANPA TABUNG. Tiga kali dicoba — bingkai berkait, jalur menerus,
+       cabang cyan — dan tiap kali hasilnya terbaca berantakan pada papan
+       selebar 384px. Lengkung neon butuh ruang untuk terbaca sebagai
+       kaca yang dibengkokkan; di ruang sesempit ini ia cuma jadi garis
+       yang membingungkan. Dihapus atas permintaan Porscy, dan itu
+       keputusan yang benar: dua baris huruf menyala sudah cukup.
+
+       KOMPENSASI letterSpacing — ini penyebab keduanya tidak pernah
+       benar-benar sepusat meski sama-sama digambar di w/2.
+
+       Canvas menambahkan jarak huruf SESUDAH huruf terakhir juga, persis
+       seperti letter-spacing di CSS. Akibatnya teks yang dipusatkan
+       bergeser ke kiri sebesar setengah jarak itu. LORDPORS berjarak 6px
+       (geser 3px), MEMENTO VIVERE 2px (geser 1px) — selisih 2px yang
+       terlihat sebagai baris bawah agak ke kanan.
+
+       Jadi tiap teks digeser balik +spasi/2. */
     function tulis(teks, y, warna, inti, font, spasi) {
       c.font = font;
       c.textAlign = 'center'; c.textBaseline = 'middle';
       c.lineJoin = 'round'; c.lineCap = 'round';
-      if (c.letterSpacing !== undefined) c.letterSpacing = spasi || '0px';
+      if (c.letterSpacing !== undefined) c.letterSpacing = spasi + 'px';
+      var x = w / 2 + spasi / 2;
       c.shadowColor = warna;
       [[26, 6, warna], [14, 3.5, warna], [0, 1.8, inti]].forEach(function (L) {
         c.shadowBlur = L[0];
         c.lineWidth = L[1];
         c.strokeStyle = L[2];
         c.fillStyle = L[2];
-        c.strokeText(teks, w / 2, y);
-        c.fillText(teks, w / 2, y);
+        c.strokeText(teks, x, y);
+        c.fillText(teks, x, y);
       });
       c.shadowBlur = 0;
       if (c.letterSpacing !== undefined) c.letterSpacing = '0px';
     }
 
-    function tabung(jalur, warna, tebal) {
-      c.lineCap = 'round'; c.lineJoin = 'round';
-      c.shadowColor = warna;
-      [[28, tebal, warna], [13, tebal * .62, warna], [0, tebal * .32, '#fff6e0']]
-        .forEach(function (L) {
-          c.shadowBlur = L[0]; c.lineWidth = L[1]; c.strokeStyle = L[2];
-          c.beginPath(); jalur(c); c.stroke();
-        });
-      c.shadowBlur = 0;
-    }
+    /* Dua baris didekatkan dan dipusatkan sebagai SATU blok.
+       Jaraknya 0,19h (≈41px) — sekitar satu tinggi huruf LORDPORS,
+       cukup untuk memisahkan tanpa terlihat terlepas. Blok itu lalu
+       ditaruh di tengah papan, bukan masing-masing baris sendiri. */
+    tulis('LORDPORS', h * .43, W.neonAmber, '#ffd074',
+          '900 36px "Orbitron", ui-monospace, monospace', 6);
 
-    var A = W.neonAmber, S = W.neonSian;
-
-    /* TATA LETAK, dari atas ke bawah. Angkanya pecahan dari tinggi papan
-       supaya ikut kalau ukuran NEON diubah:
-
-         .10  sisi atas tabung
-         .34  LORDPORS
-         .60  kait tabung berhenti, sejajar garis amber
-         .63  garis amber
-         .81  MEMENTO VIVERE
-
-       Versi sebelumnya menaruh semuanya lebih rapat dan hurufnya hampir
-       menyentuh tabung. Papan neon yang sesak terbaca seperti stiker,
-       bukan tabung kaca yang dibengkokkan. */
-
-    /* SATU JALUR MENERUS, bukan tiga potong yang melayang terpisah.
-
-       Versi sebelumnya menggambar tiga tabung terpisah: bingkai, garis
-       di bawah LORDPORS, dan tabung cyan. Ketiganya berakhir di udara,
-       dan itu yang membuat papan neonnya terbaca putus-putus — tabung
-       neon sungguhan selalu punya pangkal dan ujung yang jelas, tidak
-       pernah berhenti di tengah kosong.
-
-       Sekarang amber digambar sebagai SATU `beginPath()`:
-
-         kait kiri bawah -> naik sisi kiri -> melintang di atas
-         -> turun sisi kanan -> membelok -> kembali ke kiri
-            sebagai garis di bawah LORDPORS
-
-       Jadi seluruh amber satu tabung utuh. Tabung cyan bercabang dari
-       TIKUNGAN KANAN jalur itu (sekitar .85w, .55h), bukan menggantung
-       sendiri — titik pangkalnya sengaja ditaruh persis di atas jalur
-       amber supaya keduanya terlihat bersambung.
-
-       Kalau menggeser salah satu titik, periksa dua hal: jalur amber
-       masih satu beginPath, dan pangkal cyan masih menyentuhnya. */
-    tabung(function (c) {
-      c.moveTo(w * .19, h * .58);                                   // ujung kait
-      c.quadraticCurveTo(w * .06, h * .58, w * .055, h * .44);      // kait melingkar balik
-      c.lineTo(w * .055, h * .22);                                  // naik sisi kiri
-      c.quadraticCurveTo(w * .055, h * .10, w * .17, h * .10);      // belok di atas
-      c.lineTo(w * .80, h * .10);                                   // melintang
-      c.quadraticCurveTo(w * .875, h * .10, w * .875, h * .23);     // belok turun
-      c.lineTo(w * .875, h * .48);                                  // turun sisi kanan
-      c.quadraticCurveTo(w * .875, h * .60, w * .80, h * .60);      // tikungan kanan bawah
-      c.lineTo(w * .155, h * .60);                                  // kembali ke kiri
-    }, A, 6.5);
-
-    tulis('LORDPORS', h * .33, A, '#ffd074',
-          '900 36px "Orbitron", ui-monospace, monospace', '6px');
-
-    tulis('MEMENTO VIVERE', h * .80, S, '#9df0ff',
-          '700 15px "Orbitron", ui-monospace, monospace', '2px');
-
-    /* Tabung cyan: bercabang dari tikungan kanan jalur amber, turun
-       menyerong, lalu tegak. Titik pertamanya sengaja diletakkan DI ATAS
-       jalur amber, bukan di sebelahnya. */
-    tabung(function (c) {
-      c.moveTo(w * .855, h * .545);      // menempel pada tikungan amber
-      c.lineTo(w * .95, h * .78);
-      c.lineTo(w * .95, h * .97);
-    }, S, 5);
+    tulis('MEMENTO VIVERE', h * .62, W.neonSian, '#9df0ff',
+          '700 15px "Orbitron", ui-monospace, monospace', 2);
 
     neonSiap = k;
   }
