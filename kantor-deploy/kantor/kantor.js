@@ -347,24 +347,17 @@
     k.width = w; k.height = h;
     var c = k.getContext('2d');
 
-    /* HURUF NEON HARUS PADAT, BUKAN BERONGGA.
-
-       Versi sebelumnya cuma memakai fillText berlapis. Hasilnya: pendar
-       menyala di tepi huruf sementara bagian dalamnya tetap gelap — huruf
-       terbaca sebagai garis tepi, bukan sebagai tabung berisi cahaya.
-
-       Yang memperbaikinya: strokeText DI SAMPING fillText pada tiap
-       lapis. Stroke menggemukkan glifnya dari luar, fill mengisi
-       dalamnya. Intinya tidak dibuat putih — di acuan hurufnya tetap
-       amber, cuma sedikit lebih terang di tengah. Inti putih membuatnya
-       terlihat seperti lampu sorot, bukan neon. */
+    /* Huruf neon harus PADAT, bukan berongga: strokeText di samping
+       fillText pada tiap lapis. Stroke menggemukkan glif dari luar, fill
+       mengisi dalamnya. Intinya tidak dibuat putih — di acuan hurufnya
+       tetap amber, cuma sedikit lebih terang di tengah. */
     function tulis(teks, y, warna, inti, font, spasi) {
       c.font = font;
       c.textAlign = 'center'; c.textBaseline = 'middle';
       c.lineJoin = 'round'; c.lineCap = 'round';
       if (c.letterSpacing !== undefined) c.letterSpacing = spasi || '0px';
       c.shadowColor = warna;
-      [[30, 7, warna], [16, 4, warna], [0, 2, inti]].forEach(function (L) {
+      [[26, 6, warna], [14, 3.5, warna], [0, 1.8, inti]].forEach(function (L) {
         c.shadowBlur = L[0];
         c.lineWidth = L[1];
         c.strokeStyle = L[2];
@@ -379,7 +372,7 @@
     function tabung(jalur, warna, tebal) {
       c.lineCap = 'round'; c.lineJoin = 'round';
       c.shadowColor = warna;
-      [[30, tebal, warna], [14, tebal * .65, warna], [0, tebal * .34, '#fff6e0']]
+      [[28, tebal, warna], [13, tebal * .62, warna], [0, tebal * .32, '#fff6e0']]
         .forEach(function (L) {
           c.shadowBlur = L[0]; c.lineWidth = L[1]; c.strokeStyle = L[2];
           c.beginPath(); jalur(c); c.stroke();
@@ -389,59 +382,69 @@
 
     var A = W.neonAmber, S = W.neonSian;
 
-    /* KAIT di kiri bawah — bentuk paling khas di acuan.
-       Bukan sudut membulat: tabungnya turun, MELINGKAR BALIK ke kiri,
-       lalu ujungnya menghadap ke dalam lagi. Itu yang membuatnya terbaca
-       sebagai tabung neon yang dibengkokkan tangan. */
+    /* TATA LETAK, dari atas ke bawah. Angkanya pecahan dari tinggi papan
+       supaya ikut kalau ukuran NEON diubah:
+
+         .10  sisi atas tabung
+         .34  LORDPORS
+         .60  kait tabung berhenti, sejajar garis amber
+         .63  garis amber
+         .81  MEMENTO VIVERE
+
+       Versi sebelumnya menaruh semuanya lebih rapat dan hurufnya hampir
+       menyentuh tabung. Papan neon yang sesak terbaca seperti stiker,
+       bukan tabung kaca yang dibengkokkan. */
+
+    // Tabung utama: KAIT di kiri bawah, naik, melintang, turun pendek.
     tabung(function (c) {
-      c.moveTo(w * .20, h * .46);                                   // ujung kait
-      c.quadraticCurveTo(w * .07, h * .46, w * .065, h * .33);      // melingkar balik
-      c.lineTo(w * .065, h * .20);                                  // naik sisi kiri
-      c.quadraticCurveTo(w * .065, h * .085, w * .17, h * .085);    // belok di atas
-      c.lineTo(w * .87, h * .085);                                  // melintang
-      c.quadraticCurveTo(w * .955, h * .085, w * .955, h * .20);    // belok turun
-      c.lineTo(w * .955, h * .32);
-    }, A, 7);
+      c.moveTo(w * .19, h * .58);                                   // ujung kait
+      c.quadraticCurveTo(w * .06, h * .58, w * .055, h * .44);      // melingkar balik
+      c.lineTo(w * .055, h * .22);                                  // naik sisi kiri
+      c.quadraticCurveTo(w * .055, h * .10, w * .17, h * .10);      // belok di atas
+      c.lineTo(w * .86, h * .10);                                   // melintang
+      c.quadraticCurveTo(w * .945, h * .10, w * .945, h * .23);     // belok turun
+      c.lineTo(w * .945, h * .36);
+    }, A, 6.5);
 
-    tulis('LORDPORS', h * .36, A, '#ffd074',
-          '900 40px "Orbitron", ui-monospace, monospace', '7px');
+    tulis('LORDPORS', h * .34, A, '#ffd074',
+          '900 36px "Orbitron", ui-monospace, monospace', '6px');
 
-    // garis amber di bawah tulisan — di acuan setebal tabung utamanya
+    // garis amber, lebih pendek dari tulisannya — seperti di acuan
     tabung(function (c) {
-      c.moveTo(w * .155, h * .565);
-      c.lineTo(w * .70, h * .565);
-    }, A, 6);
+      c.moveTo(w * .155, h * .63);
+      c.lineTo(w * .70, h * .63);
+    }, A, 5.5);
 
-    tulis('MEMENTO VIVERE', h * .73, S, '#9df0ff',
-          '700 20px "Orbitron", ui-monospace, monospace', '4px');
+    tulis('MEMENTO VIVERE', h * .81, S, '#9df0ff',
+          '700 15px "Orbitron", ui-monospace, monospace', '2px');
 
-    // tabung cyan menyerong di kanan bawah, penyeimbang kait amber
+    // tabung cyan di kanan bawah, penyeimbang kait amber di kiri atas
     tabung(function (c) {
-      c.moveTo(w * .78, h * .59);
-      c.lineTo(w * .915, h * .75);
-      c.lineTo(w * .915, h * .92);
-    }, S, 6);
+      c.moveTo(w * .76, h * .68);
+      c.lineTo(w * .90, h * .84);
+      c.lineTo(w * .90, h * .98);
+    }, S, 5);
 
     neonSiap = k;
   }
 
+  /* Neon menyala TETAP. Versi sebelumnya punya dua getaran: napas pelan
+     (sin t/950) dan sendatan tajam (sin t/143 > .986) yang meniru tabung
+     neon rusak. Porscy memintanya berhenti — dan memang benar: papan nama
+     yang berkedip terus menarik mata dari hal yang sebenarnya bergerak di
+     ruangan ini, yaitu orang yang datang dan pergi dari mejanya. */
   function gambarNeon(t) {
     if (!fontSiap) return;            // tunggu font, jangan render separuh jadi
     if (!neonSiap) siapkanNeon();
-    var dasar = .88 + .08 * Math.sin(t / 950);
-    var sendat = (Math.sin(t / 143) > .986) ? .5 : 1;
-    ctx.globalAlpha = dasar * sendat;
     ctx.drawImage(neonSiap, NEON.x * P, NEON.y * P);
-    ctx.globalAlpha = 1;
 
     var cx = (NEON.x + NEON.w / 2) * P, cy = (NEON.y + NEON.h / 2) * P;
     var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, NEON.w * P * .85);
-    g.addColorStop(0, 'rgba(255,217,61,.13)');
-    g.addColorStop(.5, 'rgba(77,184,255,.07)');
+    g.addColorStop(0, 'rgba(255,164,36,.12)');
+    g.addColorStop(.5, 'rgba(42,212,240,.06)');
     g.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.globalAlpha = dasar * sendat; ctx.fillStyle = g;
+    ctx.fillStyle = g;
     ctx.fillRect(cx - NEON.w * P, cy - NEON.h * P, NEON.w * 2 * P, NEON.h * 2.4 * P);
-    ctx.globalAlpha = 1;
   }
 
   /* ---------------- ruangan ---------------- */
