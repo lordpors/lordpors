@@ -128,7 +128,26 @@
      sebaris dengan kursi Lordpors di 134 (beda 2, persis sama dengan beda
      tinggi kedua mejanya). Pinggulnya ada di dudukan itu, bahunya di 118,
      dan tangannya sampai ke papan ketik di 117..121. */
-  var AUDITOR = { x: 299, y: 107 };
+  /* ==========================================================
+     PERINGATAN — DUA AGEN MENGEDIT BERKAS INI
+
+     12 Sep 2026: Agent 1 dan Agent 2 sama-sama memperbaiki posisi
+     auditor, dan saling menimpa. Agent 1 menyetel AUDITOR.y untuk sosok
+     setinggi ~25 satuan (bahu 118, pinggul 132). Agent 2 menulis ulang
+     gambarAuditor() jadi 18 satuan. Digabung, sosok 18 satuan berdiri di
+     posisi untuk sosok 25 -> tertimbun meja hampir seluruhnya.
+
+     KONTRAK GEOMETRI yang berlaku sekarang, jangan diubah sebelah:
+
+       gambarAuditor() menggambar  kepala y+2..y+11, badan y+11..y+20
+       tutup meja auditor          y = 114
+       supaya kepala & bahu terlihat di atas meja  ->  AUDITOR.y = 98
+       supaya bantalan kepala terlihat di atas kepala -> kursi di y+13
+
+     Kalau tinggi sosoknya diubah, ketiga angka ini dihitung ulang
+     BERSAMAAN. Mengubah salah satu saja akan mengulang bug yang sama.
+     ========================================================== */
+  var AUDITOR = { x: 297, y: 98 };
 
   /* ---------------- dinding bata ---------------- */
   var bataPola = null;
@@ -955,7 +974,7 @@
 
     /* Kursi digambar DULU, sosoknya menumpang di atasnya.
        Sama persis dengan kursi Agen 1 & 2 — satu fungsi, satu bentuk. */
-    gambarKursi(x - 2, y + 17, false);
+    gambarKursi(x - 2, y + 13, false);
 
     // --- ekor kuda: di tengah punggung, di depan sandaran ---
     kotak(x + 4, y + 4, 3, 3, W.rambutHitam);
@@ -1736,8 +1755,8 @@
       gambarAuditor(t);
       daftarTombol('auditor-hadir', 'Auditor', AUDITOR.x + 5, AUDITOR.y + 7, 'sosok');
     } else {
-      gambarKursi(AUDITOR.x - 2, AUDITOR.y + 17, true);
-      daftarTombol('auditor', 'Auditor', AUDITOR.x + 5, AUDITOR.y + 10);
+      gambarKursi(AUDITOR.x - 2, AUDITOR.y + 13, true);
+      daftarTombol('auditor', 'Auditor', AUDITOR.x + 5, AUDITOR.y + 6);
     }
 
     for (var j = 0; j < MEJA_SEMUA.length; j++)
