@@ -78,9 +78,13 @@
   }
 
   /* ---------------- tata letak ---------------- */
-  var JENDELA = { x: 112, y: 12, w: 150, h: 88 };
-  var NEON    = { x: 8,   y: 14, w: 104, h: 54 };
-  var PORS    = { x: 179, y: 71 };   // sol mendarat di y=107, tepat di lantai
+  /* SEMUA DIPUSATKAN DI 180 (= LEBAR/2).
+     Sebelumnya jendela meleset +7, barisan meja agen +12, barisan depan
+     -10. Selisih sekecil itu tidak terlihat satu per satu, tapi
+     menumpuk jadi ruangan yang terasa miring ke kanan. */
+  var JENDELA = { x: 105, y: 12, w: 150, h: 88 };
+  var NEON    = { x: 4,   y: 14, w: 96,  h: 54 };
+  var PORS    = { x: 173, y: 71 };   // sol mendarat di y=107, tepat di lantai
 
   var MEJA_H = 16;
   /* LEBAR MEJA DIUKUR DARI LEBAR BAHU, bukan dari ruang yang tersisa.
@@ -95,15 +99,15 @@
      Dinding monitor boleh lebih lebar (56) karena memang memuat enam
      layar — itu satu-satunya pengecualian yang punya alasan. */
   var MEJA_SEMUA = [
-    { x: 16,  y: 116, w: 56, nama: null,               isi: 'monitor6' },
+    { x: 16,  y: 116, w: 56, nama: null,               isi: 'monitor6' },   // pusat 44
     /* `agen: N` menggantikan rujukan MEJA_SEMUA[1] / [2] yang dulu
        tersebar di tujuh tempat. Rujukan indeks akan salah diam-diam
        begitu ada meja disisipkan di tengah — dan meja Agen 3 memang
        disisipkan di tengah. */
-    { x: 116, y: 138, w: 40, nama: "Porscy's Agent 1", isi: false, agen: 1 },
-    { x: 172, y: 138, w: 40, nama: "Porscy's Agent 2", isi: false, agen: 2 },
-    { x: 228, y: 138, w: 40, nama: "Porscy's Agent 3", isi: false, agen: 3 },
-    { x: 284, y: 116, w: 46, nama: null,               isi: 'auditor' },
+    { x: 104, y: 138, w: 40, nama: "Porscy's Agent 1", isi: false, agen: 1 },
+    { x: 160, y: 138, w: 40, nama: "Porscy's Agent 2", isi: false, agen: 2 },
+    { x: 216, y: 138, w: 40, nama: "Porscy's Agent 3", isi: false, agen: 3 },
+    { x: 293, y: 116, w: 46, nama: null,               isi: 'auditor' },   // pusat 316
     /* Meja blaster — barisan DEPAN, sengaja di kiri.
        Di sana lantainya kosong: dinding monitor berakhir di y=132 dan
        tanaman besar baru mulai di x=91, jadi meja ini punya ruangnya
@@ -116,7 +120,7 @@
        deretan meja akan menghapus satu-satunya bagian terang ruangan.
        Sudah diperiksa bersih dari meja auditor (y jauh di atas), lampu
        meja, dan tanaman kecil yang mulai di x=339. */
-    { x: 274, y: 160, w: 40, nama: "Porscy's Meta", isi: 'meta' }
+    { x: 294, y: 160, w: 40, nama: "Porscy's Meta", isi: 'meta' }
   ];
   /* Duduk TEPAT DI DEPAN monitor utamanya, di kursi, membelakangi kamera.
 
@@ -500,7 +504,7 @@
     gambarStripNeon(1, W.neonUngu, t, 0);
     gambarStripNeon(LEBAR - 3, W.neonSian, t, 1.7);
 
-    for (var L = 0; L < 4; L++) gambarLampuGantung([52, 146, 216, 300][L], t, L);
+    for (var L = 0; L < 4; L++) gambarLampuGantung([45, 135, 225, 315][L], t, L);
 
     // pinggiran lantai
     kotak(0, LANTAI_Y - 3, LEBAR, 3, '#141726');
@@ -533,9 +537,9 @@
     /* Permadani. Di referensi ia menutup lantai tengah-depan dan menahan
        pandangan supaya tidak jatuh keluar bingkai. Ditaruh di antara meja
        Blaster (habis di x=84) dan meja Meta (mulai x=266). */
-    kotak(118, 172, 128, 18, W.permadaniTepi);
-    kotak(120, 174, 124, 14, W.permadani);
-    kotak(124, 176, 116, 1, '#33427a', .7);
+    kotak(116, 172, 128, 18, W.permadaniTepi);
+    kotak(118, 174, 124, 14, W.permadani);
+    kotak(122, 176, 116, 1, '#33427a', .7);
   }
 
   /* ---------------- perabot & pernak-pernik ---------------- */
@@ -1889,14 +1893,17 @@
        kusen jendela berakhir di x=265 (JENDELA.x-3 + JENDELA.w+6), dan
        dinding habis di x=360. Dulu jam dipasang di 262 — masuk ke dalam
        kusen, itu yang terlihat berdempetan. Sekarang:
-         jam  272..311  (jarak 7 dari kusen; LED 7 ruas, tanpa bingkai)
-         rak  318..352  (jarak 7 dari jam, sisa 8 ke tepi kanan)
+         neon   4..100  (pusat 52)
+         jam  262..301
+         rak  318..352  -> kelompok kanan 262..352, pusat 307
+         Pusat 52 dan 307 sama-sama 128 satuan dari pusat panggung 180:
+         dinding kiri dan kanan kini seimbang.
        Jam kini setinggi 13 (y 22..35), rak 16..42 — keduanya tetap
        berpusat di sekitar y=29.
        Kalau salah satunya diubah lebarnya, hitung ulang ketiga jarak itu. */
-    gambarJam(272, 22);
+    gambarJam(262, 22);
     gambarRak(318, 26);
-    gambarLampu(254, 96, t);
+    gambarLampu(268, 96, t);
     gambarPors(t);
 
     tentukanPapan();
@@ -1923,7 +1930,6 @@
     for (var k = 0; k < MEJA_SEMUA.length; k++)
       gambarSatuMeja(MEJA_SEMUA[k], t, ketik, 'kursi');      // kursi paling depan
 
-    gambarTanaman(92, 162, true);
     gambarTanaman(340, 168, false);
     for (var b = 0; b < TOMBOL.length; b++)
       if (TOMBOL[b].jenis === 'tambah')
