@@ -129,23 +129,24 @@
      tinggi kedua mejanya). Pinggulnya ada di dudukan itu, bahunya di 118,
      dan tangannya sampai ke papan ketik di 117..121. */
   /* ==========================================================
-     PERINGATAN — DUA AGEN MENGEDIT BERKAS INI
+     KONTRAK GEOMETRI AUDITOR — hitung ketiganya BERSAMAAN.
 
-     12 Sep 2026: Agent 1 dan Agent 2 sama-sama memperbaiki posisi
-     auditor, dan saling menimpa. Agent 1 menyetel AUDITOR.y untuk sosok
-     setinggi ~25 satuan (bahu 118, pinggul 132). Agent 2 menulis ulang
-     gambarAuditor() jadi 18 satuan. Digabung, sosok 18 satuan berdiri di
-     posisi untuk sosok 25 -> tertimbun meja hampir seluruhnya.
+     (12 Sep 2026: Agent 1 & Agent 2 sempat sama-sama mengedit berkas ini
+     dan saling menimpa — satu menyetel posisi untuk sosok 25 satuan,
+     satunya menulis sosok 18 satuan. Sejak sekarang kantor/ dipegang
+     Agent 2 saja. Kontrak di bawah ini yang menjaga supaya kejadian itu
+     tidak terulang.)
 
-     KONTRAK GEOMETRI yang berlaku sekarang, jangan diubah sebelah:
+       gambarAuditor()  kepala y+2..y+11   badan y+11..y+20
+       tutup meja       114
+       AUDITOR.y        98      -> kepala 100..109 di atas meja
+       kursi            y+24    -> sandaran belakang 111..122
+       sandaran DEPAN   y+15..y+24 -> menutupi separuh badan bawah
 
-       gambarAuditor() menggambar  kepala y+2..y+11, badan y+11..y+20
-       tutup meja auditor          y = 114
-       supaya kepala & bahu terlihat di atas meja  ->  AUDITOR.y = 98
-       supaya bantalan kepala terlihat di atas kepala -> kursi di y+13
-
-     Kalau tinggi sosoknya diubah, ketiga angka ini dihitung ulang
-     BERSAMAAN. Mengubah salah satu saja akan mengulang bug yang sama.
+     SANDARAN DIGAMBAR DUA KALI: sekali di belakang sosoknya (bersama
+     bantalan kepala, dudukan, dan kaki), sekali lagi DI DEPAN untuk
+     menutupi separuh badan bawahnya. Itu yang membuatnya terbaca duduk
+     DI DALAM kursi, bukan melayang di depannya.
      ========================================================== */
   var AUDITOR = { x: 297, y: 98 };
 
@@ -974,7 +975,9 @@
 
     /* Kursi digambar DULU, sosoknya menumpang di atasnya.
        Sama persis dengan kursi Agen 1 & 2 — satu fungsi, satu bentuk. */
-    gambarKursi(x - 2, y + 13, false);
+    /* Kursi UTUH di belakang: bantalan kepala, dudukan, kaki.
+       Sandarannya nanti digambar ulang di depan badannya. */
+    gambarKursi(x - 2, y + 24, false);
 
     // --- ekor kuda: di tengah punggung, di depan sandaran ---
     kotak(x + 4, y + 4, 3, 3, W.rambutHitam);
@@ -989,15 +992,6 @@
     kotak(x + 1, y + 17, 8, 3, W.bajuPutihBayang, .3);
     kotak(x + 2, y + 11, 2, 1, '#dfe4ee');               // kerah kiri
     kotak(x + 6, y + 11, 2, 1, '#dfe4ee');               // kerah kanan
-
-    /* --- kedua lengan, simetris, diam ---
-       Kain sampai siku lalu kulit: penanda "lengan pendek". */
-    kotak(x - 1, y + 12, 2, 4, W.bajuPutih);
-    kotak(x + 9, y + 12, 2, 4, W.bajuPutih);
-    kotak(x - 1, y + 15, 2, 1, '#cdd4e2');               // ujung lengan
-    kotak(x + 9, y + 15, 2, 1, '#cdd4e2');
-    kotak(x - 1, y + 16, 2, 2, W.kulit);                 // lengan bawah
-    kotak(x + 9, y + 16, 2, 2, W.kulit);
 
     /* --- kepala: 6 satuan, SELURUHNYA RAMBUT ---
        Tidak ada satu pun bidang kulit di sini. Bidang kulit di tengah
@@ -1017,6 +1011,33 @@
        terlihat. Lensa di sini akan jadi kebohongan kecil. */
     kotak(x + 1, y + 7, 1, 1, W.bingkai, .95);
     kotak(x + 8, y + 7, 1, 1, W.bingkai, .95);
+
+    /* --- SANDARAN PUNGGUNG DIGAMBAR ULANG DI DEPAN ---
+       Inilah yang membuatnya terbaca duduk DI DALAM kursi. Sebelum ini
+       kursinya selalu di belakang, jadi sosoknya tampak melayang di
+       depannya betapapun tepat posisinya.
+
+       Bentuk dan warnanya disalin dari gambarKursi() supaya tetap satu
+       kursi yang sama — kalau kursi diubah di sana, samakan di sini. */
+    kotak(x - 1, y + 15, 12, 9, W.kursi);
+    kotak(x, y + 16, 10, 1, W.kursiTerang, .8);
+    kotak(x, y + 19, 10, 1, '#1e2338', .6);          // jahitan tengah
+    kotak(x - 2, y + 17, 1, 5, W.kursiTerang);       // sandaran tangan kiri
+    kotak(x + 11, y + 17, 1, 5, W.kursiTerang);      // sandaran tangan kanan
+
+    /* --- kedua lengan, PALING AKHIR ---
+       Digambar sesudah sandaran karena lengannya menjulur ke DEPAN, ke
+       papan ketik. Kalau digambar sebelum sandaran, tangannya tertimbun
+       kursinya sendiri — padahal justru tangan itu yang menunjukkan dia
+       sedang bekerja.
+
+       Kain sampai siku lalu kulit: penanda "lengan pendek". */
+    kotak(x - 2, y + 12, 3, 4, W.bajuPutih);
+    kotak(x + 9, y + 12, 3, 4, W.bajuPutih);
+    kotak(x - 2, y + 15, 3, 1, '#cdd4e2');               // ujung lengan
+    kotak(x + 9, y + 15, 3, 1, '#cdd4e2');
+    kotak(x - 2, y + 16, 3, 2, W.kulit);                 // lengan bawah kiri
+    kotak(x + 9, y + 16, 3, 2, W.kulit);                 // lengan bawah kanan
   }
 
   /* ---------------- Agen 1 (Claude) ----------------
@@ -1755,8 +1776,8 @@
       gambarAuditor(t);
       daftarTombol('auditor-hadir', 'Auditor', AUDITOR.x + 5, AUDITOR.y + 7, 'sosok');
     } else {
-      gambarKursi(AUDITOR.x - 2, AUDITOR.y + 13, true);
-      daftarTombol('auditor', 'Auditor', AUDITOR.x + 5, AUDITOR.y + 6);
+      gambarKursi(AUDITOR.x - 2, AUDITOR.y + 24, true);
+      daftarTombol('auditor', 'Auditor', AUDITOR.x + 5, AUDITOR.y + 17);
     }
 
     for (var j = 0; j < MEJA_SEMUA.length; j++)
