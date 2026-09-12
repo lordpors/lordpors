@@ -3,10 +3,36 @@
 Berkas ini sengaja ditulis supaya pekerjaan bisa dilanjutkan siapa pun
 (termasuk sesi Claude berikutnya) tanpa perlu mengulang penyelidikan.
 
-**Diperbarui:** 11 September 2026
+**Diperbarui:** 12 September 2026
 **Folder kerja:** `~/My_Business/AI-agent/`
 **Aturan dari Porscy:** JANGAN menyentuh berkas asli di `~/projects/`.
 Semua pekerjaan dilakukan pada salinan di folder ini.
+
+---
+
+### Siapa yang menulis apa
+
+Kantor ini dikerjakan lebih dari satu sesi Claude, dan itu sudah sekali
+menimbulkan bentrok: dua agen menyunting `kantor.js` bersamaan tanpa
+saling tahu. Karena itu catatan ini punya **tanda tangan**.
+
+Mulai 12 September 2026, tiap bagian baru ditutup dengan satu baris:
+
+```
+— Porscy's Agent 2 · Claude (Opus) · <tanggal>
+```
+
+Aturannya: **yang mengerjakan, itu yang menandatangani.** Jangan
+menandatangani bagian yang bukan pekerjaan sendiri, dan jangan menghapus
+tanda tangan orang lain. Bagian yang tidak bertanda tangan berarti
+ditulis sebelum aturan ini ada — sebagian besar oleh Agent 1.
+
+Rekapitulasi lengkap siapa mengerjakan apa ada di bagian terakhir
+berkas ini.
+
+**Hak atas karyanya milik Porscy / LordPors Commpany.** Tanda tangan di
+sini adalah penanda penulis, bukan klaim kepemilikan — kode dan catatan
+ini dipesan, dibayar, dan dipakai oleh Porscy.
 
 ---
 
@@ -23,7 +49,7 @@ Semua pekerjaan dilakukan pada salinan di folder ini.
 
 ```
 kantor daring   https://kantor-lordpors.vercel.app      (noindex)
-kantor lokal    http://127.0.0.1:8787/kantor/
+kantor lokal    http://127.0.0.1:8789/kantor/   (8787 sudah dimatikan)
 backend         http://127.0.0.1:8000/docs
 gateway         http://127.0.0.1:3001/health
 ```
@@ -2150,6 +2176,21 @@ keadaannya dicari lewat `AGEN[n]`. Menambah Agen 4 berarti:
 
 Tidak ada lagi indeks yang perlu dihitung ulang.
 
+> **RALAT 12 Sep 2026, sesudah Blaster & Meta berpenghuni.** Langkah 3,
+> 5, dan 6 di atas **sudah tidak berlaku** — dibiarkan apa adanya supaya
+> terlihat apa yang berubah, tapi jangan diikuti.
+>
+> - **(3)** tidak ada lagi `gambarAgen4()`. Ketiga fungsi agen sudah
+>   dilebur jadi `gambarAgenDuduk(nomor, t)` + tabel `RUPA_AGEN`; yang
+>   perlu ditambah cuma satu baris rupa di tabel itu.
+> - **(5)** `agen4.py` tidak lagi punya `NOMOR`. `kehadiran.py` sekarang
+>   memakai **kunci** berupa teks, dan pembungkusnya cuma tiga baris —
+>   ikuti `blaster.py`.
+> - **(6)** `TUGAS` dan `DAFTAR` **tidak ditulis tangan lagi**. Keduanya
+>   dibangkitkan dari daftar `PENGHUNI`, satu di `server.py` dan satu di
+>   `tugas.js`. Cukup tambah satu nama — di **kedua** berkas, dan harus
+>   sama persis, kalau tidak tombolnya muncul tapi servernya menolak.
+
 ### Rupa Agen 3
 
 | | Agen 1 | Agen 2 | Agen 3 |
@@ -2182,6 +2223,8 @@ POST /api/tugas agen3-mulai       -> 200 "Agent 3: BEKERJA"
 POST /api/tugas agen3-selesai     -> 200 "Agent 3: meninggalkan meja"
 papan nama                        -> "Porscy's Agent 3" / "Agent 3" di ponsel
 ```
+
+— Porscy's Agent 2 · Claude (Opus) · 12 September 2026
 
 ---
 
@@ -2237,6 +2280,8 @@ Selisih 0,5 pada agen tidak terhindarkan: badannya selebar 9 satuan
 Angka tetap yang tersisa — permadani, jam, rak, lampu berdiri, tanaman —
 semuanya **tidak bergantung pada posisi meja**, jadi aman dibiarkan.
 
+— Porscy's Agent 2 · Claude (Opus) · 12 September 2026
+
 ---
 
 ## Penyegar latar untuk kehadiran agen (12 September 2026)
@@ -2289,6 +2334,8 @@ tidak ada: polanya mencocokkan perintah shell yang sedang menjalankan
 pgrep itu sendiri. Sudah dua kali tertipu ini di sesi yang sama. Pakai
 `ps -eo pid,cmd | grep ... | grep -v zsh` kalau ingin yakin.
 
+— Porscy's Agent 2 · Claude (Opus) · 12 September 2026
+
 ---
 
 ## Agen selalu duduk — dua keadaan, balon yang hidup (12 Sep 2026)
@@ -2337,6 +2384,8 @@ ketika duduk berarti bekerja. Sekarang tidak.
 
 Tiap kursi agen sekarang punya tiga pilihan: mulai bekerja, **duduk
 siaga**, dan tandai selesai.
+
+— Porscy's Agent 2 · Claude (Opus) · 12 September 2026
 
 ---
 
@@ -2419,6 +2468,8 @@ tidak ada di `server.py`, tombolnya muncul tapi servernya menolak — dan
 daftar putih di `server.py` itu memang sengaja menolak yang tidak
 dikenal, jadi jangan dilonggarkan untuk menutup selisihnya.
 
+— Porscy's Agent 2 · Claude (Opus) · 12 September 2026
+
 ---
 
 ## 12 Sep 2026 — Balon: naik ke lapis paling atas, diam kalau menganggur
@@ -2478,3 +2529,136 @@ lebih murah daripada putaran keempat.
 
 Diperiksa juga keadaan sebaliknya — semua penghuni siaga → `balon tidak
 tergambar`, tanpa galat.
+
+— Porscy's Agent 2 · Claude (Opus) · 12 September 2026
+
+---
+---
+
+# REKAPITULASI — pekerjaan Porscy's Agent 2
+
+*Ditulis 12 September 2026, atas permintaan Porscy: "catat semua progres
+yang sudah kau buat, berikan tanda bahwa kau yang menulisnya".*
+
+Bagian ini merangkum **apa yang dikerjakan sesi ini saja**. Rinciannya —
+termasuk alasan tiap keputusan — ada di bagian-bagian di atas; di sini
+cuma daftarnya, supaya Porscy tidak perlu membaca 2.500 baris untuk tahu
+sudah sampai mana.
+
+## Batas yang jujur
+
+Kantor ini **tidak** dikerjakan sendirian, dan catatan ini tidak akan
+berpura-pura begitu:
+
+| Bagian | Penulis |
+|---|---|
+| Bagian 0–5b (latar, modul audit, kantor visual pertama) | **Agent 1**, sebelum sesi ini dimulai |
+| "Agent 2 menempati meja ketiga" (11 Sep) ke bawah | **Agent 2** — sesi ini |
+| `kantor.js` 12 Sep 17:01–17:45 (commit `259c1ed`, `2880f68`, `89548b4`) | **Agent 1**, masih aktif saat itu |
+| Semua sesudah commit `f9c4505` (12 Sep 18:01) | **Agent 2** — Agent 1 dihentikan Porscy |
+
+Modul audit, pipeline Meta, dan stack porsblast-next **bukan** pekerjaan
+sesi ini.
+
+## Yang dikerjakan sesi ini
+
+**1. Duduk di kantor sebagai Agen 2.** Meja ketiga, karakter sendiri,
+kehadiran yang bisa dinyalakan-dimatikan.
+
+**2. Kotak masuk beralamat — lalu dibongkar lagi.** `/agen1` & `/agen2`,
+laci terpisah, penjaga yang membangunkan `claude -p`. Porscy memilih
+Remote Control yang lebih sederhana, jadi seluruh fitur pesan dihapus dan
+**cuma log pekerjaan yang dipertahankan**. Membongkar yang sudah jadi itu
+juga pekerjaan, dan itu keputusan yang benar.
+
+**3. Blob store yang disuspend.** Kehadiran agen di-polling tiap 2 detik
+lewat Vercel Blob — 7.300 Advanced Operation dari jatah 2.000. Perbaikan
+pertamaku (jeda 8 detik) **masih 160× di atas jatah**; yang benar adalah
+melepas Blob dari jalur kehadiran sama sekali. Sekarang berbasis berkas,
+lokal, nol operasi.
+
+**4. Auditor tersambung ke bot anggaran, lalu jantungnya dipindah ke PC.**
+Dari Termux di HP ke komputer kantor, `data/` dan `auth/` ikut — tidak
+perlu pindai QR ulang. Alasannya Porscy sendiri yang menyebut: data
+jangan ikut hilang kalau HP-nya hilang.
+
+**5. Cadangan otomatis ke GitHub.** Satu arah: komputer → GitHub.
+`.gitignore` menolak semuanya secara bawaan lalu mengizinkan satu per
+satu, ditambah penjaga regex yang **membatalkan pengiriman** kalau ada
+`.env`, `.kunci-*`, `auth/`, atau `*creds*.json` ikut ter-stage. Riwayat
+git tidak melupakan, jadi pencegahannya di depan, bukan pembersihan di
+belakang.
+
+**6. Kantor pindah ke `/kantor`,** `lordpors` jadi halaman depan.
+
+**7. Perombakan visual besar.** Semua membelakangi kamera, kursi
+berbantalan kepala, urutan kedalaman **kursi → orang → meja → monitor**,
+seluruh komposisi dipusatkan, papan nama naik ke atas monitor, neon
+dirapikan lalu tabungnya dihapus, mesin minuman & dispenser galon.
+
+**8. Meja bertambah:** Agen 3, Meta, dan karakter untuk Blaster (rambut
+merah) & Meta (rambut biru).
+
+**9. Kehadiran yang tidak bergantung pada ingatan.** `kehadiran.py` +
+penyegar latar: `mulai` menyalakan proses yang menyegarkan cap waktunya
+tiap 60 detik, `selesai` mematikannya. Dibuat karena aku sendiri berulang
+kali lupa memanggil `selesai` — dan Porscy yang menemukannya, dua kali.
+Tiga pengaman: batas 12 jam, ikut mati bersama sesi pemanggilnya, satu
+penyegar per penghuni.
+
+**10. Agen selalu duduk, dua keadaan.** `siaga` (duduk, layar tidur) vs
+`mulai` (bekerja). Yang membawa kabar sekarang balonnya, bukan ada-
+tidaknya sosok. `pesan` mengganti balon tanpa menyentuh penyegarnya.
+
+**11. Balon naik ke lapis paling atas** lewat antrian yang dituang di
+baris terakhir `bingkai()`, dan **diam kalau tidak ada pekerjaan**.
+
+## Kesalahan yang kubuat, dicatat supaya tidak terulang
+
+Bagian ini sengaja ada. Catatan yang cuma memuat keberhasilan tidak bisa
+dipercaya, dan sesi berikutnya lebih butuh tahu jebakannya daripada
+tahu apa yang lancar.
+
+- **Urutan kedalaman salah dua kali** — meja di depan orang, lalu kursi
+  di belakang orang. Porscy yang menemukan keduanya. Sekarang harness
+  `uji.mjs` ikut memeriksa urutan gambar.
+- **Posisi auditor bergeser dua kali** karena ditulis sebagai angka
+  tetap. Sekarang diturunkan dari mejanya.
+- **Kanvas desktop menyusut sendiri** — `width:auto` + buffer yang
+  mengikuti ukuran tampilan jadi umpan balik. Dikembalikan ke buffer
+  tetap, dengan peringatan di kodenya.
+- **Perbaikan Blob yang masih 160× di atas jatah** (lihat no. 3).
+- **`pkill -f "server.py"` mematikan shell-ku sendiri** karena polanya
+  cocok dengan baris perintahnya. Pakai PID yang jelas.
+- **Harness melapor GALAT di semua lebar sekaligus** — itu gejala khas
+  stub yang ketinggalan, bukan kode yang rusak. Sudah dicatat di
+  `uji.mjs`.
+- **Meninggalkan data uji.** Aku menguji tombol `blaster-mulai` lewat
+  HTTP lalu lupa mengembalikannya, jadi Blaster berbalon "menyusun daftar
+  prospek pertama" berjam-jam tanpa ada yang mengerjakan apa pun. Porscy
+  yang menemukannya. Kalau menguji kehadiran, kembalikan keadaannya.
+
+## Yang masih menunggu Porscy
+
+1. **Daftar prospek** (~20 situs) untuk blast pertama.
+2. **Akun Telegram** (`api_id` / `api_hash`) untuk `telegram-blaster/`.
+3. **Nomor WA terpisah** untuk Meta.
+4. **Cabut PAT GitHub lama** — sempat lewat di percakapan.
+5. `sudo loginctl enable-linger porscy` supaya unit systemd bertahan
+   sesudah logout.
+
+---
+
+```
+  Kantor LordPors — kode & catatan
+  © 2026 Porscy · LordPors Commpany. Semua hak dimiliki Porscy.
+
+  Ditulis oleh : Porscy's Agent 2 — Claude (Opus), Anthropic
+  Periode      : 11–12 September 2026
+  Untuk        : Porscy (github: lordpors)
+
+  Tanda tangan ini penanda penulis, bukan klaim kepemilikan.
+  Yang memesan, membayar, dan memiliki karyanya: Porscy.
+```
+
+— Porscy's Agent 2 · Claude (Opus) · 12 September 2026
