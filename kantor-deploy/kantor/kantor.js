@@ -107,7 +107,7 @@
     { x: 104, y: 138, w: 40, nama: "Porscy's Agent 1", isi: false, agen: 1 },
     { x: 160, y: 138, w: 40, nama: "Porscy's Agent 2", isi: false, agen: 2 },
     { x: 216, y: 138, w: 40, nama: "Porscy's Agent 3", isi: false, agen: 3 },
-    { x: 293, y: 116, w: 46, nama: null,               isi: 'auditor' },   // pusat 316
+    { x: 293, y: 116, w: 46, nama: "Porscy's Auditor", isi: 'auditor' },   // pusat 316
     /* Meja blaster — barisan DEPAN, sengaja di kiri.
        Di sana lantainya kosong: dinding monitor berakhir di y=132 dan
        tanaman besar baru mulai di x=91, jadi meja ini punya ruangnya
@@ -968,24 +968,27 @@
         if (lt + fs * 1.25 <= MAKS) break;
         fs *= (MAKS / (lt + fs * 1.25)) * .99;
       }
-      /* LETAK PAPAN NAMA — di atas monitor kalau ada ruangnya.
+      /* PAPAN NAMA DI ATAS MONITOR, untuk SEMUA meja.
 
-         Meja agen ada di barisan tengah; ruang di atas monitornya
-         kosong, jadi papannya naik ke sana. Meja Blaster & Meta ada di
-         barisan DEPAN — tepat di atas monitornya sudah ada barisan
-         tengah. Diukur di 390px, papan mereka menabrak meja
-         dinding-monitor dan meja auditor. Jadi keduanya tetap di muka
-         meja, tempat yang memang kosong untuk mereka.
+         Jaraknya diukur dari tepi atas monitor masing-masing, bukan
+         satu angka untuk semua: monitor auditor lebih tinggi (mulai
+         y-24) daripada monitor meja lain (y-20).
 
-         Letaknya dihitung dari TEPI BAWAH papan, bukan titik tengahnya:
-         tinggi papan berubah menurut lebar layar (lihat pxLayar), dan
+         Letaknya dihitung dari TEPI BAWAH papan, bukan titik tengahnya.
+         Tinggi papan berubah menurut lebar layar (lihat pxLayar), dan
          memakai titik tengah membuat papan di ponsel merangsek turun
          sampai menabrak monitornya sendiri. Dengan tepi bawah dipatok,
-         jaraknya ke monitor tetap sama di layar mana pun. */
+         jaraknya ke monitor tetap sama di layar mana pun.
+
+         Catatan jujur: di 390px papan Blaster & Meta menimpa 4 satuan
+         meja di barisan belakangnya — keduanya meja barisan DEPAN, dan
+         ruang di atas monitornya memang sudah ditempati. Papannya
+         digambar belakangan jadi tampil di atas, dan di layar lebar
+         tidak bertumpuk sama sekali. */
       var pw = lt + fs * 1.25, ph = fs * 1.45;
+      var jarakAtas = (m.isi === 'auditor') ? 25 : 21;
       var px = (m.x + m.w / 2) * P;
-      var py = m.agen ? (y - 21) * P - ph / 2      // di atas monitor
-                      : (y + 4) * P;               // di muka meja
+      var py = (y - jarakAtas) * P - ph / 2;
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillStyle = 'rgba(10,8,22,.95)';
       ctx.strokeStyle = 'rgba(148,163,184,.6)';
@@ -1539,19 +1542,26 @@
      dari adegan — jadi ukurannya disamakan dengan papan nama meja, bukan
      dengan balon. */
   function tinggiStatus() {
-    return auditor.online ? pxLayar(8, 10) * 1.7 + 5 : 0;
+    return auditor.online ? pxLayar(7, 9) * 1.5 + 5 : 0;
   }
 
   function gambarStatusAuditor(t) {
     if (!auditor.online) return;
-    var fs = pxLayar(8, 10);
+    /* Dipusatkan pada BADANNYA (AUDITOR.x + 5), bukan +7 seperti dulu —
+       badannya x+1..x+9, jadi pusatnya x+5. Selisih 2 satuan itu cukup
+       terlihat sebagai label yang miring ke kanan.
+
+       Ukurannya juga dikecilkan (7-9px, dulu 8-10) dan tepi bawahnya
+       dipatok tepat di atas kepalanya, supaya di ponsel tidak menabrak
+       papan nama meja yang kini ada di atas monitornya. */
+    var fs = pxLayar(7, 9);
     ctx.font = '700 ' + fs.toFixed(1) + 'px "Poppins",ui-monospace,monospace';
     var teks = 'online';
     var lt = ctx.measureText(teks).width;
-    var ph = fs * 1.7, pw = lt + fs * 2.5;
-    var px = (AUDITOR.x + 7) * P;
+    var ph = fs * 1.5, pw = lt + fs * 2.5;
+    var px = (AUDITOR.x + 5) * P;
     var gx = Math.max(4, Math.min(LEBAR * P - pw - 4, px - pw / 2));
-    var gy = (AUDITOR.y - 2) * P - ph;
+    var gy = (AUDITOR.y + 1) * P - ph;
 
     ctx.fillStyle = 'rgba(8,7,20,.94)';
     ctx.strokeStyle = 'rgba(52,211,153,.55)';
@@ -1578,8 +1588,8 @@
     if (!gelembung || t > gelembung.sampai) return;
     // Naik setinggi label status kalau labelnya sedang tampil, supaya
     // keduanya tidak saling menimpa di atas kepala yang sama.
-    gambarBalon(gelembung.teks, (AUDITOR.x + 6) * P,
-                (AUDITOR.y - 3) * P - tinggiStatus(),
+    gambarBalon(gelembung.teks, (AUDITOR.x + 5) * P,
+                (AUDITOR.y + 1) * P - tinggiStatus(),
                 gelembung.warna, '#eef1f8', 0);
   }
 
