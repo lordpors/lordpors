@@ -1756,3 +1756,108 @@ Baileys pada satu akun akan saling membalas pesan yang sama.
 
 Berkasnya tidak dihapus; kalau suatu saat botnya kembali ke HP, jalurnya
 masih utuh.
+
+---
+
+## Cadangan otomatis ke GitHub (12 September 2026)
+
+### Arahnya SATU JALUR — koreksi atas rencana awal
+
+Porscy sempat mengusulkan: cadangkan ke GitHub, lalu **lokal mengambil
+dari GitHub**. Arah itu dibalik, dan sengaja:
+
+```
+komputer  ->  GitHub        BENAR   (GitHub = salinan keselamatan)
+GitHub    ->  komputer      SALAH   (kecuali sekali, saat memulihkan)
+```
+
+Bot menulis `data/ledger.json` terus-menerus. Kalau GitHub jadi sumber
+kebenarannya, tiap tarikan akan bentrok dengan tulisan yang sedang
+berjalan, dan yang hilang justru catatan terbaru.
+
+GitHub itu **cadangan**, bukan sumber. Menariknya balik cuma dilakukan
+satu kali: waktu memulihkan di komputer baru.
+
+### .gitignore DAFTAR IZIN, bukan daftar larang
+
+Folder ini berisi **11 berkas rahasia**: `.env` gateway porsblast, token
+Blob Vercel, tiga kunci kantor — dan nanti `auth/` berisi kredensial sesi
+WhatsApp. Satu `git add .` yang ceroboh menerbitkan semuanya, dan riwayat
+git tidak melupakan.
+
+Maka aturannya dibalik: **semua ditolak lebih dulu** (`*`), lalu yang
+benar-benar ingin dicadangkan diizinkan satu per satu. Berkas baru yang
+belum dipikirkan otomatis tidak ikut — itu arah kesalahan yang aman.
+
+Hasilnya **39 berkas**: kantor, kantor-deploy, audit, bot anggaran, dan
+PROGRES.md. Nol rahasia.
+
+Dua keteledoran yang sempat kena dan sudah dibenahi:
+
+1. `!.gitignore` tanpa garis miring mencocokkan `.gitignore` di **semua**
+   folder, jadi milik porsblast dan telegram-blaster ikut terbawa —
+   dan `.gitignore` bersarang miliknya sempat menarik masuk berkas lain.
+   Sekarang `!/.gitignore`, akar saja.
+2. `porsblast/`, `porsblast-next/`, `porsblast-scraper/`,
+   `telegram-blaster/` dikecualikan seluruhnya. Semuanya sudah punya repo
+   GitHub sendiri (lihat remote di `~/projects/`); mencadangkannya lagi
+   cuma menggandakan.
+
+### Penjaga kedua di `cadangan.sh`
+
+`.gitignore` sudah cukup, tapi satu baris `!` yang salah ketik cukup
+untuk membocorkan kunci. Jadi diperiksa **lagi** tepat sebelum mengirim:
+kalau ada berkas yang cocok dengan `.env` / `.kunci-` / `auth/` /
+`creds*.json` yang ter-stage, pengiriman dibatalkan dan stage dikosongkan.
+
+```bash
+./cadangan.sh --lihat    # tampilkan apa yang AKAN ikut, tanpa mengirim
+./cadangan.sh            # cadangkan sekarang
+```
+
+### Jadwalnya
+
+`~/.config/systemd/user/cadangan-kantor.{service,timer}` — tiap jam,
+plus 3 menit sesudah komputer menyala. `Persistent=true`, jadi cadangan
+yang terlewat (PC mati semalaman) dikerjakan begitu menyala lagi, bukan
+dilewatkan diam-diam.
+
+Sudah aktif dan sudah jalan sekali: `Result=success`.
+
+### YANG BELUM — kredensial GitHub kedaluwarsa
+
+```
+git ls-remote https://github.com/macanterbang/porsblast.git  ->  gagal
+```
+
+Penyimpannya `credential.helper=store`, tapi tokennya sudah tidak
+berlaku. Sampai dibereskan, cadangan tetap **tersimpan sebagai commit
+lokal** — aman dari salah hapus, belum aman dari PC rusak.
+
+Yang harus Porscy kerjakan:
+
+1. Buat repo **PRIVAT** di github.com (misal `lordpors-kantor`).
+   Privat, bukan publik — ini data bisnis.
+2. Buat Personal Access Token baru (Settings -> Developer settings ->
+   Tokens), beri akses `repo`.
+3. Di PC:
+
+```bash
+cd ~/My_Business/AI-agent
+git remote add origin https://macanterbang@github.com/macanterbang/lordpors-kantor.git
+./cadangan.sh          # akan menanyakan token sekali, lalu diingat
+```
+
+`gh` tidak terpasang di PC ini, jadi reponya dibuat lewat web.
+
+### Rencana jangka panjang yang disebut Porscy
+
+Dashboard utama `lordpors`, dengan `/kantor` dan `/rumah` di bawahnya.
+Belum dikerjakan — Porscy ingin memaksimalkan kantor dulu.
+
+Catatan untuk nanti: kantor sekarang duduk di **akar** proyek Vercel
+(`kantor-lordpors`). Memindahkannya ke `/kantor` murah selama dilakukan
+sebelum ada yang menyimpan tautan dalam — jalur relatif di `kantor.js`
+(`agenN.json`, `auditor.json`) akan ikut pindah dengan sendirinya, tapi
+`/api/*` di `server.py` dan `penerima-auditor.py` memakai jalur mutlak
+dan harus disesuaikan.
