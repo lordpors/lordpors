@@ -56,6 +56,8 @@
     lampuHangat:'#ffcf87', kursi:'#262c46', kursiTerang:'#39415f',
     colaMerah:'#d2232a', colaMerahTua:'#8f151b', colaMerahMuda:'#e8474e',
     colaPutih:'#f2f2f2', colaKaca:'#0f1c36', colaBotol:'#3a1a1c',
+    galonBiru:'#3f93c4', galonAir:'#6fc4e6', galonTutup:'#2b6d95',
+    disBadan:'#d7dde6', disGelap:'#9aa3b2', disPanel:'#2a3148',
     kayu:'#4a3628', logam:'#3a4054',
     hijau:'#34d399', kuning:'#fcd34d', abu:'#8b98ab',
     // Agen 1 — sengaja tidak memakai warna kulit. Lihat catatan di
@@ -662,7 +664,82 @@
     ctx.fillRect((x - 26) * P, (y - 12) * P, 76 * P, 76 * P);
   }
 
-  /* ---------------- jam dinding ----------------  /* ---------------- jam dinding ----------------
+  /* ---------------- dispenser galon ----------------
+     Pasangan mesin minuman di seberang ruangan, dan letaknya memang
+     cerminnya: mesin di 264..288, dispenser di 72..96 — sama-sama 84
+     satuan dari pusat panggung.
+
+     Kenapa dispenser dan bukan benda lain: ia pasangan yang MASUK AKAL,
+     bukan cuma penyeimbang berat. Dua tempat minum di dua sisi ruangan
+     adalah hal yang memang ada di kantor sungguhan. Benda yang ditaruh
+     semata-mata demi simetri akan terbaca sebagai tambalan.
+
+     Birunya juga bekerja: merah di kanan, biru di kiri — dua kutub hangat
+     dan dingin yang saling menahan, bukan dua benda merah yang berebut
+     perhatian.
+
+     Galonnya sengaja terisi tiga perempat, tidak penuh. Galon penuh
+     terbaca sebagai balok biru; batas airnya yang membuat isinya terbaca
+     sebagai air. */
+  function gambarDispenser(x, y, t) {
+    var LB = 16, TG = 21;                 // badan dispenser
+    var bx = x + 2;                       // badan digeser, sisa ruang untuk galon cadangan
+
+    ctx.globalAlpha = .3;
+    kotak(bx - 1, y + 35, LB + 2, 2, '#000');           // bayangan
+    ctx.globalAlpha = 1;
+
+    /* --- galon di atas ---
+       Digambar lebih dulu supaya leher & badan dispenser menimpanya. */
+    var gx = bx + 2, gw = 12;
+    kotak(gx, y + 1, gw, 13, W.galonBiru);              // badan galon
+    kotak(gx, y + 1, gw, 1, W.galonTutup);              // bahu galon
+    kotak(gx + 1, y + 4, gw - 2, 9, W.galonAir);        // air, tiga perempat
+    kotak(gx + 1, y + 3, gw - 2, 1, '#a8e0f5');         // batas permukaan air
+    kotak(gx + 1, y + 5, 2, 7, '#b6e6f8', .55);         // kilau tegak
+    kotak(gx + 4, y, 4, 2, W.galonTutup);               // tutup
+    kotak(gx + 4, y, 4, 1, '#4a8ab0');
+
+    // leher galon masuk ke dispenser
+    kotak(gx + 3, y + 13, 6, 2, W.galonTutup);
+
+    // --- badan dispenser ---
+    kotak(bx, y + 15, LB, TG, W.disBadan);
+    kotak(bx, y + 15, LB, 1, '#eef2f7');                // kilau tepi atas
+    kotak(bx + LB - 1, y + 15, 1, TG, W.disGelap);      // bayangan sisi kanan
+    kotak(bx, y + 15 + TG - 2, LB, 2, W.disGelap);      // kaki
+
+    // panel keran
+    kotak(bx + 2, y + 19, LB - 4, 8, W.disPanel);
+    kotak(bx + 3, y + 21, 3, 2, '#e0484f');             // keran panas, merah
+    kotak(bx + LB - 6, y + 21, 3, 2, '#4aa8d8');        // keran dingin, biru
+    kotak(bx + 3, y + 24, 3, 1, W.disGelap);            // corong
+    kotak(bx + LB - 6, y + 24, 3, 1, W.disGelap);
+
+    // baki tetesan
+    kotak(bx + 3, y + 29, LB - 6, 2, W.disGelap);
+    kotak(bx + 4, y + 29, LB - 8, 1, '#7f8794');
+
+    /* --- galon cadangan di lantai ---
+       Satu benda kecil di sebelahnya. Kantor sungguhan selalu punya
+       galon cadangan; tanpa itu dispensernya terbaca seperti pajangan. */
+    var cx_ = bx + LB + 2;
+    kotak(cx_, y + 24, 8, 12, W.galonBiru);
+    kotak(cx_ + 1, y + 26, 6, 9, W.galonAir);
+    kotak(cx_ + 1, y + 27, 1, 7, '#b6e6f8', .5);
+    kotak(cx_ + 2, y + 23, 4, 1, W.galonTutup);
+
+    /* Pendar biru lembut ke dinding & lantai — menahan cahaya merah dari
+       seberang ruangan supaya tidak menguasai seluruh lantai. */
+    var g = ctx.createRadialGradient((bx + 8) * P, (y + 20) * P, 0,
+                                     (bx + 8) * P, (y + 20) * P, 30 * P);
+    g.addColorStop(0, 'rgba(111,196,230,.13)');
+    g.addColorStop(1, 'rgba(111,196,230,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect((bx - 22) * P, (y - 10) * P, 68 * P, 68 * P);
+  }
+
+  /* ---------------- jam dinding ----------------  /* ---------------- jam dinding ----------------  /* ---------------- jam dinding ----------------
      Jam LED tujuh ruas, TANPA bingkai — angkanya melayang di dinding,
      persis seperti foto acuan.
 
@@ -1848,6 +1925,7 @@
     gambarJam(262, 22);
     gambarRak(318, 26);
     gambarMesinCola(264, 60, t);
+    gambarDispenser(72, 68, t);
     gambarPors(t);
 
     tentukanPapan();
