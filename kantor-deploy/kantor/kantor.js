@@ -142,34 +142,32 @@
      tinggi kedua mejanya). Pinggulnya ada di dudukan itu, bahunya di 118,
      dan tangannya sampai ke papan ketik di 117..121. */
   /* ==========================================================
-     KONTRAK GEOMETRI AUDITOR — hitung ketiganya BERSAMAAN.
+     POSISI AUDITOR DIHITUNG DARI MEJANYA, BUKAN DITULIS TETAP.
 
-     (12 Sep 2026: Agent 1 & Agent 2 sempat sama-sama mengedit berkas ini
-     dan saling menimpa — satu menyetel posisi untuk sosok 25 satuan,
-     satunya menulis sosok 18 satuan. Sejak sekarang kantor/ dipegang
-     Agent 2 saja. Kontrak di bawah ini yang menjaga supaya kejadian itu
-     tidak terulang.)
+     Angka tetap sudah dua kali membuat bug yang sama persis: mejanya
+     digeser, konstantanya tertinggal, dan dia berdiri sendirian di
+     samping kursinya. Pertama waktu meja dipersempit, kedua waktu
+     seluruh ruangan dipusatkan.
 
-     ATURAN KURSI YANG BERLAKU UNTUK SELURUH KANTOR:
-       dudukan tiap kursi = tutup mejanya + 8
-       -> tiap kursi menonjol 7 satuan di atas mejanya, dan kakinya
-          tertutup badan meja. Sebelum aturan ini, kursi auditor
-          menonjol 7 satuan sementara yang lain NOL — yang tampak cuma
-          dudukan & kaki menyembul di bawah meja. Tidak masuk akal.
+     Agen 1-3 tidak pernah kena karena posisinya memang diturunkan dari
+     mejanya (`m.x + m.w/2 - 7`). Auditor sekarang mengikuti pola yang
+     sama, jadi menggeser mejanya cukup mengubah satu angka di
+     MEJA_SEMUA — sisanya menyusul sendiri.
 
-     Angka auditor yang mengikuti aturan itu:
-       gambarAuditor()  kepala y+2..y+11   badan y+11..y+20
-       tutup meja       116   (disejajarkan dengan meja Lordpors)
-       AUDITOR.y        100   -> kepala 102..111 di atas meja
-       kursi            y+24 = 124 = 116+8
-       sandaran DEPAN   y+13..y+24 -> menutupi separuh badan yang terlihat
-
-     SANDARAN DIGAMBAR DUA KALI: sekali di belakang sosoknya (bersama
-     bantalan kepala, dudukan, dan kaki), sekali lagi DI DEPAN untuk
-     menutupi separuh badan bawahnya. Itu yang membuatnya terbaca duduk
-     DI DALAM kursi, bukan melayang di depannya.
+     Angka penyeimbangnya:
+       -5  badan selebar 8 (x+1..x+9), pusatnya x+5 -> pusat meja
+       -16 kepala y+2..y+11 dan badan y+11..y+20, supaya kepala & bahu
+           terlihat di atas tutup meja
      ========================================================== */
-  var AUDITOR = { x: 302, y: 100 };
+  var MEJA_AUDITOR = (function () {
+    for (var i = 0; i < MEJA_SEMUA.length; i++)
+      if (MEJA_SEMUA[i].isi === 'auditor') return MEJA_SEMUA[i];
+    return null;
+  })();
+  var AUDITOR = {
+    x: MEJA_AUDITOR.x + MEJA_AUDITOR.w / 2 - 5,
+    y: MEJA_AUDITOR.y - 16
+  };
 
   /* ---------------- dinding bata ---------------- */
   var bataPola = null;

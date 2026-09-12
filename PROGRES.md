@@ -2182,3 +2182,57 @@ POST /api/tugas agen3-mulai       -> 200 "Agent 3: BEKERJA"
 POST /api/tugas agen3-selesai     -> 200 "Agent 3: meninggalkan meja"
 papan nama                        -> "Porscy's Agent 3" / "Agent 3" di ponsel
 ```
+
+---
+
+## Posisi auditor diturunkan dari mejanya (12 September 2026)
+
+Bug yang sama terjadi **dua kali**, dan penyebabnya sama persis:
+`AUDITOR` ditulis sebagai angka tetap, lalu mejanya digeser dan
+konstantanya tertinggal.
+
+```
+kejadian 1  meja dipersempit 82 -> 46   auditor tertinggal di kiri
+kejadian 2  ruangan dipusatkan 284 -> 293   auditor tertinggal 14 satuan
+```
+
+Agen 1-3 tidak pernah kena, karena posisinya memang **diturunkan** dari
+mejanya: `x = m.x + m.w/2 - 7`. Auditor satu-satunya yang ditulis tetap.
+
+Sekarang dia mengikuti pola yang sama:
+
+```js
+var MEJA_AUDITOR = (cari meja dengan isi === 'auditor');
+var AUDITOR = {
+  x: MEJA_AUDITOR.x + MEJA_AUDITOR.w / 2 - 5,   // badan 8 satuan, pusat x+5
+  y: MEJA_AUDITOR.y - 16                        // kepala & bahu di atas meja
+};
+```
+
+Menggeser mejanya kini cukup mengubah satu angka di `MEJA_SEMUA` —
+kursi, monitor, papan ketik, sosok, balon, dan label status menyusul
+sendiri.
+
+**Pelajaran yang berlaku untuk seluruh berkas ini:** kalau sebuah angka
+bisa dihitung dari angka lain, hitung — jangan tulis hasilnya. Angka
+tetap yang bergantung pada angka lain akan tertinggal diam-diam, tanpa
+galat, dan baru ketahuan dari tangkapan layar.
+
+### Pemeriksaan menyeluruh sesudahnya
+
+```
+meja              pusat   kursi   orang   monitor
+dinding monitor    44,0    44,0     -      44,0   OK
+Agen 1            124,0   124,0   123,5   124,0   OK
+Agen 2            180,0   180,0   179,5   180,0   OK
+Agen 3            236,0   236,0   235,5   236,0   OK
+auditor           316,0   316,0   316,0   316,0   OK
+Blaster            46,0    46,0     -      46,0   OK
+Meta              314,0   314,0     -     314,0   OK
+```
+
+Selisih 0,5 pada agen tidak terhindarkan: badannya selebar 9 satuan
+(ganjil), jadi tidak bisa berpusat tepat di angka bulat.
+
+Angka tetap yang tersisa — permadani, jam, rak, lampu berdiri, tanaman —
+semuanya **tidak bergantung pada posisi meja**, jadi aman dibiarkan.
