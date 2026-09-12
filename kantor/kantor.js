@@ -76,7 +76,7 @@
   /* ---------------- tata letak ---------------- */
   var JENDELA = { x: 112, y: 12, w: 150, h: 88 };
   var NEON    = { x: 8,   y: 14, w: 104, h: 54 };
-  var PORS    = { x: 180, y: 78 };
+  var PORS    = { x: 176, y: 62 };   // kaki mendarat di y=107, tepat di lantai
 
   var MEJA_H = 16;
   var MEJA_SEMUA = [
@@ -267,7 +267,7 @@
   if (document.fonts && document.fonts.load) {
     Promise.all([
       document.fonts.load('900 40px "Orbitron"'),
-      document.fonts.load('italic 600 28px "Cinzel"')
+      document.fonts.load('700 21px "Orbitron"')
     ]).then(function () { fontSiap = true; neonSiap = null; })
       .catch(function () { fontSiap = true; });
   } else {
@@ -296,25 +296,57 @@
       if (c.letterSpacing !== undefined) c.letterSpacing = '0px';
     }
 
-    // Garis tipis di atas & bawah tulisan atas — kesan panel futuristik.
-    function garis(y, lebar, warna) {
-      c.strokeStyle = warna; c.lineWidth = 1.5;
-      c.shadowColor = warna; c.shadowBlur = 10;
-      c.beginPath();
-      c.moveTo((w - lebar) / 2, y); c.lineTo((w + lebar) / 2, y);
-      c.stroke();
+    /* KURUNG NEON di sekeliling LORDPORS.
+
+       Di acuan, tabungnya tidak mengelilingi penuh — ia naik dari kiri
+       bawah, membelok di atas, lalu berhenti. Kurung yang tidak menutup
+       itu yang membuatnya terbaca sebagai papan neon buatan tangan,
+       bukan kotak yang digambar komputer. Menutupnya penuh justru
+       menghilangkan ciri itu. */
+    function kurung() {
+      var kiri = w * .06, kanan = w * .94, atas = h * .09, bawah = h * .50;
+      var r = h * .12;
+      c.strokeStyle = W.neonKuning;
+      c.lineCap = 'round'; c.lineJoin = 'round';
+      c.shadowColor = W.neonKuning;
+      [[26, 3.2], [12, 2.4], [0, 1.4]].forEach(function (lapis, i) {
+        c.shadowBlur = lapis[0];
+        c.lineWidth = lapis[1];
+        c.strokeStyle = i === 2 ? '#fffdf6' : W.neonKuning;
+        c.beginPath();
+        c.moveTo(kiri + r, bawah);        // kaki kiri bawah
+        c.lineTo(kiri, bawah - r);
+        c.lineTo(kiri, atas + r);         // naik
+        c.lineTo(kiri + r, atas);         // belok kanan
+        c.lineTo(kanan - r * 2.2, atas);  // melintang di atas
+        c.stroke();
+        // potongan pendek di kanan bawah — ujung tabung yang tidak menutup
+        c.beginPath();
+        c.moveTo(kanan, atas + r * 1.4);
+        c.lineTo(kanan, bawah - r);
+        c.lineTo(kanan - r, bawah);
+        c.stroke();
+      });
       c.shadowBlur = 0;
     }
 
-    // LORDPORS — Orbitron, huruf besar, berjarak lebar
-    garis(h * .10, w * .76, W.neonKuning);
+    kurung();
     tulis('LORDPORS', h * .30, W.neonKuning,
           '900 40px "Orbitron", ui-monospace, monospace', '7px');
-    garis(h * .50, w * .76, W.neonKuning);
 
-    // memento vivere — Cinzel miring, terasa seperti pahatan Latin
-    tulis('memento vivere', h * .76, W.neonBiru,
-          'italic 600 28px "Cinzel", Georgia, serif', '3px');
+    /* MEMENTO VIVERE — huruf besar, cyan, sejajar dengan LORDPORS.
+       Versi lama memakai Cinzel miring; itu serif klasik yang bertengkar
+       dengan seluruh ruangan yang serba piksel. */
+    tulis('MEMENTO VIVERE', h * .74, W.neonSian,
+          '700 21px "Orbitron", ui-monospace, monospace', '4px');
+
+    // garis cyan tipis di bawahnya, seperti tabung kedua di acuan
+    c.strokeStyle = W.neonSian; c.shadowColor = W.neonSian;
+    c.shadowBlur = 14; c.lineWidth = 2;
+    c.beginPath();
+    c.moveTo(w * .14, h * .90); c.lineTo(w * .86, h * .90);
+    c.stroke();
+    c.shadowBlur = 0;
 
     neonSiap = k;
   }
@@ -435,14 +467,59 @@
   }
 
   /* ---------------- perabot & pernak-pernik ---------------- */
+  /* ---------------- tanaman ----------------
+     Versi lama: satu kotak pot dan empat kotak daun. Terbaca sebagai
+     rambu, bukan tanaman.
+
+     Tiga hal yang memperbaikinya, dan ketiganya kecil:
+       1. Pot MELEBAR KE ATAS. Pot yang sisinya tegak lurus terbaca
+          sebagai ember.
+       2. Garis lampu hangat di kaki pot — di acuan semua pot berdiri di
+          atas cahaya, itu yang menautkannya ke lantai.
+       3. Daun BERLAPIS dengan dua-tiga nada hijau dan panjang berbeda.
+          Daun sama panjang terbaca seperti sisir. */
   function gambarTanaman(x, y, besar) {
-    var s = besar ? 1.4 : 1;
-    kotak(x, y, 11 * s, 9 * s, W.pot);
-    kotak(x, y, 11 * s, 2, W.potGelap);
-    kotak(x + 2 * s, y - 9 * s, 7 * s, 9 * s, W.daun);
-    kotak(x - 1, y - 5 * s, 3 * s, 6 * s, W.daunTua);
-    kotak(x + 8 * s, y - 7 * s, 3 * s, 7 * s, W.daunTua);
-    kotak(x + 4 * s, y - 13 * s, 3 * s, 5 * s, W.daun);
+    var s = besar ? 1.5 : 1;
+    var lb = Math.round(12 * s), tg = Math.round(10 * s);
+
+    // --- daun: dari belakang ke depan ---
+    var pusat = x + lb / 2;
+    var helai = [
+      [-5.0, -10, W.daunTua], [ 5.0, -11, W.daunTua],   // lapis belakang
+      [-3.2, -16, W.daunTua], [ 3.4, -15, W.daunTua],
+      [-1.6, -20, W.daun],    [ 1.8, -19, W.daun],      // lapis tengah
+      [-4.2, -13, W.daun],    [ 4.4, -12, W.daun],
+      [ 0.0, -23, '#3d8a4e'],                           // pucuk paling terang
+      [-2.6, -17, '#3d8a4e'], [ 2.8, -16, '#3d8a4e']
+    ];
+    for (var i = 0; i < helai.length; i++) {
+      var h = helai[i];
+      var hx = pusat + h[0] * s - 1, panjang = Math.abs(h[1]) * s;
+      // batang miring: tiap helai dibuat dari 3 potong yang bergeser
+      for (var j = 0; j < 3; j++) {
+        var bagi = panjang / 3;
+        kotak(hx + h[0] * s * j * .16, y - bagi * (j + 1), 2, bagi + 1, h[2]);
+      }
+    }
+
+    // --- pot: melebar ke atas ---
+    kotak(x - 1, y, lb + 2, 2, W.potGelap);              // bibir pot
+    kotak(x, y, lb, 1, '#a06a48', .8);                   // kilau bibir
+    for (var k = 0; k < tg - 2; k++) {
+      var susut = Math.round(k * .35);
+      kotak(x + susut, y + 2 + k, lb - susut * 2, 1, k < 2 ? W.potGelap : W.pot);
+    }
+    kotak(x + 1, y + 2, 2, tg - 4, '#a06a48', .35);      // sorotan sisi kiri
+
+    // --- garis lampu di kaki pot ---
+    var kaki = y + tg;
+    kotak(x + Math.round((tg - 2) * .35), kaki, lb - Math.round((tg - 2) * .7), 1,
+          W.mejaLampu, .6);
+    var g = ctx.createRadialGradient(pusat * P, kaki * P, 0, pusat * P, kaki * P, 12 * s * P);
+    g.addColorStop(0, 'rgba(245,196,81,.16)');
+    g.addColorStop(1, 'rgba(245,196,81,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect((pusat - 12 * s) * P, (kaki - 8 * s) * P, 24 * s * P, 16 * s * P);
   }
 
   function gambarRak(x, y) {
@@ -469,17 +546,60 @@
     ctx.fillRect((x - 38) * P, (y - 32) * P, 88 * P, 80 * P);
   }
 
+  /* ---------------- jam dinding ----------------
+     Jam LED tujuh ruas, TANPA bingkai — angkanya melayang di dinding,
+     persis seperti foto acuan.
+
+     Yang membuatnya terbaca sebagai LED sungguhan bukan ruas yang
+     menyala, melainkan ruas yang MATI: di jam asli semua ruas tetap
+     samar terlihat sebagai bayangan abu. Tanpa bayangan itu, angkanya
+     cuma teks putih biasa. */
+  var RUAS = {
+    '0':'abcdef', '1':'bc',    '2':'abged', '3':'abgcd', '4':'fgbc',
+    '5':'afgcd', '6':'afgedc', '7':'abc',   '8':'abcdefg', '9':'abcdfg'
+  };
+
+  function gambarAngkaLED(dx, dy, ch, terang) {
+    var w = 7, h = 13, t = 2;                       // lebar, tinggi, tebal ruas
+    var letak = {
+      a: [dx + 1,     dy,         w - 2, t],
+      b: [dx + w - t, dy + 1,     t,     5],
+      c: [dx + w - t, dy + h - 6, t,     5],
+      d: [dx + 1,     dy + h - t, w - 2, t],
+      e: [dx,         dy + h - 6, t,     5],
+      f: [dx,         dy + 1,     t,     5],
+      g: [dx + 1,     dy + 6,     w - 2, t]
+    };
+    var nyala = RUAS[ch] || '';
+    for (var k in letak) {
+      var r = letak[k], on = nyala.indexOf(k) >= 0;
+      // ruas mati: bayangan samar. ruas nyala: putih kebiruan.
+      kotak(r[0], r[1], r[2], r[3], on ? '#e8f6ff' : '#2b3350', on ? terang : .5);
+    }
+  }
+
   function gambarJam(x, y) {
-    kotak(x, y, 38, 18, '#12141f');
-    kotak(x + 1, y + 1, 36, 16, '#0a0c14');
     var d = new Date();
-    var jam = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
-    ctx.font = '700 20px "Orbitron",ui-monospace,monospace';
-    ctx.fillStyle = '#67e8f9';
-    ctx.shadowColor = '#22d3ee'; ctx.shadowBlur = 14;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(jam, (x + 19) * P, (y + 9.5) * P);
-    ctx.shadowBlur = 0; ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+    var teks = ('0' + d.getHours()).slice(-2) + ('0' + d.getMinutes()).slice(-2);
+    var detik = d.getSeconds();
+    var terang = .92;
+
+    // pendar dingin di belakang angka — sumber cahayanya, bukan kotaknya
+    var cx = (x + 18) * P, cy = (y + 7) * P;
+    var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 30 * P);
+    g.addColorStop(0, 'rgba(190,232,255,.16)');
+    g.addColorStop(1, 'rgba(190,232,255,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(cx - 30 * P, cy - 24 * P, 60 * P, 48 * P);
+
+    gambarAngkaLED(x,      y, teks[0], terang);
+    gambarAngkaLED(x + 9,  y, teks[1], terang);
+    // titik dua berkedip tiap detik, seperti jam sungguhan
+    var kedipTitik = detik % 2 ? .28 : .95;
+    kotak(x + 19, y + 3,  2, 2, '#e8f6ff', kedipTitik);
+    kotak(x + 19, y + 8,  2, 2, '#e8f6ff', kedipTitik);
+    gambarAngkaLED(x + 23, y, teks[2], terang);
+    gambarAngkaLED(x + 32, y, teks[3], terang);
   }
 
   function gambarKopi(x, y) {
@@ -983,55 +1103,69 @@
   }
 
   /* ---------------- LordPors ----------------
-     Berdiri di jendela MEMBELAKANGI penonton. Tudungnya naik, dan
-     sisi tubuhnya tersapu cahaya kota — sapuan tepi itu yang
-     memisahkannya dari jendela terang di belakangnya. Tanpa itu dia
-     cuma siluet hitam yang tenggelam ke dalam pemandangan. */
+     DIPERBESAR. Versi lama setinggi 31 satuan dari panggung 190 — sekitar
+     16%. Di acuan sosoknya hampir 30% tinggi gambar. Detail apa pun tidak
+     akan terbaca pada sosok sekecil itu, jadi yang pertama diperbaiki
+     ukurannya, baru isinya.
+
+     Berdiri membelakangi penonton di depan jendela. Cahaya kota datang
+     dari BELAKANG, jadi yang menyala tepinya — bukan wajahnya, yang
+     memang tidak kita lihat. */
   function gambarPors(t) {
     var x = PORS.x, y = PORS.y;
-    var napas = Math.sin(t / 1500) * .4;
+    var napas = Math.sin(t / 1500) * .5;
 
-    // bayangan di lantai
-    ctx.globalAlpha = .34; kotak(x - 1, y + 28, 14, 2, '#000'); ctx.globalAlpha = 1;
+    ctx.globalAlpha = .38; kotak(x - 1, y + 43, 18, 2, '#000'); ctx.globalAlpha = 1;
 
-    // kaki
-    kotak(x + 1, y + 18, 4, 10, W.jeans);
-    kotak(x + 7, y + 18, 4, 10, W.jeans);
-    kotak(x + 1, y + 18, 4, 1, W.jeansGelap);
-    kotak(x + 7, y + 18, 4, 1, W.jeansGelap);
-    kotak(x + 5, y + 19, 2, 9, W.jeansGelap, .7);        // celah antar kaki
-    kotak(x + 1, y + 28, 4, 2, W.sepatu);                // sepatu putih
-    kotak(x + 7, y + 28, 4, 2, W.sepatu);
-    kotak(x + 1, y + 29, 4, 1, '#c8c8cc');
-    kotak(x + 7, y + 29, 4, 1, '#c8c8cc');
+    // ---- kaki: jeans ----
+    kotak(x + 2, y + 27, 5, 15, W.jeans);
+    kotak(x + 9, y + 27, 5, 15, W.jeans);
+    kotak(x + 2, y + 27, 5, 1, W.jeansGelap);
+    kotak(x + 9, y + 27, 5, 1, W.jeansGelap);
+    kotak(x + 7, y + 28, 2, 14, W.jeansGelap, .8);      // celah antar kaki
+    kotak(x + 2, y + 35, 5, 1, W.jeansGelap, .45);      // lipatan lutut
+    kotak(x + 9, y + 35, 5, 1, W.jeansGelap, .45);
+    kotak(x + 2, y + 42, 5, 3, W.sepatu);               // sepatu putih
+    kotak(x + 9, y + 42, 5, 3, W.sepatu);
+    kotak(x + 2, y + 44, 5, 1, '#b9b9c0');              // sol
+    kotak(x + 9, y + 44, 5, 1, '#b9b9c0');
 
-    // badan hoodie
-    kotak(x, y + 7 + napas, 12, 12, W.kaosHitam);
-    kotak(x, y + 7 + napas, 12, 1, '#23232e');
-    kotak(x + 5, y + 9 + napas, 1, 10, W.kaosGelap);     // jahitan tengah
-    kotak(x + 1, y + 16 + napas, 10, 2, W.kaosGelap, .8); // kantong depan
+    // ---- badan: hoodie ----
+    kotak(x, y + 11 + napas, 16, 17, W.kaosHitam);
+    kotak(x, y + 11 + napas, 16, 1, '#25252f');
+    kotak(x + 7, y + 13 + napas, 2, 15, W.kaosGelap, .85);   // jahitan punggung
+    kotak(x + 2, y + 22 + napas, 12, 3, W.kaosGelap, .8);    // kantong depan
+    kotak(x + 2, y + 25 + napas, 12, 1, '#0c0b10');
+    kotak(x, y + 26 + napas, 16, 2, W.kaosGelap);            // karet bawah hoodie
 
-    // lengan
-    kotak(x - 2, y + 8 + napas, 2, 10, W.kaosHitam);
-    kotak(x + 12, y + 8 + napas, 2, 10, W.kaosHitam);
-    kotak(x - 2, y + 18 + napas, 2, 2, W.kulitGelap);
-    kotak(x + 12, y + 18 + napas, 2, 2, W.kulitGelap);
+    // ---- lengan ----
+    kotak(x - 3, y + 12 + napas, 3, 14, W.kaosHitam);
+    kotak(x + 16, y + 12 + napas, 3, 14, W.kaosHitam);
+    kotak(x - 3, y + 24 + napas, 3, 2, W.kaosGelap);         // karet pergelangan
+    kotak(x + 16, y + 24 + napas, 3, 2, W.kaosGelap);
+    kotak(x - 3, y + 26 + napas, 3, 3, W.kulitGelap);        // tangan
+    kotak(x + 16, y + 26 + napas, 3, 3, W.kulitGelap);
 
-    /* Tudung NAIK, menutupi kepala. Bentuknya sedikit lebih lebar dari
-       kepala dan turun ke bahu — itu yang membedakan tudung terpakai
-       dari topi. */
-    kotak(x + 1, y - 1, 10, 9, W.kaosGelap);
-    kotak(x + 2, y - 2, 8, 2, W.kaosGelap);
-    kotak(x, y + 5, 12, 4, W.kaosGelap);                 // pangkal tudung di bahu
-    kotak(x + 3, y + 6, 6, 2, '#0a090d');                // bayangan dalam tudung
-    kotak(x + 4, y + 8 + napas, 1, 4, '#d8d8dc', .75);   // tali tudung
-    kotak(x + 7, y + 8 + napas, 1, 3, '#d8d8dc', .6);
+    // ---- tudung NAIK ----
+    kotak(x + 2, y, 12, 13, W.kaosGelap);
+    kotak(x + 3, y - 2, 10, 3, W.kaosGelap);                 // puncak tudung
+    kotak(x, y + 7, 16, 6, W.kaosGelap);                     // pangkal di bahu
+    kotak(x + 4, y + 8, 8, 4, '#09080c');                    // rongga dalam tudung
+    kotak(x + 5, y + 6, 6, 2, '#141319', .9);                // lipatan kain
+    kotak(x + 5, y + 12 + napas, 1, 6, '#dcdce2', .8);       // tali tudung
+    kotak(x + 10, y + 12 + napas, 1, 5, '#dcdce2', .65);
+    kotak(x + 5, y + 18 + napas, 1, 1, '#9a9aa2');           // ujung tali
+    kotak(x + 10, y + 17 + napas, 1, 1, '#9a9aa2');
 
-    /* Sapuan cahaya kota di tepi kiri — jendela ada di belakangnya,
-       jadi cahayanya datang dari belakang dan menyentuh tepi tubuh. */
-    kotak(x - 2, y + 8 + napas, 1, 11, '#8fa4d8', .6);
-    kotak(x + 1, y - 1, 1, 9, '#8fa4d8', .5);
-    kotak(x + 13, y + 8 + napas, 1, 9, '#c084fc', .35);  // tepi kanan, ungu kota
+    /* ---- sapuan cahaya tepi ----
+       Jendela ada di belakangnya. Biru dari kiri, ungu kota dari kanan.
+       Inilah yang memisahkannya dari pemandangan terang di belakang;
+       tanpa ini dia jadi lubang hitam di tengah jendela. */
+    kotak(x - 3, y + 12 + napas, 1, 15, '#93a9de', .7);
+    kotak(x + 2, y - 1, 1, 13, '#93a9de', .6);
+    kotak(x + 3, y - 2, 9, 1, '#aebbe8', .55);               // puncak tudung kena cahaya
+    kotak(x + 18, y + 12 + napas, 1, 13, '#c084fc', .45);
+    kotak(x + 13, y, 1, 12, '#a855f7', .3);
   }
 
   /* ---------------- balon teks — dipakai semua penghuni ----------------
@@ -1479,11 +1613,12 @@
        kusen jendela berakhir di x=265 (JENDELA.x-3 + JENDELA.w+6), dan
        dinding habis di x=360. Dulu jam dipasang di 262 — masuk ke dalam
        kusen, itu yang terlihat berdempetan. Sekarang:
-         jam  272..310  (jarak 7 dari kusen)
-         rak  318..352  (jarak 8 dari jam, sisa 8 ke tepi kanan)
-       Keduanya dipusatkan di y=29 supaya sejajar: jam 20..38, rak 16..42.
+         jam  272..311  (jarak 7 dari kusen; LED 7 ruas, tanpa bingkai)
+         rak  318..352  (jarak 7 dari jam, sisa 8 ke tepi kanan)
+       Jam kini setinggi 13 (y 22..35), rak 16..42 — keduanya tetap
+       berpusat di sekitar y=29.
        Kalau salah satunya diubah lebarnya, hitung ulang ketiga jarak itu. */
-    gambarJam(272, 20);
+    gambarJam(272, 22);
     gambarRak(318, 26);
     gambarLampu(254, 96, t);
     gambarPors(t);

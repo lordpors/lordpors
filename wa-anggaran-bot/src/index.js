@@ -17,6 +17,32 @@ function kirimKeKantor(jalur, badan) {
   }).catch(() => {});
 }
 function kirimQrKeKantor(teks) { return kirimKeKantor("/qr", { teks }); }
+
+/* DETAK BERKALA, bukan cuma kabar saat peristiwa.
+
+   Versi pertama cuma mengabari saat `connection === "open"` dan `"close"`.
+   Itu peristiwa, bukan detak — sesudah tersambung tidak ada lagi yang
+   menyegarkan, dan kantor menganggapnya basi setelah 2 menit. Akibatnya
+   auditornya menghilang dari panggung padahal botnya sehat.
+
+   Ambang basi di kantor 120 detik, jadi 45 detik memberi dua kesempatan
+   sebelum dianggap mati -- satu detak yang hilang karena jaringan tidak
+   boleh langsung mengosongkan kursinya. */
+let detakKantor = null;
+function mulaiDetakKantor() {
+  clearInterval(detakKantor);
+  kirimKeKantor("/detak", { online: true, pesan: "WhatsApp tersambung" });
+  detakKantor = setInterval(() => {
+    kirimKeKantor("/detak", { online: true, pesan: "WhatsApp tersambung" });
+  }, 45000);
+  // Jangan menahan proses tetap hidup hanya demi detak ini.
+  if (detakKantor.unref) detakKantor.unref();
+}
+function hentikanDetakKantor(sebab) {
+  clearInterval(detakKantor);
+  detakKantor = null;
+  kirimKeKantor("/detak", { online: false, pesan: sebab });
+}
 const pino = require("pino");
 const {
   default: makeWASocket,
@@ -637,7 +663,7 @@ async function start() {
       // Kehadiran auditor di kantor = sambungan WhatsApp yang benar-benar
       // terbuka. Bukan "prosesnya hidup" seperti dulu waktu ditebak dari
       // luar oleh skrip detak di HP -- ini kabar dari dalam.
-      kirimKeKantor("/detak", { online: true, pesan: "WhatsApp tersambung" });
+      mulaiDetakKantor();
       console.log("Di grup ketik: !bot  lalu tes: habis $1 tes usd");
       const seeded = ledger.applyCanonicalCosts();
       if (seeded.applied) {
@@ -657,7 +683,7 @@ async function start() {
       // Kabari kantor supaya kursinya benar-benar kosong. Inilah bedanya
       // dengan cara lama: dulu kehadiran ditebak dari "prosesnya hidup",
       // jadi bot yang tersambungnya putus tetap terlihat duduk bekerja.
-      kirimKeKantor("/detak", { online: false, pesan: loggedOut ? "logout" : "koneksi tutup" });
+      hentikanDetakKantor(loggedOut ? "logout" : "koneksi tutup");
       if (loggedOut || restarting) return;
       restarting = true;
       const wait = code === 515 ? 1500 : reconnectWait;
