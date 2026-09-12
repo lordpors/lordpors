@@ -48,6 +48,9 @@
 !audit/*.txt
 !audit/*.csv
 
+# ---------- onboarding Meta (kode saja; status/OTP/kredensial tidak ikut) ----------
+!meta/*.py
+
 # ---------- bot anggaran ----------
 !wa-anggaran-bot/src/*
 !wa-anggaran-bot/scripts/*

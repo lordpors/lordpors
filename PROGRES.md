@@ -31,6 +31,10 @@ gateway         http://127.0.0.1:3001/health
 **Langkah berikutnya yang disepakati:** nyalakan Telegram blaster
 (`telegram-blaster/`), lalu sambungkan hasil audit ke pesan blast.
 
+**Onboarding Meta:** pipeline aman tersedia di `meta/siapkan_akun.py`.
+Ia membuka halaman resmi tahap demi tahap dan menyimpan progres lokal, tetapi
+pendaftaran, CAPTCHA, OTP, dan 2FA wajib diselesaikan sendiri oleh pemilik akun.
+
 ---
 
 ## 1. Latar belakang
