@@ -88,7 +88,7 @@
      menumpuk jadi ruangan yang terasa miring ke kanan. */
   var JENDELA = { x: 105, y: 12, w: 150, h: 88 };
   var NEON    = { x: 4,   y: 14, w: 96,  h: 54 };
-  var PORS    = { x: 173, y: 71 };   // sol mendarat di y=107, tepat di lantai
+  var PORS    = { x: 175, y: 76 };   // pusat x=180; sol mendarat di y=107
 
   var MEJA_H = 16;
   /* LEBAR MEJA DIUKUR DARI LEBAR BAHU, bukan dari ruang yang tersisa.
@@ -739,9 +739,9 @@
     ctx.fillRect((bx - 22) * P, (y - 10) * P, 68 * P, 68 * P);
   }
 
-  /* ---------------- jam dinding ----------------  /* ---------------- jam dinding ----------------  /* ---------------- jam dinding ----------------
-     Jam LED tujuh ruas, TANPA bingkai — angkanya melayang di dinding,
-     persis seperti foto acuan.
+  /* ---------------- jam dinding ----------------
+     Jam neon tujuh ruas, TANPA bingkai — bahasanya sama dengan tulisan
+     MEMENTO VIVERE di kiri: halo lebar, cahaya dekat, lalu inti terang.
 
      Yang membuatnya terbaca sebagai LED sungguhan bukan ruas yang
      menyala, melainkan ruas yang MATI: di jam asli semua ruas tetap
@@ -752,7 +752,7 @@
     '5':'afgcd', '6':'afgedc', '7':'abc',   '8':'abcdefg', '9':'abcdfg'
   };
 
-  function gambarAngkaLED(dx, dy, ch, terang) {
+  function gambarAngkaLED(dx, dy, ch, warna, terang, bayangan) {
     var w = 7, h = 13, t = 2;                       // lebar, tinggi, tebal ruas
     var letak = {
       a: [dx + 1,     dy,         w - 2, t],
@@ -766,8 +766,8 @@
     var nyala = RUAS[ch] || '';
     for (var k in letak) {
       var r = letak[k], on = nyala.indexOf(k) >= 0;
-      // ruas mati: bayangan samar. ruas nyala: putih kebiruan.
-      kotak(r[0], r[1], r[2], r[3], on ? '#e8f6ff' : '#2b3350', on ? terang : .5);
+      if (!on && !bayangan) continue;
+      kotak(r[0], r[1], r[2], r[3], on ? warna : '#303746', on ? terang : .42);
     }
   }
 
@@ -775,24 +775,36 @@
     var d = new Date();
     var teks = ('0' + d.getHours()).slice(-2) + ('0' + d.getMinutes()).slice(-2);
     var detik = d.getSeconds();
-    var terang = .92;
 
-    // pendar dingin di belakang angka — sumber cahayanya, bukan kotaknya
+    // Pendar putih ke dinding, mengikuti warna inti jam.
     var cx = (x + 18) * P, cy = (y + 7) * P;
     var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 30 * P);
-    g.addColorStop(0, 'rgba(190,232,255,.16)');
-    g.addColorStop(1, 'rgba(190,232,255,0)');
+    g.addColorStop(0, 'rgba(255,255,255,.24)');
+    g.addColorStop(.45, 'rgba(255,255,255,.10)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = g;
     ctx.fillRect(cx - 30 * P, cy - 24 * P, 60 * P, 48 * P);
 
-    gambarAngkaLED(x,      y, teks[0], terang);
-    gambarAngkaLED(x + 9,  y, teks[1], terang);
-    // titik dua berkedip tiap detik, seperti jam sungguhan
+    /* Tiga lapis yang sama dengan neon teks: halo, tabung, inti.
+       Ruas mati hanya digambar pada lapis terakhir agar tidak menutup
+       cahaya ruas aktif di sebelahnya. */
     var kedipTitik = detik % 2 ? .28 : .95;
-    kotak(x + 19, y + 3,  2, 2, '#e8f6ff', kedipTitik);
-    kotak(x + 19, y + 8,  2, 2, '#e8f6ff', kedipTitik);
-    gambarAngkaLED(x + 23, y, teks[2], terang);
-    gambarAngkaLED(x + 32, y, teks[3], terang);
+    var lapis = [
+      { blur:7 * P, warna:'#ffffff', alpha:.28 },
+      { blur:3 * P, warna:'#ffffff', alpha:.72 },
+      { blur:0,     warna:'#ffffff', alpha:.98, bayangan:true }
+    ];
+    var posisi = [0, 9, 23, 32];
+    for (var L = 0; L < lapis.length; L++) {
+      var a = lapis[L];
+      ctx.shadowColor = '#ffffff';
+      ctx.shadowBlur = a.blur;
+      for (var i = 0; i < 4; i++)
+        gambarAngkaLED(x + posisi[i], y, teks[i], a.warna, a.alpha, a.bayangan);
+      kotak(x + 19, y + 3, 2, 2, a.warna, a.alpha * kedipTitik);
+      kotak(x + 19, y + 8, 2, 2, a.warna, a.alpha * kedipTitik);
+    }
+    ctx.shadowBlur = 0;
   }
 
   function gambarKopi(x, y) {
@@ -1288,7 +1300,7 @@
     gambarPenghuni(x, y, RUPA_ORANG[kunci]);
 
     if (!keadaan.siaga) {
-      gambarBalon((keadaan.pesan || 'bekerja').slice(0, 28),
+      gambarBalon(keadaan.pesan || 'bekerja',
                   (x + 5) * P, atasPapanNama(m),
                   RUPA_ORANG[kunci].rambut, '#eef1f8', 0);
     }
@@ -1441,7 +1453,7 @@
     var tingkat = 0;
     for (var n = 1; n < nomor; n++)
       if (AGEN[n] && AGEN[n].aktif && !AGEN[n].siaga) tingkat++;
-    gambarBalon((a.pesan || 'bekerja').slice(0, 28),
+    gambarBalon(a.pesan || 'bekerja',
                 (x + 5) * P, atasPapanNama(m), r.tanda, '#f2edf6', tingkat);
   }
 
@@ -1449,79 +1461,58 @@
   function gambarAgen2(t) { gambarAgenDuduk(2, t); }
   function gambarAgen3(t) { gambarAgenDuduk(3, t); }
 
-  /* ---------------- LordPors ----------------  /* ---------------- LordPors ----------------
-     DIKECILKAN dari 47 ke 36 satuan. Versi sebelumnya terlalu besar
-     untuk ruangan setinggi 190 — dia lebih tinggi dari jendelanya
-     sendiri, dan itu membuat kantornya terasa seperti rumah boneka.
-
-     Dua kali pelajaran yang sama muncul di sesi ini, dan arahnya
-     berlawanan: sosok yang terlalu KECIL tidak bisa memuat detail,
-     sosok yang terlalu BESAR merusak skala ruangan. Ukuran yang benar
-     ditemukan dari perbandingan dengan perabot di sekitarnya, bukan
-     dari keinginan menambah detail.
-
-     Berdiri membelakangi penonton, memandangi kota. Cahaya datang dari
-     BELAKANG, jadi yang menyala tepinya. */
+  /* ---------------- LordPors ----------------
+     Proporsinya memakai modul yang sama dengan penghuni lain: kepala 6,
+     badan 8, bahu 12 satuan. Dia tampak lebih tinggi hanya karena berdiri,
+     bukan karena skalanya berbeda. Tetap membelakangi penonton. */
   function gambarPors(t) {
     var x = PORS.x, y = PORS.y;
-    var napas = Math.sin(t / 1500) * .4;
+    var napas = Math.sin(t / 1500) * .25;
 
-    ctx.globalAlpha = .36; kotak(x - 1, y + 35, 15, 2, '#000'); ctx.globalAlpha = 1;
+    ctx.globalAlpha = .36; kotak(x, y + 30, 10, 2, '#000'); ctx.globalAlpha = 1;
 
     // ---- kaki: jeans ----
-    kotak(x + 1, y + 21, 4, 10, W.jeans);
-    kotak(x + 8, y + 21, 4, 10, W.jeans);
-    kotak(x + 1, y + 21, 4, 1, W.jeansGelap);
-    kotak(x + 8, y + 21, 4, 1, W.jeansGelap);
-    kotak(x + 5, y + 22, 3, 9, W.jeansGelap, .8);       // celah antar kaki
-    kotak(x + 1, y + 27, 4, 1, W.jeansGelap, .45);      // lipatan lutut
-    kotak(x + 8, y + 27, 4, 1, W.jeansGelap, .45);
+    kotak(x + 1, y + 19, 3, 9, W.jeans);
+    kotak(x + 6, y + 19, 3, 9, W.jeans);
+    kotak(x + 4, y + 20, 2, 8, W.jeansGelap, .85);      // celah antar kaki
+    kotak(x + 1, y + 24, 3, 1, W.jeansGelap, .45);
+    kotak(x + 6, y + 24, 3, 1, W.jeansGelap, .45);
 
-    /* ---- Converse high-top, tampak dari belakang ----
-       Tiga hal yang membuatnya dikenali sekecil ini: kerah mata kaki
-       yang naik melewati ujung celana, sol karet krem, dan garis gelap
-       tipis di antara kanvas dan sol. Tanpa garis itu, keduanya melebur
-       jadi satu blok putih. */
+    // ---- Converse high-top, tampak dari belakang ----
     for (var S = 0; S < 2; S++) {
-      var sx = x + 1 + S * 7;
-      kotak(sx, y + 30, 4, 2, W.sepatu);                // kerah mata kaki
-      kotak(sx, y + 30, 4, 1, '#ffffff', .8);
-      kotak(sx, y + 32, 4, 2, W.sepatu);                // kanvas tumit
-      kotak(sx + 1, y + 32, 2, 2, '#e2e2e8');
-      kotak(sx, y + 34, 4, 1, '#2a2a33');               // garis pemisah
-      kotak(sx, y + 35, 4, 1, '#efe6d4');               // sol karet
+      var sx = x + 1 + S * 5;
+      kotak(sx, y + 27, 3, 2, W.sepatu);
+      kotak(sx + 1, y + 28, 1, 1, '#e2e2e8');
+      kotak(sx, y + 29, 3, 1, '#2a2a33');
+      kotak(sx, y + 30, 3, 1, '#efe6d4');
     }
 
     // ---- badan: hoodie ----
-    kotak(x, y + 9 + napas, 13, 13, W.kaosHitam);
-    kotak(x, y + 9 + napas, 13, 1, '#25252f');
-    kotak(x + 6, y + 11 + napas, 1, 11, W.kaosGelap, .85);   // jahitan punggung
-    kotak(x + 2, y + 17 + napas, 9, 2, W.kaosGelap, .8);     // kantong
-    kotak(x, y + 20 + napas, 13, 2, W.kaosGelap);            // karet bawah
+    kotak(x + 1, y + 9 + napas, 8, 11, W.kaosHitam);
+    kotak(x + 1, y + 9 + napas, 8, 1, '#25252f');
+    kotak(x + 5, y + 11 + napas, 1, 9, W.kaosGelap, .85);
+    kotak(x + 1, y + 18 + napas, 8, 2, W.kaosGelap);
 
     // ---- lengan ----
-    kotak(x - 2, y + 10 + napas, 2, 11, W.kaosHitam);
-    kotak(x + 13, y + 10 + napas, 2, 11, W.kaosHitam);
-    kotak(x - 2, y + 19 + napas, 2, 2, W.kaosGelap);         // karet pergelangan
-    kotak(x + 13, y + 19 + napas, 2, 2, W.kaosGelap);
-    kotak(x - 2, y + 21 + napas, 2, 2, W.kulitGelap);        // tangan
-    kotak(x + 13, y + 21 + napas, 2, 2, W.kulitGelap);
+    kotak(x - 1, y + 10 + napas, 2, 8, W.kaosHitam);
+    kotak(x + 9, y + 10 + napas, 2, 8, W.kaosHitam);
+    kotak(x - 1, y + 17 + napas, 2, 2, W.kaosGelap);
+    kotak(x + 9, y + 17 + napas, 2, 2, W.kaosGelap);
+    kotak(x - 1, y + 19 + napas, 2, 2, W.kulitGelap);
+    kotak(x + 9, y + 19 + napas, 2, 2, W.kulitGelap);
 
     // ---- tudung NAIK ----
-    kotak(x + 2, y, 9, 10, W.kaosGelap);
-    kotak(x + 3, y - 1, 7, 2, W.kaosGelap);                  // puncak
-    kotak(x, y + 6, 13, 4, W.kaosGelap);                     // pangkal di bahu
-    kotak(x + 4, y + 6, 5, 3, '#09080c');                    // rongga dalam
-    kotak(x + 4, y + 10 + napas, 1, 4, '#dcdce2', .8);       // tali tudung
-    kotak(x + 8, y + 10 + napas, 1, 3, '#dcdce2', .6);
+    kotak(x + 2, y + 1, 6, 8, W.kaosGelap);
+    kotak(x + 3, y, 4, 1, W.kaosGelap);
+    kotak(x + 1, y + 7, 8, 3, W.kaosGelap);
+    kotak(x + 3, y + 4, 4, 3, '#09080c');
+    kotak(x + 3, y + 8, 4, 1, '#25252f', .7);                // jahitan tudung
 
-    /* ---- sapuan cahaya tepi ----
-       Jendela ada di belakangnya: biru dari kiri, ungu kota dari kanan.
-       Tanpa ini dia jadi lubang hitam di tengah pemandangan terang. */
-    kotak(x - 2, y + 10 + napas, 1, 12, '#93a9de', .7);
-    kotak(x + 2, y - 1, 1, 10, '#93a9de', .6);
-    kotak(x + 3, y - 1, 7, 1, '#aebbe8', .5);
-    kotak(x + 14, y + 10 + napas, 1, 11, '#c084fc', .45);
+    // Cahaya jendela menjaga siluet hitam tetap terbaca.
+    kotak(x - 1, y + 10 + napas, 1, 9, '#93a9de', .7);
+    kotak(x + 2, y, 1, 8, '#93a9de', .6);
+    kotak(x + 3, y, 4, 1, '#aebbe8', .5);
+    kotak(x + 10, y + 10 + napas, 1, 9, '#c084fc', .45);
   }
 
   /* ---------------- balon teks — dipakai semua penghuni ----------------
@@ -1606,6 +1597,7 @@
      ada bingkai yang keluar lebih awal, balon bingkai sebelumnya tidak
      boleh ikut tertinggal dan tergambar dua kali. */
   var ANTRE_BALON = [];
+  var MULAI_GULIR = Object.create(null);
 
   function gambarBalon(teks, pusatX, bawahY, warnaTepi, warnaTeks, tingkat) {
     ANTRE_BALON.push([teks, pusatX, bawahY, warnaTepi, warnaTeks, tingkat]);
@@ -1621,28 +1613,15 @@
      tingkat 0 = balon menempel di atas kepala; 1 = ditumpuk satu tingkat
      lebih tinggi, dipakai kalau dua agen bicara bersamaan. */
   function lukisBalon(teks, pusatX, bawahY, warnaTepi, warnaTeks, tingkat) {
-    /* DIKECILKAN. Versi sebelumnya 12-16px dengan lebar sampai 94%
-       panggung — satu balon saja melintang hampir seluruh layar, dan
-       tiga agen yang bicara bersamaan jadi dinding teks.
-
-       Sekarang 8-11px dan maksimal 55% panggung. Teksnya juga dipotong
-       lebih pendek: tugas yang tidak muat lebih baik terpenggal jelas
-       daripada memaksa balonnya melebar. */
+    /* Tetap ringkas: 8-11px dan maksimal 55% panggung. Teks pendek diam;
+       teks panjang digulir di dalam lebar itu agar tak ada yang dipotong. */
+    teks = String(teks || '');
     var fs = pxLayar(8, 11);
     var maxW = LEBAR * P * .55;
-    var lt, gw, pad;
-
-    /* Teks panjang di layar sempit bisa membuat balon lebih lebar dari
-       kanvas. Kecilkan bertahap sampai muat — lebih baik sedikit lebih
-       kecil daripada terpotong di tepi. */
-    for (var coba = 0; coba < 8; coba++) {
-      ctx.font = '600 ' + fs.toFixed(1) + 'px "Poppins",ui-monospace,monospace';
-      lt = ctx.measureText(teks).width;
-      pad = fs * .85;
-      gw = lt + pad * 2 + fs * 1.05;          // sisakan ruang titik penanda
-      if (gw <= maxW) break;
-      fs *= (maxW / gw) * .99;
-    }
+    ctx.font = '600 ' + fs.toFixed(1) + 'px "Poppins",ui-monospace,monospace';
+    var lt = ctx.measureText(teks).width;
+    var pad = fs * .85;
+    var gw = Math.min(maxW, lt + pad * 2 + fs * 1.05);
 
     var gh = fs * 2.1;
     var naik = (tingkat || 0) * (gh + fs * .5);
@@ -1692,9 +1671,32 @@
     ctx.arc(gx + pad + fs * .28, gy + gh / 2, fs * .26, 0, 6.2832);
     ctx.fill();
 
+    var tx = gx + pad + fs * .92;
+    var ruang = gw - (tx - gx) - pad;
+    var geser = 0;
+    if (lt > ruang) {
+      var kini = performance.now();
+      var rekam = MULAI_GULIR[teks];
+      if (!rekam || kini - rekam.terlihat > 250)
+        rekam = MULAI_GULIR[teks] = { mulai:kini, terlihat:kini };
+      rekam.terlihat = kini;
+      var jarak = lt - ruang;
+      var jeda = 1100;
+      var durasi = jarak / (fs * 2.8) * 1000;
+      var langkah = (kini - rekam.mulai) % (jeda * 2 + durasi);
+      if (langkah > jeda)
+        geser = langkah < jeda + durasi
+          ? (langkah - jeda) / durasi * jarak
+          : jarak;
+    }
+
+    // Potong pada bagian dalam bubble; titik pemilik dan tepinya tetap utuh.
+    ctx.save();
+    ctx.beginPath(); ctx.rect(tx, gy, ruang, gh); ctx.clip();
     ctx.textAlign = 'start'; ctx.textBaseline = 'middle';
     ctx.fillStyle = warnaTeks || '#eef1f8';
-    ctx.fillText(teks, gx + pad + fs * .92, gy + gh / 2 + fs * .03);
+    ctx.fillText(teks, tx - geser, gy + gh / 2 + fs * .03);
+    ctx.restore();
     ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
   }
 
@@ -1754,7 +1756,7 @@
     if (!gelembung || t > gelembung.sampai) return;
     // Naik setinggi label status kalau labelnya sedang tampil, supaya
     // keduanya tidak saling menimpa di atas kepala yang sama.
-    gambarBalon(gelembung.teks.slice(0, 28), (AUDITOR.x + 5) * P,
+    gambarBalon(gelembung.teks, (AUDITOR.x + 5) * P,
                 atasPapanNama(MEJA_AUDITOR),
                 gelembung.warna, '#eef1f8', 0);
   }
@@ -1889,7 +1891,7 @@
     var now = performance.now();
     var L = window.KANTOR.log;
     if (s.keadaan === 'memeriksa') {
-      gelembung = { teks: (s.situs || '').replace(/^https?:\/\//, '').slice(0, 24),
+      gelembung = { teks: (s.situs || '').replace(/^https?:\/\//, ''),
                     warna: '#67e8f9', sampai: now + 30000 };
       L('memeriksa ' + (s.situs || '').replace(/^https?:\/\//, ''), 'kerja');
     } else if (s.keadaan === 'hasil') {
@@ -1898,7 +1900,7 @@
       L((s.situs || '').replace(/^https?:\/\//, '') + ' — skor ' + s.skor +
         (s.layak ? ' · layak dihubungi' : ' · sehat, dilewati'), s.layak ? 'peringatan' : 'sukses');
     } else if (s.keadaan === 'selesai') {
-      gelembung = { teks: (s.pesan || 'selesai').slice(0, 28), warna: W.hijau, sampai: now + 8000 };
+      gelembung = { teks: s.pesan || 'selesai', warna: W.hijau, sampai: now + 8000 };
       L(s.pesan || 'selesai', 'sukses');
     } else if (s.keadaan === 'mulai') {
       L('mulai memeriksa ' + (s.total || 0) + ' situs', 'kerja');
@@ -1943,8 +1945,9 @@
   function terapkanAgen(kunci, wadah, d) {
     if (!d) { wadah.aktif = false; return; }
     var basi = Date.now() / 1000 - (d.waktu || 0) > 300;
-    var aktif = !!d.aktif && !basi;
     var siaga = !!d.siaga;
+    // Siaga adalah keadaan tetap; yang boleh basi hanya klaim "sedang bekerja".
+    var aktif = !!d.aktif && (siaga || !basi);
     var tanda = aktif + '|' + siaga + '|' + (d.pesan || '');
 
     if (tanda !== wadah.lama) {
@@ -2054,19 +2057,8 @@
     gambarRuangan(t);
     gambarJendela(t);
     gambarNeon(t);
-    /* Jam & rak menempel di dinding KANAN jendela. Angkanya bukan selera:
-       kusen jendela berakhir di x=265 (JENDELA.x-3 + JENDELA.w+6), dan
-       dinding habis di x=360. Dulu jam dipasang di 262 — masuk ke dalam
-       kusen, itu yang terlihat berdempetan. Sekarang:
-         neon   4..100  (pusat 52)
-         jam  262..301
-         rak  318..352  -> kelompok kanan 262..352, pusat 307
-         Pusat 52 dan 307 sama-sama 128 satuan dari pusat panggung 180:
-         dinding kiri dan kanan kini seimbang.
-       Jam kini setinggi 13 (y 22..35), rak 16..42 — keduanya tetap
-       berpusat di sekitar y=29.
-       Kalau salah satunya diubah lebarnya, hitung ulang ketiga jarak itu. */
-    gambarJam(262, 22);
+    // Jam digeser empat satuan ke kanan atas permintaan Porscy.
+    gambarJam(266, 22);
     gambarRak(318, 26);
     gambarMesinCola(264, 60, t);
     gambarDispenser(72, 68, t);
