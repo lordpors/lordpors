@@ -1944,3 +1944,77 @@ diragukan. Diisi nanti, saat dashboard-nya benar-benar dirancang.
 /robots.txt          200
 lokal /kantor/       200
 ```
+
+---
+
+## Cadangan GitHub JALAN (12 September 2026)
+
+```
+repo    github.com/lordpors/lordpors   PRIVAT
+cabang  main
+berkas  40
+rahasia yang ikut  0
+```
+
+### Kenapa dorongan pertama gagal
+
+`Repository not found` — untuk repo **privat** GitHub sengaja menjawab
+begitu kepada yang tidak terautentikasi, supaya keberadaan repo privat
+tidak bocor. Jadi pesannya menyesatkan: masalahnya autentikasi, bukan
+repo yang hilang.
+
+Dibuktikan dengan menjangkau repo **publik** milik akun yang sama
+(`telegram-blaster-clean`) tanpa login — berhasil. Artinya nama akunnya
+benar, yang kurang kredensialnya.
+
+### Jebakan tiga akun
+
+`~/.git-credentials` ternyata berisi entri untuk **`macanterbang`** dan
+**`porslabsofficial`** — dua akun GitHub lain milik Porscy. Tidak ada
+entri `lordpors`.
+
+Akibatnya remote **wajib menyebut nama pengguna**:
+
+```
+https://lordpors@github.com/lordpors/lordpors.git     benar
+https://github.com/lordpors/lordpors.git              berisiko
+```
+
+Tanpa nama pengguna di URL, `credential-store` mencocokkan hanya pada
+host — dan bisa memilih kredensial `macanterbang` yang sudah kedaluwarsa
+untuk mendorong ke repo `lordpors`. Kalau suatu saat dorongan tiba-tiba
+gagal padahal token baru saja dibuat, periksa ini lebih dulu.
+
+### Cabang diseragamkan
+
+`git init -b utama` menghasilkan cabang `utama`; GitHub memakai `main`.
+Diubah ke `main` sebelum dorongan pertama, jadi tidak ada cabang yatim.
+
+### KEAMANAN — token ada di riwayat percakapan
+
+Porscy menempelkan PAT-nya langsung di chat supaya bisa didorong dari
+sini. Tokennya berhasil dipakai dan tersimpan di `~/.git-credentials`
+(izin 600), tapi **teksnya kini ada di riwayat percakapan**.
+
+Token `ghp_` dengan scope `repo` memberi akses baca-tulis ke SELURUH repo
+akun itu — bukan cuma repo ini. Kalau riwayat percakapan bisa terlihat
+orang lain (tangkapan layar, perangkat bersama), token itu harus dicabut
+dan diganti.
+
+Cara mengganti tanpa menempelkannya lagi ke mana pun:
+
+```bash
+# 1. Cabut yang lama di github.com -> Settings -> Developer settings
+# 2. Buat token baru, lalu di terminal BIASA (bukan lewat chat):
+sed -i '/lordpors:/d' ~/.git-credentials
+cd ~/My_Business/AI-agent && git push        # akan menanyakan token sekali
+```
+
+### Terverifikasi
+
+```
+git ls-tree origin/main        40 berkas, 0 rahasia
+API repos/lordpors/lordpors    private: True
+./cadangan.sh                  "tidak ada perubahan" (putaran sehat)
+systemd timer                  tiap jam, Result=success
+```
