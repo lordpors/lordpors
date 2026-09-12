@@ -57,6 +57,10 @@
 # INI YANG PALING PENTING DICADANGKAN. Kalau PC rusak atau nomor
 # WhatsApp diblokir, berkas inilah yang membuat progresnya tidak
 # hilang -- tinggal pasang WhatsApp baru dan lanjut.
+# CATATAN: baris ini saja TIDAK cukup. wa-anggaran-bot/.gitignore punya
+# `data/ledger.json`, dan .gitignore bersarang menang atas yang di akar.
+# Yang benar-benar memasukkannya adalah `git add -f` di cadangan.sh.
+# Jangan hapus salah satunya tanpa memeriksa yang lain.
 !wa-anggaran-bot/data/*.json
 
 # ============================================================

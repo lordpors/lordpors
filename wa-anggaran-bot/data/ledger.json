@@ -1,0 +1,130 @@
+{
+  "groupJid": "120363409054709189@g.us",
+  "nextId": 13,
+  "ownerLid": "106936196452455@lid",
+  "pending": null,
+  "lastSheetMonth": "2026-09",
+  "entries": [
+    {
+      "id": 1,
+      "ts": "2026-08-21T08:54:39.000Z",
+      "month": "2026-08",
+      "author": "6281225468821",
+      "type": "out",
+      "amount": 35,
+      "currency": "USD",
+      "note": "pembelian domain : macanterbang.id"
+    },
+    {
+      "id": 2,
+      "ts": "2026-08-22T12:34:33.000Z",
+      "month": "2026-08",
+      "author": "6281225468821",
+      "type": "out",
+      "amount": 6.55,
+      "currency": "USD",
+      "note": "suscribe heylink miaw"
+    },
+    {
+      "id": 3,
+      "ts": "2026-08-22T12:35:24.000Z",
+      "month": "2026-08",
+      "author": "6281225468821",
+      "type": "out",
+      "amount": 48.04,
+      "currency": "USD",
+      "note": "suscribe heylink miaw tahunan"
+    },
+    {
+      "id": 4,
+      "ts": "2026-08-30T13:41:33.000Z",
+      "month": "2026-08",
+      "author": "6281225468821",
+      "type": "out",
+      "amount": 12.99,
+      "currency": "USD",
+      "note": "pembelian domain : miawslot1.com"
+    },
+    {
+      "id": 5,
+      "ts": "2026-08-30T13:41:33.000Z",
+      "month": "2026-08",
+      "author": "6281225468821",
+      "type": "out",
+      "amount": 23.19,
+      "currency": "USD",
+      "note": "renewal domain : xtreme-technology.com (1 year)"
+    },
+    {
+      "id": 6,
+      "ts": "2026-09-02T13:53:04.281Z",
+      "month": "2026-09",
+      "author": "6281225468821",
+      "type": "out",
+      "amount": 39,
+      "currency": "USD",
+      "note": "Suscribe rebrandly"
+    },
+    {
+      "id": 7,
+      "ts": "2026-09-03T09:02:36.516Z",
+      "month": "2026-09",
+      "author": "6281225468821",
+      "type": "out",
+      "amount": 12.99,
+      "currency": "USD",
+      "note": "pembelian domain : miawslotjp.com"
+    },
+    {
+      "id": 8,
+      "ts": "2026-09-08T08:15:08.857Z",
+      "month": "2026-09",
+      "author": "6281225468821",
+      "type": "out",
+      "amount": 22.2,
+      "currency": "USD",
+      "note": "Suscribe claude.ai"
+    },
+    {
+      "id": 9,
+      "ts": "2026-09-08T13:15:37.490Z",
+      "month": "2026-09",
+      "author": "6281225468821",
+      "type": "out",
+      "amount": 18.68,
+      "currency": "USD",
+      "note": "renewal domain : ujofi.com (1 year)"
+    },
+    {
+      "id": 10,
+      "ts": "2026-09-09T05:30:46.888Z",
+      "month": "2026-09",
+      "author": "6281225468821",
+      "type": "out",
+      "amount": 18.68,
+      "currency": "USD",
+      "note": "renewal domain : gamezava.com (1 year)"
+    },
+    {
+      "id": 11,
+      "ts": "2026-09-09T05:35:11.414Z",
+      "month": "2026-09",
+      "author": "6281225468821",
+      "type": "out",
+      "amount": 18.68,
+      "currency": "USD",
+      "note": "renewal domain : hypevity.com (1 year)"
+    },
+    {
+      "id": 12,
+      "ts": "2026-09-12T06:12:37.066Z",
+      "month": "2026-09",
+      "author": "6281225468821",
+      "type": "out",
+      "amount": 22.2,
+      "currency": "USD",
+      "note": "Suscribe claude.ai"
+    }
+  ],
+  "lastMonthlySent": ""
+}

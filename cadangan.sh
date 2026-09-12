@@ -34,6 +34,21 @@ BERBAHAYA='(^|/)(\.env|\.kunci-|auth/|.*creds.*\.json$)'
 
 git add -A
 
+# ------------------------------------------------------------
+# LEDGER HARUS DIPAKSA MASUK.
+#
+# wa-anggaran-bot/.gitignore punya baris `data/ledger.json`, dan
+# .gitignore bersarang menang atas yang di akar. Untuk repo kode bot itu
+# benar -- data hidup memang tidak layak masuk repo kode. Untuk cadangan
+# INI justru terbalik: ledger itu satu-satunya berkas yang tidak bisa
+# dibuat ulang kalau PC rusak.
+#
+# Dipaksa SATU BERKAS, disebut namanya. Jangan pernah `git add -f` ke
+# seluruh data/ -- di situ ada webhook.txt berisi URL Apps Script yang
+# setara kredensial, dan auth/ berisi sesi WhatsApp.
+# ------------------------------------------------------------
+[ -f wa-anggaran-bot/data/ledger.json ] && git add -f wa-anggaran-bot/data/ledger.json
+
 if git diff --cached --name-only | grep -qE "$BERBAHAYA"; then
   echo "  BATAL — ada berkas rahasia yang ikut ter-stage:"
   git diff --cached --name-only | grep -E "$BERBAHAYA" | sed 's/^/    /'
