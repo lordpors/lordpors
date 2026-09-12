@@ -156,7 +156,7 @@
      menutupi separuh badan bawahnya. Itu yang membuatnya terbaca duduk
      DI DALAM kursi, bukan melayang di depannya.
      ========================================================== */
-  var AUDITOR = { x: 297, y: 100 };
+  var AUDITOR = { x: 302, y: 100 };
 
   /* ---------------- dinding bata ---------------- */
   var bataPola = null;
@@ -852,10 +852,11 @@
        dan kaki kursinya terlihat di depan muka meja — persis seperti
        melihat orang bekerja dari belakang kursinya. */
     if (lapis === 'kursi') {
-      var kx = (m.isi === 'auditor')  ? AUDITOR.x - 2
-             : (m.isi === 'monitor6') ? m.x + 21
-             : (m.isi === false)      ? m.x + 6
-             : m.x + m.w / 2 - 7;
+      /* SATU RUMUS, TANPA PENGECUALIAN. Kursi selebar 15, jadi
+         pusatnya kx+7. Disetel supaya kx+7 = pusat meja, persis.
+         Versi sebelumnya punya empat cabang berbeda dan tiga di
+         antaranya meleset 5-7 satuan dari pusat mejanya. */
+      var kx = m.x + m.w / 2 - 7;
       var duduk = (m.isi === 'auditor')   ? auditorHadir()
                 : (m === MEJA_SEMUA[1])   ? agen1.aktif
                 : (m === MEJA_SEMUA[2])   ? agen2.aktif
@@ -887,39 +888,54 @@
       } else if (m.isi === 'auditor') {
         // Layar menyala karena auditornya ADA, bukan karena irama
         // "mengetik" yang dulu berkedip sendiri. Meja kosong = layar mati.
+        /* SATU monitor, lebar 26, dipusatkan di meja. Dua monitor tidak
+           mungkin dua-duanya di tengah — dan yang diminta tengah persis. */
         var adaDia = auditorHadir();
-        gambarMonitor(m.x + 6, y - 23, 24, 18, adaDia, t, 1, true);
-        gambarMonitor(m.x + 32, y - 19, 13, 14, adaDia, t, 4, true);
+        gambarMonitor(m.x + m.w / 2 - 13, y - 23, 26, 18, adaDia, t, 1, true);
 
-      } else if (m.isi === 'meta') {
-        /* Ponsel berdiri, bukan monitor: yang dikerjakan di meja ini
-           nanti percakapan di aplikasi orang. Birunya sengaja beda dari
-           merah antena blaster supaya dua meja depan tidak tertukar. */
-        var hp = m.x + m.w / 2 - 4;
-        kotak(hp, y - 12, 8, 12, '#2a2f44');
-        kotak(hp + 1, y - 11, 6, 9, '#1b2438');
-        kotak(hp + 1, y - 11, 6, 2, '#3b82f6', .32);
-        var denyut = .16 + .22 * Math.sin(t / 1600);
-        kotak(hp + 1, y - 18, 6, 4, '#3b82f6', denyut);
-        kotak(hp + 2, y - 14, 2, 2, '#3b82f6', denyut);
+      } else if (m.isi === 'meta' || m.isi === 'blaster') {
+        /* Meja Meta & Blaster: monitor yang sama dengan meja lain, di
+           tengah persis. Dulu keduanya memakai benda sendiri — kotak
+           pengirim berantena dan ponsel berdiri. Niatnya menandai fungsi
+           meja, tapi akibatnya dua meja terlihat bukan meja kerja.
 
-      } else if (m.isi === 'blaster') {
-        /* Sengaja TANPA monitor tinggi: meja ini di barisan depan, dan
-           layar setinggi milik meja agen akan menutupi meja di belakangnya. */
-        var bx = m.x + m.w / 2 - 9;
-        kotak(bx, y - 8, 18, 8, '#2a2f44');
-        kotak(bx, y - 8, 18, 1, '#3f4760');
-        kotak(bx + 8, y - 5, 8, 1, '#1b2030');
-        kotak(bx + 2, y - 5, 4, 2, '#67e8f9', .45);
-        kotak(bx + 15, y - 16, 1, 8, W.logam);
-        kotak(bx + 14, y - 18, 3, 2, '#f87171', .2 + .3 * Math.sin(t / 1400));
+           LAYARNYA MATI, dan itu disengaja: jalurnya memang belum
+           tersambung. Layar menyala di meja yang belum bisa apa-apa
+           adalah janji yang tidak ditepati. Yang ada cuma lampu siaga
+           berkedip pelan — tanda alat terpasang tapi belum bekerja.
+
+           Warnanya yang membedakan: merah untuk Blaster, biru untuk
+           Meta, sama dengan warna di menu tugasnya. */
+        var meta = (m.isi === 'meta');
+        var mmx = m.x + m.w / 2 - 10;
+        gambarMonitor(mmx, y - 19, 20, 15, false, t, 0, true);
+
+        var siaga = .25 + .35 * Math.sin(t / (meta ? 1600 : 1400));
+        var warnaSiaga = meta ? '#3b82f6' : '#f87171';
+        kotak(mmx + 9, y - 3, 2, 1, warnaSiaga, siaga);      // lampu siaga di bingkai
+
+        // pendar tipis di layar mati — alatnya hidup, cuma belum bekerja
+        kotak(mmx + 2, y - 17, 16, 1, warnaSiaga, siaga * .28);
+
+        if (!meta) {
+          // Antena kecil di atas monitor: satu-satunya sisa penanda
+          // Blaster, dan tidak mengganggu bentuk mejanya.
+          kotak(mmx + 17, y - 25, 1, 6, W.logam);
+          kotak(mmx + 16, y - 27, 3, 2, '#f87171', siaga);
+        }
+
+        kotak(m.x + m.w / 2 - 9, y + 3, 18, 4, '#252a3c');   // papan ketik
 
       } else {
         /* Meja agen. `isi` memilih BENTUK meja, bukan siapa yang duduk —
            kehadiran datang dari agen1.json & agen2.json. */
         var agen = (m === MEJA_SEMUA[1]) ? agen1 : (m === MEJA_SEMUA[2]) ? agen2 : null;
         var nyala = !!(agen && agen.aktif);
-        var mxm = nyala ? (m.x + m.w - 24) : (m.x + m.w / 2 - 10);
+        /* Monitor SELALU di tengah meja. Dulu digeser ke kanan saat ada
+           yang duduk, supaya agennya muat di kiri — tapi sekarang agennya
+           sendiri duduk di tengah, jadi geseran itu justru memisahkan
+           orang dari layarnya. */
+        var mxm = m.x + m.w / 2 - 10;
         gambarMonitor(mxm, y - 19, 20, 15, nyala, t, m === MEJA_SEMUA[2] ? 2 : 3, true);
       }
       return;
@@ -944,19 +960,19 @@
 
     // barang DI ATAS meja — di depan orangnya
     if (m.isi === 'monitor6') {
-      kotak(m.x + 13, y + 3, 26, 5, '#2a2f44');            // papan ketik RGB
+      kotak(m.x + m.w / 2 - 13, y + 3, 26, 5, '#2a2f44');  // papan ketik RGB
       for (var i = 0; i < 7; i++)
-        kotak(m.x + 15 + i * 3.4, y + 4, 2, 3,
+        kotak(m.x + m.w / 2 - 11 + i * 3.4, y + 4, 2, 3,
               ['#f87171','#fbbf24','#4ade80','#22d3ee','#a78bfa'][i % 5], .85);
-      kotak(m.x + 42, y + 4, 4, 3, '#2a2f44');            // tetikus
+      kotak(m.x + m.w / 2 + 14, y + 4, 4, 3, '#2a2f44');   // tetikus
       gambarKopi(m.x + 3, y + 3);                         // hanya meja Porscy
     } else if (m.isi === 'auditor') {
-      kotak(m.x + 9, y + 3, 18, 4, '#2a2f44');            // papan ketik
-      kotak(m.x + 30, y + 4, 4, 3, '#2a2f44');            // tetikus
+      kotak(m.x + m.w / 2 - 10, y + 3, 20, 4, '#2a2f44');  // papan ketik, di tengah
+      kotak(m.x + m.w / 2 + 13, y + 4, 4, 3, '#2a2f44');   // tetikus
     } else if (m.isi !== 'meta' && m.isi !== 'blaster') {
       var ag = (m === MEJA_SEMUA[1]) ? agen1 : (m === MEJA_SEMUA[2]) ? agen2 : null;
       var ny = !!(ag && ag.aktif);
-      kotak((ny ? (m.x + m.w - 24) : (m.x + m.w / 2 - 10)) + 1, y + 3, 18, 4, '#252a3c');
+      kotak(m.x + m.w / 2 - 9, y + 3, 18, 4, '#252a3c');   // papan ketik, di tengah
     }
 
     if (m.nama) {
@@ -1078,7 +1094,7 @@
   function gambarAgen1(t) {
     if (!agen1.aktif) return;
     var m = MEJA_SEMUA[1];
-    var x = m.x + 8, y = m.y - 14;
+    var x = m.x + m.w / 2 - 7, y = m.y - 14;   // dipusatkan di mejanya
 
     /* Kursinya digambar UTUH dan padat, tubuh di atasnya yang tembus
        pandang. Itu yang membuat ketembusan terbaca: ada benda nyata di
@@ -1168,7 +1184,7 @@
   function gambarAgen2(t) {
     if (!agen2.aktif) return;
     var m = MEJA_SEMUA[2];
-    var x = m.x + 8, y = m.y - 14;
+    var x = m.x + m.w / 2 - 7, y = m.y - 14;   // dipusatkan di mejanya
 
 
     // Denyut sengaja lebih lambat dari Agen 1 (620) supaya kalau kami
