@@ -2018,3 +2018,99 @@ API repos/lordpors/lordpors    private: True
 ./cadangan.sh                  "tidak ada perubahan" (putaran sehat)
 systemd timer                  tiap jam, Result=success
 ```
+
+---
+
+## Bot anggaran PINDAH KE PC — jantungnya sudah di sini (12 Sep 2026)
+
+```
+data/    3 berkas   ledger.json 3101 byte, 12 entri, nextId 13
+auth/   55 berkas   sesi WhatsApp ikut pindah — tidak perlu pindai ulang
+bot      tersambung sebagai 855768640910:22@s.whatsapp.net
+```
+
+### Cara memindahkannya
+
+Termux itu app-private; `adb` tidak bisa membacanya (`Permission denied`),
+dan menyuruh Termux menyalin lewat intent juga ditolak
+(`Requires permission com.termux.permission.RUN_COMMAND`).
+
+Jadi caranya: `kantor/pindah-ledger.sh` dikirim ke HP lewat `adb push`,
+Porscy mengetik satu baris untuk menjalankannya, skripnya menyalin ke
+`/sdcard/Download/wa-pindah`, lalu ditarik `adb pull`.
+
+Skripnya **menyalin, bukan memindahkan** — yang di HP sengaja dibiarkan
+utuh sampai yang di PC terbukti jalan.
+
+Langkah pertamanya menghentikan bot lebih dulu. Baileys menulis `auth/`
+terus-menerus; menyalin sambil ditulis bisa menghasilkan sesi separuh
+jadi, dan sesi rusak berarti harus pindai QR ulang.
+
+### LEDGER HAMPIR TIDAK IKUT TERCADANGKAN
+
+Ketahuan saat memeriksa sesudah menarik: `wa-anggaran-bot/.gitignore`
+punya baris `data/ledger.json`, dan **.gitignore bersarang menang atas
+yang di akar**. Jadi berkas yang paling ingin diselamatkan justru satu-
+satunya yang dikecualikan.
+
+Untuk repo kode bot itu benar — data hidup memang tidak layak masuk repo
+kode. Untuk cadangan ini terbalik.
+
+Perbaikannya di `cadangan.sh`: `git add -f` pada **satu berkas, disebut
+namanya**.
+
+```bash
+[ -f wa-anggaran-bot/data/ledger.json ] && git add -f wa-anggaran-bot/data/ledger.json
+```
+
+**Jangan pernah `git add -f` ke seluruh `data/`.** Di situ ada
+`webhook.txt` berisi URL Google Apps Script — siapa pun yang memegangnya
+bisa menulis ke Sheets Porscy. Itu tetap dikecualikan, dan `auth/` juga.
+
+Terverifikasi di GitHub: ledger ada (12 entri), `webhook.txt` nol,
+`auth/` nol.
+
+`webhook.txt` tidak tercadangkan **dengan sengaja**. Kalau PC rusak, URL
+itu harus disalin ulang dari tempat lain atau Apps Script-nya dideploy
+ulang. Simpan URL-nya di pengelola kata sandi, bukan di repo.
+
+### Galat dekripsi saat pertama menyala — normal
+
+6 baris `Failed to decrypt message` / `MessageCounterError` muncul di
+awal. Itu pesan lama yang kunci ratchet-nya sudah terpakai instance di
+HP. Tidak merusak apa pun; pesan baru terdekripsi normal.
+
+### Kehadiran auditor sekarang datang DARI DALAM bot
+
+```
+{"online": true, "pesan": "WhatsApp tersambung"}
+```
+
+Ditulis bot itu sendiri saat `connection === "open"`, bukan lagi tebakan
+skrip detak di HP yang cuma tahu "prosesnya hidup". Ini menjawab
+pertanyaan Porscy soal akurasi: bot yang sambungannya putus tidak lagi
+terlihat duduk bekerja.
+
+### Layanan yang kini menetap
+
+```
+wa-anggaran-bot.service     bot, Restart=on-failure
+penerima-auditor.service    penerima kabar & QR
+cadangan-kantor.timer       cadangan GitHub tiap jam
+```
+
+Ketiganya `systemctl --user`. **Belum tahan logout** — `Linger=no`.
+Supaya hidup terus walau Porscy logout dari PC:
+
+```bash
+sudo loginctl enable-linger porscy
+```
+
+### Yang sekarang tidak dipakai lagi
+
+`kantor/detak-auditor.sh`, `kantor/penjaga2.py`, dan `adb reverse`.
+Berkasnya tidak dihapus — kalau suatu saat ada yang perlu mengabari
+kantor dari HP lagi, jalurnya masih utuh.
+
+**JANGAN menyalakan bot di HP lagi.** Dua Baileys pada satu sesi akan
+saling membalas pesan yang sama.
