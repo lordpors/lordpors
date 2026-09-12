@@ -2118,3 +2118,67 @@ kantor dari HP lagi, jalurnya masih utuh.
 
 **JANGAN menyalakan bot di HP lagi.** Dua Baileys pada satu sesi akan
 saling membalas pesan yang sama.
+
+---
+
+## Meja Agen 3 (12 September 2026)
+
+```
+{ x: 228, y: 138, w: 40, nama: "Porscy's Agent 3", isi: false, agen: 3 }
+```
+
+Melanjutkan barisan tengah dengan jarak yang sama: 116..156, 172..212,
+228..268. Diperiksa bersih terhadap lampu meja, meja auditor, meja Meta,
+permadani, dan LordPors.
+
+### Rujukan indeks dihapus — ini yang penting
+
+Sebelumnya kepemilikan meja dicari dengan `m === MEJA_SEMUA[1]` dan
+`[2]`, tersebar di **tujuh tempat**. Meja Agen 3 disisipkan di tengah
+array, dan rujukan indeks seperti itu akan salah **diam-diam** — tidak
+ada galat, cuma agen yang duduk di meja yang keliru.
+
+Sekarang tiap meja agen membawa penandanya sendiri (`agen: N`), dan
+keadaannya dicari lewat `AGEN[n]`. Menambah Agen 4 berarti:
+
+1. satu baris di `MEJA_SEMUA` dengan `agen: 4`
+2. satu `var agen4` + masukkan ke array `AGEN`
+3. `gambarAgen4()` mengikuti pola `gambarAgen3()`
+4. panggil di `bingkai()`
+5. salin `agen3.py` jadi `agen4.py`, ubah `NOMOR`
+6. dua baris di `TUGAS` (server.py) + satu blok di `DAFTAR` (tugas.js)
+
+Tidak ada lagi indeks yang perlu dihitung ulang.
+
+### Rupa Agen 3
+
+| | Agen 1 | Agen 2 | Agen 3 |
+|---|---|---|---|
+| warna | amber | ungu | **mawar** |
+| tanda | pita mendatar | celah tegak | **cincin** |
+| denyut | 620 | 840 | **1080** |
+| tembus | .84 | .72 | **.78** |
+
+Mawar dipilih karena satu-satunya keluarga warna yang belum dipakai
+siapa pun — amber, ungu, cyan, biru, dan merah sudah terpakai. Dua
+penghuni berwarna mirip akan tertukar sekali lihat, apalagi di ponsel.
+
+Cincin dipilih karena **arah garis sudah habis**: mendatar dan tegak
+sudah dipakai. Yang tersisa bentuk tertutup. Digambar sebagai empat sisi
+kotak berlubang, bukan `ctx.arc` — pada kepala selebar 8 satuan,
+lingkaran sungguhan mendarat jadi gumpalan tak berbentuk.
+
+Tiga denyut berbeda supaya kalau bertiga duduk bersamaan, ruangan terasa
+berisi tiga makhluk, bukan satu mesin bercabang tiga.
+
+Balonnya naik satu tingkat untuk tiap agen yang sudah bicara di
+sebelahnya, jadi tiga balon tidak saling menutupi.
+
+### Terverifikasi
+
+```
+agen3.py mulai/selesai            -> agen3.json berubah
+POST /api/tugas agen3-mulai       -> 200 "Agent 3: BEKERJA"
+POST /api/tugas agen3-selesai     -> 200 "Agent 3: meninggalkan meja"
+papan nama                        -> "Porscy's Agent 3" / "Agent 3" di ponsel
+```

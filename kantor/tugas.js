@@ -37,6 +37,11 @@
         catatan: 'Karakternya duduk di meja dan tugasnya muncul di atas kepalanya.' },
       { tugas: 'agen2-selesai', judul: 'Tandai selesai' }
     ],
+    agen3: [
+      { tugas: 'agen3-mulai',   judul: 'Tandai mulai bekerja', teks: true,
+        catatan: 'Karakternya duduk di meja dan tugasnya muncul di atas kepalanya.' },
+      { tugas: 'agen3-selesai', judul: 'Tandai selesai' }
+    ],
     // Kursi auditor KOSONG — dia sedang keluar.
     auditor: [
       { tugas: 'auditor-login', judul: 'Login — pindai QR', qr: true,
