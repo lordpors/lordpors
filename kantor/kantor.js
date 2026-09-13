@@ -1005,35 +1005,6 @@
                 : false;
 
       gambarKursi(kx, m.y + 8, !duduk);
-
-      /* Tombolnya didaftarkan TERISI MAUPUN KOSONG.
-         Dulu cuma saat kosong, dan itu mengunci sendiri: begitu ada yang
-         duduk, kursinya tidak bisa diklik lagi — padahal justru di situ
-         "Tandai selesai" dibutuhkan. Satu-satunya jalan keluar adalah
-         lewat terminal, dan menu yang menawarkan perintah yang tak
-         terjangkau lebih buruk daripada tidak ada menunya.
-
-         Menunya sendiri sudah memuat ketiga keadaan (mulai / siaga /
-         selesai), jadi satu id cukup untuk kedua keadaan kursi.
-
-         DUA PENGECUALIAN:
-           monitor6 - dinding monitor, memang tidak berpenghuni
-           auditor duduk - sosoknya sudah punya tombol sendiri
-                           ('auditor-hadir') dengan menu yang berbeda;
-                           dua tombol bertumpuk di satu titik akan
-                           saling menutupi. */
-      var punyaTombolSendiri = (m.isi === 'auditor' && duduk);
-      if (m.isi !== 'monitor6' && !punyaTombolSendiri) {
-        var id = (m.isi === 'auditor') ? 'auditor'
-               : (m.isi === 'blaster') ? 'blaster'
-               : (m.isi === 'meta')    ? 'meta'
-               : 'agen' + m.agen;
-        var nm = (m.isi === 'auditor') ? 'Auditor'
-               : (m.isi === 'blaster') ? 'Blaster'
-               : (m.isi === 'meta')    ? 'Meta'
-               : 'Agent ' + m.agen;
-        daftarTombol(id, nm, kx + 7, m.y + 1);
-      }
       return;
     }
 
@@ -1298,6 +1269,9 @@
     var x = m.x + m.w / 2 - 5, y = m.y - 16;
 
     gambarPenghuni(x, y, RUPA_ORANG[kunci]);
+
+    if (kunci === 'blaster')
+      daftarTombol('blaster-status', x + 5, y + 10);
 
     if (!keadaan.siaga) {
       gambarBalon(keadaan.pesan || 'bekerja',
@@ -1700,36 +1674,23 @@
     ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
   }
 
-  /* ---------------- status bot auditor ----------------
-     Label kecil di atas kepala wanita auditor saat bot anggaran SEO
-     terhubung.
+  /* ---------------- status online penghuni ----------------
+     Label kecil di atas kepala penghuni yang terhubung.
 
      Sengaja TIDAK memakai gambarBalon(). Balon itu untuk kabar pekerjaan
      yang datang dan pergi; ini penanda yang menetap selama sambungannya
      hidup. Penanda yang menetap harus kecil dan tidak merebut perhatian
      dari adegan — jadi ukurannya disamakan dengan papan nama meja, bukan
      dengan balon. */
-  function tinggiStatus() {
-    return auditor.online ? pxLayar(7, 9) * 1.5 + 5 : 0;
-  }
-
-  function gambarStatusAuditor(t) {
-    if (!auditor.online) return;
-    /* Dipusatkan pada BADANNYA (AUDITOR.x + 5), bukan +7 seperti dulu —
-       badannya x+1..x+9, jadi pusatnya x+5. Selisih 2 satuan itu cukup
-       terlihat sebagai label yang miring ke kanan.
-
-       Ukurannya juga dikecilkan (7-9px, dulu 8-10) dan tepi bawahnya
-       dipatok tepat di atas kepalanya, supaya di ponsel tidak menabrak
-       papan nama meja yang kini ada di atas monitornya. */
+  function gambarStatusOnline(pusatX, atasY, t) {
     var fs = pxLayar(7, 9);
     ctx.font = '700 ' + fs.toFixed(1) + 'px "Poppins",ui-monospace,monospace';
     var teks = 'online';
     var lt = ctx.measureText(teks).width;
     var ph = fs * 1.5, pw = lt + fs * 2.5;
-    var px = (AUDITOR.x + 5) * P;
+    var px = pusatX * P;
     var gx = Math.max(4, Math.min(LEBAR * P - pw - 4, px - pw / 2));
-    var gy = (AUDITOR.y + 1) * P - ph;
+    var gy = atasY * P - ph;
 
     ctx.fillStyle = 'rgba(8,7,20,.94)';
     ctx.strokeStyle = 'rgba(52,211,153,.55)';
@@ -1748,6 +1709,19 @@
     ctx.fillStyle = '#a7f3d0';
     ctx.fillText(teks, gx + fs * 1.5, gy + ph / 2 + fs * .04);
     ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+  }
+
+  function gambarSemuaStatusOnline(t) {
+    for (var n = 1; n < AGEN.length; n++) {
+      var m = mejaAgen(n);
+      if (AGEN[n].aktif && m) gambarStatusOnline(m.x + m.w / 2, m.y - 15, t);
+    }
+    for (var i = 0; i < MEJA_SEMUA.length; i++) {
+      var meja = MEJA_SEMUA[i];
+      if (meja.isi === 'blaster' && blaster.aktif)
+        gambarStatusOnline(meja.x + meja.w / 2, meja.y - 15, t);
+    }
+    if (auditor.online) gambarStatusOnline(AUDITOR.x + 5, AUDITOR.y + 1, t);
   }
 
   /* ---------------- gelembung auditor ---------------- */
@@ -1788,10 +1762,7 @@
      tombol terasa tidak menghasilkan apa-apa. */
   function auditorHadir() { return auditor.online || modeNyata; }
 
-  /* Tombol + di kursi kosong. Diisi ulang tiap bingkai oleh yang
-     menggambar kursinya, supaya letak tombol dan letak kursi mustahil
-     berbeda — kalau didaftarkan terpisah, keduanya pasti akan melenceng
-     suatu saat. Satuannya SENI (belum dikali P). */
+  /* Hanya titik sentuh sosok Blaster; tidak ada tombol + atau menu tugas. */
   var TOMBOL = [];
 
   /* jenis 'tambah' -> lingkaran + tergambar di kursi kosong.
@@ -1804,36 +1775,8 @@
     return null;
   }
 
-  function daftarTombol(id, nama, x, y, jenis) {
-    TOMBOL.push({ id: id, nama: nama, x: x, y: y, jenis: jenis || 'tambah' });
-  }
-
-  function gambarTombolTambah(x, y, t) {
-    /* Radius 5,2 dulu menabrak papan nama di atasnya — lingkarannya
-       memanjat sampai ke tengah papan. Dikecilkan ke 3,4, dan papan
-       namanya sekaligus dinaikkan. Radius SENTUH (11) tidak ikut
-       dikecilkan: yang perlu kecil gambarnya, bukan sasarannya. */
-    var r = 3.4, cx = x * P, cy = y * P, rp = r * P;
-    var nadi = .5 + .5 * Math.sin(t / 780);
-
-    var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rp * 2.6);
-    g.addColorStop(0, 'rgba(103,232,249,' + (.16 + .10 * nadi) + ')');
-    g.addColorStop(1, 'rgba(103,232,249,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(cx - rp * 2.6, cy - rp * 2.6, rp * 5.2, rp * 5.2);
-
-    ctx.beginPath(); ctx.arc(cx, cy, rp, 0, 6.2832);
-    ctx.fillStyle = 'rgba(8,12,26,.92)'; ctx.fill();
-    ctx.strokeStyle = 'rgba(103,232,249,' + (.55 + .3 * nadi) + ')';
-    ctx.lineWidth = Math.max(1.2, rp * .16); ctx.stroke();
-
-    ctx.strokeStyle = '#a5f3fc'; ctx.lineWidth = Math.max(1.4, rp * .2);
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(cx - rp * .45, cy); ctx.lineTo(cx + rp * .45, cy);
-    ctx.moveTo(cx, cy - rp * .45); ctx.lineTo(cx, cy + rp * .45);
-    ctx.stroke();
-    ctx.lineCap = 'butt';
+  function daftarTombol(id, x, y) {
+    TOMBOL.push({ id: id, x: x, y: y });
   }
   /* `siaga` = duduk tapi tidak mengerjakan apa pun. Porscy minta agennya
      selalu ada di kantor; tanpa keadaan kedua ini, "duduk" berhenti
@@ -1850,11 +1793,39 @@
   var AGEN = [null, agen1, agen2, agen3];
   window.KANTOR = {
     log: function () {},
-    modeNyata: function () { return modeNyata; },
-    // Diisi tugas.js. Kalau berkas itu tidak ada, tombol + tetap
-    // tergambar tapi tidak melakukan apa-apa — bukan galat.
-    bukaMenu: null
+    modeNyata: function () { return modeNyata; }
   };
+
+  var infoBlaster = { teks: '', sampai: 0 };
+
+  function bukaStatusBlaster() {
+    infoBlaster = { teks: 'Memuat status akun…', sampai: performance.now() + 15000 };
+    fetch('https://kantor-lordpors.vercel.app/api/blaster-status?t=' + Date.now(), {
+      cache: 'no-store'
+    })
+      .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+      .then(function (d) {
+        infoBlaster = {
+          teks: 'Aktif ' + d.active + ' · Flood ' + d.flood + ' · Total ' + d.total,
+          sampai: performance.now() + 20000
+        };
+      })
+      .catch(function () {
+        infoBlaster = { teks: 'Status akun gagal dimuat', sampai: performance.now() + 8000 };
+      });
+  }
+
+  function gambarInfoBlaster(t) {
+    if (!blaster.aktif || !infoBlaster.teks || t > infoBlaster.sampai) return;
+    for (var i = 0; i < MEJA_SEMUA.length; i++) {
+      var m = MEJA_SEMUA[i];
+      if (m.isi === 'blaster') {
+        gambarBalon(infoBlaster.teks, (m.x + m.w / 2) * P, atasPapanNama(m),
+                    '#f87171', '#eef1f8', blaster.siaga ? 0 : 1);
+        return;
+      }
+    }
+  }
 
   /* Titik klik -> tombol mana. Hitungannya dari getBoundingClientRect()
      supaya benar berapa pun kanvasnya diperkecil CSS.
@@ -1878,7 +1849,7 @@
 
   kanvas.addEventListener('click', function (e) {
     var b = tombolDi(e.clientX, e.clientY);
-    if (b && window.KANTOR.bukaMenu) window.KANTOR.bukaMenu(b.id, b.nama);
+    if (b && b.id === 'blaster-status') bukaStatusBlaster();
   });
   kanvas.addEventListener('mousemove', function (e) {
     kanvas.style.cursor = tombolDi(e.clientX, e.clientY) ? 'pointer' : 'default';
@@ -2084,18 +2055,15 @@
     gambarStasiun('meta', meta, t);
     if (auditorHadir()) {
       gambarAuditor(t);
-      daftarTombol('auditor-hadir', 'Auditor', AUDITOR.x + 5, AUDITOR.y + 7, 'sosok');
     }
 
     for (var k = 0; k < MEJA_SEMUA.length; k++)
       gambarSatuMeja(MEJA_SEMUA[k], t, ketik, 'kursi');      // kursi paling depan
 
     gambarTanaman(340, 168, false);
-    for (var b = 0; b < TOMBOL.length; b++)
-      if (TOMBOL[b].jenis === 'tambah')
-        gambarTombolTambah(TOMBOL[b].x, TOMBOL[b].y, t);
-    gambarStatusAuditor(t);
+    gambarSemuaStatusOnline(t);
     gambarGelembung(t);
+    gambarInfoBlaster(t);
     siramBalon();          // paling akhir: balon di atas segalanya
     perbaruiPanel();
     requestAnimationFrame(bingkai);
