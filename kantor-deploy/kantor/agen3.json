@@ -1,1 +1,1 @@
-{"aktif": false, "pesan": "", "waktu": 0}
+{"aktif": true, "siaga": true, "pesan": "menunggu perintah", "waktu": 0}
