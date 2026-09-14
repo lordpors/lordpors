@@ -1,6 +1,6 @@
 {
   "groupJid": "120363409054709189@g.us",
-  "nextId": 13,
+  "nextId": 14,
   "ownerLid": "106936196452455@lid",
   "pending": null,
   "lastSheetMonth": "2026-09",
@@ -122,6 +122,16 @@
       "author": "6281225468821",
       "type": "out",
       "amount": 22.2,
+      "currency": "USD",
+      "note": "Suscribe claude.ai"
+    },
+    {
+      "id": 13,
+      "ts": "2026-09-14T07:17:52.886Z",
+      "month": "2026-09",
+      "author": "6281225468821",
+      "type": "out",
+      "amount": 10,
       "currency": "USD",
       "note": "Suscribe claude.ai"
     }
