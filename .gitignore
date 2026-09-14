@@ -39,6 +39,9 @@
 # ---------- kantor versi Vercel ----------
 !kantor-deploy/*.html
 !kantor-deploy/*.json
+!kantor-deploy/.gitignore
+!kantor-deploy/.vercelignore
+!kantor-deploy/yarn.lock
 !kantor-deploy/kantor/*
 !kantor-deploy/api/*.js
 !kantor-deploy/robots.txt
