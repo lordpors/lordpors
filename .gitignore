@@ -51,6 +51,9 @@
 # ---------- onboarding Meta (kode saja; status/OTP/kredensial tidak ikut) ----------
 !meta/*.py
 
+# ---------- Telegram Blaster (kode saja) ----------
+!telegram-blaster/**
+
 # ---------- bot anggaran ----------
 !wa-anggaran-bot/src/*
 !wa-anggaran-bot/scripts/*
@@ -90,17 +93,17 @@ unggahan/
 lampiran*/
 
 # ------------------------------------------------------------
-#  Sub-proyek yang PUNYA repo sendiri.
+#  Sub-proyek lain yang PUNYA repo sendiri.
 #
 #  porsblast dan kawan-kawan sudah ada di GitHub masing-masing
 #  (lihat remote di ~/projects/). Mencadangkannya lagi di sini
 #  cuma menggandakan, dan .gitignore bersarang miliknya sempat
 #  menarik masuk berkas yang tidak diminta.
 #
-#  Cadangan ini fokus: kantor, audit, bot anggaran, catatan kerja.
+#  Cadangan ini fokus: kantor, Teleblast, audit, bot anggaran,
+#  dan catatan kerja.
 # ------------------------------------------------------------
 /porsblast/
 /porsblast-next/
 /porsblast-scraper/
-/telegram-blaster/
 /lihat-contoh.jpg

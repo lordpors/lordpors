@@ -30,7 +30,7 @@ fi
 # dan riwayat git tidak melupakan. Jadi diperiksa lagi di sini,
 # tepat sebelum mengirim.
 # ------------------------------------------------------------
-BERBAHAYA='(^|/)(\.env|\.kunci-|auth/|.*creds.*\.json$)'
+BERBAHAYA='(^|/)(\.env|\.kunci-|auth/|\.backups/|\.experiment-data/|\.venv/|.*creds.*\.json$|.*\.db(-shm|-wal)?$|.*\.session(-journal)?$)'
 
 git add -A
 

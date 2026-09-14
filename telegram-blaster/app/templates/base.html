@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#030014">
+  <meta name="robots" content="noindex,nofollow">
+  <title>{% block title %}Telegram Blaster — PorsLabs{% endblock %}</title>
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dzct9jxie/image/upload/v1784961445/porslabs-icon_b5wko8.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://res.cloudinary.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/porslabs-app.css">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+{% set path = request.url.path %}
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/dashboard" aria-label="PorsLabs Telegram Blaster">
+      <img class="brand-logo" src="https://res.cloudinary.com/dzct9jxie/image/upload/v1784961209/porslabs_ru1ypk.png" alt="PorsLabs">
+      <span class="product-pill">Telegram Blaster</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Navigasi utama">
+      <a class="nav-link {% if path == '/dashboard' %}active{% endif %}" href="/dashboard">Beranda</a>
+      <a class="nav-link {% if path.startswith('/inbox') %}active{% endif %}" href="/inbox">Inbox <span class="unread-dot" data-inbox-count hidden></span></a>
+      <a class="nav-link {% if path == '/blast' %}active{% endif %}" href="/blast">Blast</a>
+      <a class="nav-link {% if path.startswith('/scraper') or path.startswith('/api/scraper') %}active{% endif %}" href="/scraper">Scraper</a>
+      <a class="nav-link {% if path.startswith('/special') %}active{% endif %}" href="/special">Fitur Spesial</a>
+      <a class="nav-link {% if path.startswith('/connect-telegram') or path in ['/verify-otp', '/verify-2fa', '/resend-otp'] %}active{% endif %}" href="/connect-telegram">Akun</a>
+      <a class="nav-link {% if path.startswith('/security') %}active{% endif %}" href="/security/sessions">Keamanan</a>
+    </nav>
+
+    <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Buka menu" aria-controls="mobile-drawer" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<aside class="mobile-drawer" id="mobile-drawer">
+  <nav class="mobile-nav" aria-label="Navigasi seluler">
+    <a class="nav-link {% if path == '/dashboard' %}active{% endif %}" href="/dashboard">Beranda</a>
+    <a class="nav-link {% if path.startswith('/inbox') %}active{% endif %}" href="/inbox">Inbox <span class="unread-dot" data-inbox-count hidden></span></a>
+    <a class="nav-link {% if path == '/blast' %}active{% endif %}" href="/blast">Blast</a>
+    <a class="nav-link {% if path.startswith('/scraper') %}active{% endif %}" href="/scraper">Scraper</a>
+    <a class="nav-link {% if path.startswith('/special') %}active{% endif %}" href="/special">Fitur Spesial</a>
+    <a class="nav-link {% if path.startswith('/connect-telegram') %}active{% endif %}" href="/connect-telegram">Akun</a>
+    <a class="nav-link {% if path.startswith('/security') %}active{% endif %}" href="/security/sessions">Keamanan</a>
+  </nav>
+</aside>
+
+<main class="main">{% block content %}{% endblock %}</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <p class="footer-brand">© <span id="copyright-year"></span> Telegram Blaster. Dibuat dan dikembangkan oleh <a href="https://porslabs.com" target="_blank" rel="noopener noreferrer">PorsLabs.com</a>.</p>
+    <span class="footer-status">Sistem aktif</span>
+  </div>
+</footer>
+
+<script src="/static/js/porslabs-app.js" defer></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>
