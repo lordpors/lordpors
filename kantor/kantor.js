@@ -1254,6 +1254,7 @@
 
   function gambarAuditor(t) {
     gambarPenghuni(AUDITOR.x, AUDITOR.y, RUPA_ORANG.auditor);
+    daftarTombol('auditor-sheet', AUDITOR.x + 5, AUDITOR.y + 10);
   }
 
   /* Blaster & Nawala duduk dengan pola letak yang sama dengan auditor:
@@ -1573,8 +1574,8 @@
   var ANTRE_BALON = [];
   var MULAI_GULIR = Object.create(null);
 
-  function gambarBalon(teks, pusatX, bawahY, warnaTepi, warnaTeks, tingkat, lebarMaks, laju) {
-    ANTRE_BALON.push([teks, pusatX, bawahY, warnaTepi, warnaTeks, tingkat, lebarMaks, laju]);
+  function gambarBalon(teks, pusatX, bawahY, warnaTepi, warnaTeks, tingkat, lebarMaks, laju, tautan) {
+    ANTRE_BALON.push([teks, pusatX, bawahY, warnaTepi, warnaTeks, tingkat, lebarMaks, laju, tautan]);
   }
 
   function siramBalon() {
@@ -1586,7 +1587,7 @@
   /* pusatX/bawahY dalam satuan gambar (sudah dikali P).
      tingkat 0 = balon menempel di atas kepala; 1 = ditumpuk satu tingkat
      lebih tinggi, dipakai kalau dua agen bicara bersamaan. */
-  function lukisBalon(teks, pusatX, bawahY, warnaTepi, warnaTeks, tingkat, lebarMaks, laju) {
+  function lukisBalon(teks, pusatX, bawahY, warnaTepi, warnaTeks, tingkat, lebarMaks, laju, tautan) {
     /* Tetap ringkas: 8-11px dan maksimal 55% panggung. Teks pendek diam;
        teks panjang digulir di dalam lebar itu agar tak ada yang dipotong. */
     teks = String(teks || '');
@@ -1608,6 +1609,8 @@
     ctx.lineWidth = Math.max(1.5, fs * .1);
     ctx.beginPath(); ctx.roundRect(gx, gy, gw, gh, gh * .3);
     ctx.fill(); ctx.stroke();
+    if (tautan)
+      TOMBOL.push({ id: tautan, x: gx / P, y: gy / P, w: gw / P, h: gh / P });
 
     /* Ekor kecil menunjuk ke bawah. Dengan tiga penghuni di ruangan,
        penonton harus tahu balon ini milik siapa tanpa menebak.
@@ -1799,6 +1802,8 @@
 
   var infoBlaster = { teks: '', sampai: 0 };
   var infoNawalaTerbuka = false;
+  var infoAuditorTerbuka = false;
+  var SHEET_COST_URL = 'https://docs.google.com/spreadsheets/d/1HVtpuXBVkBFMIF-ydRRTTlhasRk1Dg7V23uKBiXY4Sg/edit#gid=0';
 
   function bukaStatusBlaster() {
     infoBlaster = { teks: 'Memuat status akun…', sampai: performance.now() + 15000 };
@@ -1849,6 +1854,14 @@
     }
   }
 
+  function gambarInfoAuditor(t) {
+    if (!auditorHadir() || !infoAuditorTerbuka) return;
+    var ditumpuk = gelembung && t <= gelembung.sampai ? 1 : 0;
+    gambarBalon('Buka Sheet Cost SEO ↗', (AUDITOR.x + 5) * P,
+                atasPapanNama(MEJA_AUDITOR), '#67e8f9', '#eef1f8',
+                ditumpuk, null, null, 'auditor-sheet-link');
+  }
+
   /* Titik klik -> tombol mana. Hitungannya dari getBoundingClientRect()
      supaya benar berapa pun kanvasnya diperkecil CSS.
 
@@ -1863,6 +1876,8 @@
     var dekat = null, jarak = 11;
     for (var i = 0; i < TOMBOL.length; i++) {
       var b = TOMBOL[i];
+      if (b.w && x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h)
+        return b;
       var d = Math.sqrt((b.x - x) * (b.x - x) + (b.y - y) * (b.y - y));
       if (d < jarak) { jarak = d; dekat = b; }
     }
@@ -1873,6 +1888,9 @@
     var b = tombolDi(e.clientX, e.clientY);
     if (b && b.id === 'blaster-status') bukaStatusBlaster();
     if (b && b.id === 'nawala-status') infoNawalaTerbuka = !infoNawalaTerbuka;
+    if (b && b.id === 'auditor-sheet') infoAuditorTerbuka = !infoAuditorTerbuka;
+    if (b && b.id === 'auditor-sheet-link')
+      window.open(SHEET_COST_URL, '_blank', 'noopener,noreferrer');
   });
   kanvas.addEventListener('mousemove', function (e) {
     kanvas.style.cursor = tombolDi(e.clientX, e.clientY) ? 'pointer' : 'default';
@@ -2099,6 +2117,7 @@
     gambarGelembung(t);
     gambarInfoBlaster(t);
     gambarInfoNawala(t);
+    gambarInfoAuditor(t);
     siramBalon();          // paling akhir: balon di atas segalanya
     perbaruiPanel();
     requestAnimationFrame(bingkai);
