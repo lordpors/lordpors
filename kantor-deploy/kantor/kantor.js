@@ -1573,8 +1573,8 @@
   var ANTRE_BALON = [];
   var MULAI_GULIR = Object.create(null);
 
-  function gambarBalon(teks, pusatX, bawahY, warnaTepi, warnaTeks, tingkat) {
-    ANTRE_BALON.push([teks, pusatX, bawahY, warnaTepi, warnaTeks, tingkat]);
+  function gambarBalon(teks, pusatX, bawahY, warnaTepi, warnaTeks, tingkat, lebarMaks, laju) {
+    ANTRE_BALON.push([teks, pusatX, bawahY, warnaTepi, warnaTeks, tingkat, lebarMaks, laju]);
   }
 
   function siramBalon() {
@@ -1586,22 +1586,18 @@
   /* pusatX/bawahY dalam satuan gambar (sudah dikali P).
      tingkat 0 = balon menempel di atas kepala; 1 = ditumpuk satu tingkat
      lebih tinggi, dipakai kalau dua agen bicara bersamaan. */
-  function lukisBalon(teks, pusatX, bawahY, warnaTepi, warnaTeks, tingkat) {
+  function lukisBalon(teks, pusatX, bawahY, warnaTepi, warnaTeks, tingkat, lebarMaks, laju) {
     /* Tetap ringkas: 8-11px dan maksimal 55% panggung. Teks pendek diam;
        teks panjang digulir di dalam lebar itu agar tak ada yang dipotong. */
     teks = String(teks || '');
-    var baris = teks.split('\n');
     var fs = pxLayar(8, 11);
-    var maxW = LEBAR * P * .55;
+    var maxW = LEBAR * P * (lebarMaks || .55);
     ctx.font = '600 ' + fs.toFixed(1) + 'px "Poppins",ui-monospace,monospace';
-    var lt = 0;
-    for (var b = 0; b < baris.length; b++)
-      lt = Math.max(lt, ctx.measureText(baris[b]).width);
+    var lt = ctx.measureText(teks).width;
     var pad = fs * .85;
     var gw = Math.min(maxW, lt + pad * 2 + fs * 1.05);
 
-    var tinggiBaris = fs * 1.35;
-    var gh = baris.length > 1 ? tinggiBaris * baris.length + fs * .8 : fs * 2.1;
+    var gh = fs * 2.1;
     var naik = (tingkat || 0) * (gh + fs * .5);
     var gx = Math.max(6, Math.min(LEBAR * P - gw - 6, pusatX - gw / 2));
     var gy = Math.max(6, bawahY - gh - naik);
@@ -1645,15 +1641,14 @@
     }
 
     ctx.fillStyle = warnaTepi;
-    var teksY = baris.length > 1 ? gy + fs * .4 + tinggiBaris / 2 : gy + gh / 2;
     ctx.beginPath();
-    ctx.arc(gx + pad + fs * .28, teksY, fs * .26, 0, 6.2832);
+    ctx.arc(gx + pad + fs * .28, gy + gh / 2, fs * .26, 0, 6.2832);
     ctx.fill();
 
     var tx = gx + pad + fs * .92;
     var ruang = gw - (tx - gx) - pad;
     var geser = 0;
-    if (baris.length === 1 && lt > ruang) {
+    if (lt > ruang) {
       var kini = performance.now();
       var rekam = MULAI_GULIR[teks];
       if (!rekam || kini - rekam.terlihat > 250)
@@ -1661,7 +1656,7 @@
       rekam.terlihat = kini;
       var jarak = lt - ruang;
       var jeda = 1100;
-      var durasi = jarak / (fs * 2.8) * 1000;
+      var durasi = jarak / (fs * (laju || 2.8)) * 1000;
       var langkah = (kini - rekam.mulai) % (jeda * 2 + durasi);
       if (langkah > jeda)
         geser = langkah < jeda + durasi
@@ -1674,8 +1669,7 @@
     ctx.beginPath(); ctx.rect(tx, gy, ruang, gh); ctx.clip();
     ctx.textAlign = 'start'; ctx.textBaseline = 'middle';
     ctx.fillStyle = warnaTeks || '#eef1f8';
-    for (var j = 0; j < baris.length; j++)
-      ctx.fillText(baris[j], tx - geser, teksY + j * tinggiBaris + fs * .03);
+    ctx.fillText(teks, tx - geser, gy + gh / 2 + fs * .03);
     ctx.restore();
     ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
   }
@@ -1847,10 +1841,10 @@
         var hasil = s.blocked ? 'NAWALA' : s.http === 'down' ? 'DOWN'
                   : tidakTerukur ? 'TIDAK TERUKUR' : 'AMAN';
         return s.domain + ': ' + hasil;
-      }).join('\n') : 'Belum ada hasil pemeriksaan';
+      }).join('  ·  ') : 'Belum ada hasil pemeriksaan';
       gambarBalon(teks, (m.x + m.w / 2) * P, atasPapanNama(m),
                   nawala.sites.some(function (s) { return s.blocked; }) ? '#f87171' : '#34d399',
-                  '#eef1f8', 0);
+                  '#eef1f8', 0, .22, 1.2);
       return;
     }
   }
