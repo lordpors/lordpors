@@ -103,9 +103,9 @@ TUGAS = {
 # KEHADIRAN PENGHUNI — dibangkitkan, tidak disalin.
 #
 # Dulu tiga agen x tiga perintah ditulis satu per satu: sembilan blok
-# yang cuma berbeda di angkanya. Begitu Blaster & Meta ikut punya
-# karakter, jumlahnya jadi lima belas, dan tiap perbaikan harus disalin
-# lima belas kali. Itu pola yang sudah terbukti mahal di berkas lain
+# yang cuma berbeda di angkanya. Begitu Blaster ikut punya
+# karakter, jumlahnya jadi dua belas, dan tiap perbaikan harus disalin
+# dua belas kali. Itu pola yang sudah terbukti mahal di berkas lain
 # kantor ini -- gambarAgen1/2/3 pernah begitu, dan yang terlewat jadi
 # berbeda diam-diam.
 #
@@ -114,7 +114,7 @@ TUGAS = {
 # blaster.py). Menambah penghuni ke-6 cukup menambah satu nama di
 # daftar ini.
 # ------------------------------------------------------------------
-PENGHUNI = ("agen1", "agen2", "agen3", "blaster", "meta")
+PENGHUNI = ("agen1", "agen2", "agen3", "blaster")
 
 _PERINTAH = (
     # perintah   judul                     minta teks tugas?

@@ -34,6 +34,7 @@ DIR    = Path(__file__).resolve().parent
 BERKAS = DIR / "auditor.json"
 JEDA   = DIR / "auditor-jeda.json"       # ditulis kantor saat "Log out"
 QR     = DIR / "qr-auditor.json"         # dikirim bot saat butuh dipindai
+NAWALA = DIR / "nawala.json"              # status checker dari HP
 KUNCI  = DIR / ".kunci-auditor"
 BATAS  = 4096
 
@@ -99,11 +100,40 @@ class Penangan(BaseHTTPRequestHandler):
 
     def do_POST(self):
         jalur = self.path.split("?")[0]
-        if jalur not in ("/detak", "/qr"):
+        if jalur not in ("/detak", "/qr", "/nawala"):
             return self._balas(404, {"galat": "jalur tidak dikenal"})
 
         if (self.headers.get("X-Kunci") or "").strip() != kunci_benar():
             return self._balas(401, {"galat": "kunci salah"})
+
+        if jalur == "/nawala":
+            d = self._baca(64 * 1024)
+            if not isinstance(d, dict):
+                return self._balas(400, {"galat": "JSON harus berupa objek"})
+            sites = []
+            for row in (d.get("sites") or [])[:50]:
+                if not isinstance(row, dict):
+                    continue
+                domain = str(row.get("domain") or "")[:253]
+                if not domain:
+                    continue
+                isp = row.get("isp") if isinstance(row.get("isp"), dict) else {}
+                sites.append({
+                    "domain": domain,
+                    "blocked": bool(row.get("blocked")),
+                    "http": str(row.get("http") or "")[:20],
+                    "isp": {str(k)[:30]: str(v)[:20] for k, v in list(isp.items())[:10]},
+                })
+            isi = {
+                "waktu": time.time(),
+                "checked": str(d.get("checked") or "")[:40],
+                "canary": d.get("canary") if isinstance(d.get("canary"), dict) else {},
+                "sites": sites,
+            }
+            sementara = NAWALA.with_suffix(".json.tmp")
+            sementara.write_text(json.dumps(isi, ensure_ascii=False), encoding="utf-8")
+            sementara.replace(NAWALA)
+            return self._balas(200, {"ok": True, "sites": len(sites)})
 
         # QR dikirim bot saat sesi WhatsApp-nya perlu dipindai ulang.
         # Isinya data URL gambar; kantor cuma menampilkannya apa adanya.

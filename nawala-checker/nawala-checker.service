@@ -1,0 +1,14 @@
+[Unit]
+Description=Nawala checker LordPors
+After=network-online.target penerima-auditor.service wa-anggaran-bot.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/porscy/My_Business/AI-agent/nawala-checker
+ExecStart=/home/porscy/My_Business/AI-agent/nawala-checker/jalan.sh
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=default.target

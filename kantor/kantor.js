@@ -118,13 +118,13 @@
        sendiri tanpa menimpa meja mana pun. Ditaruh paling akhir supaya
        digambar paling atas — benda yang lebih dekat menutupi yang jauh. */
     { x: 26,  y: 160, w: 40, nama: "Porscy's Blaster", isi: 'blaster' },
-    /* Meja Meta — barisan depan juga, tapi di KANAN.
+    /* Meja Nawala — barisan depan juga, tapi di KANAN.
        Sengaja berseberangan dengan meja blaster, bukan berjejer: lantai
        di tengah itu tempat cahaya bulan jatuh, dan menutupinya dengan
        deretan meja akan menghapus satu-satunya bagian terang ruangan.
        Sudah diperiksa bersih dari meja auditor (y jauh di atas), lampu
        meja, dan tanaman kecil yang mulai di x=339. */
-    { x: 294, y: 160, w: 40, nama: "Porscy's Meta", isi: 'meta' }
+    { x: 294, y: 160, w: 40, nama: "Nawala Checker", isi: 'nawala' }
   ];
   /* Duduk TEPAT DI DEPAN monitor utamanya, di kursi, membelakangi kamera.
 
@@ -509,7 +509,7 @@
 
     /* Permadani. Di referensi ia menutup lantai tengah-depan dan menahan
        pandangan supaya tidak jatuh keluar bingkai. Ditaruh di antara meja
-       Blaster (habis di x=84) dan meja Meta (mulai x=266). */
+       Blaster (habis di x=84) dan meja Nawala (mulai x=266). */
     kotak(116, 172, 128, 18, W.permadaniTepi);
     kotak(118, 174, 124, 14, W.permadani);
     kotak(122, 176, 116, 1, '#33427a', .7);
@@ -1022,37 +1022,37 @@
         var adaDia = auditorHadir();
         gambarMonitor(m.x + m.w / 2 - 13, y - 23, 26, 18, adaDia, t, 1, true);
 
-      } else if (m.isi === 'meta' || m.isi === 'blaster') {
-        /* Meja Meta & Blaster: monitor yang sama dengan meja lain, di
+      } else if (m.isi === 'nawala' || m.isi === 'blaster') {
+        /* Meja Nawala & Blaster: monitor yang sama dengan meja lain, di
            tengah persis. Dulu keduanya memakai benda sendiri — kotak
            pengirim berantena dan ponsel berdiri. Niatnya menandai fungsi
            meja, tapi akibatnya dua meja terlihat bukan meja kerja.
 
            LAYARNYA MENGIKUTI ORANGNYA, aturan yang sama dengan meja
            auditor: ada yang duduk -> layar hidup, meja kosong -> layar
-           mati. Sebelum blaster.py & meta.py ada, layarnya dipatok mati
+           mati. Sebelum checker tersambung, layarnya dipatok mati
            karena jalurnya memang belum tersambung; sekarang kehadirannya
            nyata, jadi layar mati kembali berarti sesuatu.
 
            Lampu siaga di bingkainya tetap berkedip pelan walau kosong —
            itu menandai alatnya terpasang, bukan sedang bekerja.
 
-           Warnanya yang membedakan: merah untuk Blaster, biru untuk
-           Meta, sama dengan warna di menu tugasnya. */
-        var isMeta = (m.isi === 'meta');
+           Warnanya yang membedakan: merah untuk Blaster, hijau untuk
+           Nawala. */
+        var isNawala = (m.isi === 'nawala');
         var adaOrang = !!(STASIUN[m.isi] && STASIUN[m.isi].aktif);
         var mmx = m.x + m.w / 2 - 10;
         gambarMonitor(mmx, y - 19, 20, 15, adaOrang, t, 0, true);
 
-        var siaga = .25 + .35 * Math.sin(t / (isMeta ? 1600 : 1400));
-        var warnaSiaga = isMeta ? '#3b82f6' : '#f87171';
+        var siaga = .25 + .35 * Math.sin(t / (isNawala ? 1600 : 1400));
+        var warnaSiaga = isNawala ? '#34d399' : '#f87171';
         kotak(mmx + 9, y - 3, 2, 1, warnaSiaga, siaga);      // lampu siaga di bingkai
 
         // pendar tipis, hanya saat layarnya mati — alatnya hidup, cuma
         // belum ada yang memakainya
         if (!adaOrang) kotak(mmx + 2, y - 17, 16, 1, warnaSiaga, siaga * .28);
 
-        if (!isMeta) {
+        if (!isNawala) {
           // Antena kecil di atas monitor: satu-satunya sisa penanda
           // Blaster, dan tidak mengganggu bentuk mejanya.
           kotak(mmx + 17, y - 25, 1, 6, W.logam);
@@ -1105,7 +1105,7 @@
     } else if (m.isi === 'auditor') {
       kotak(m.x + m.w / 2 - 10, y + 3, 20, 4, '#2a2f44');  // papan ketik, di tengah
       kotak(m.x + m.w / 2 + 13, y + 4, 4, 3, '#2a2f44');   // tetikus
-    } else if (m.isi !== 'meta' && m.isi !== 'blaster') {
+    } else if (m.isi !== 'nawala' && m.isi !== 'blaster') {
       kotak(m.x + m.w / 2 - 9, y + 3, 18, 4, '#252a3c');   // papan ketik, di tengah
     }
 
@@ -1135,7 +1135,7 @@
          sampai menabrak monitornya sendiri. Dengan tepi bawah dipatok,
          jaraknya ke monitor tetap sama di layar mana pun.
 
-         Catatan jujur: di 390px papan Blaster & Meta menimpa 4 satuan
+         Catatan jujur: di 390px papan Blaster & Nawala menimpa 4 satuan
          meja di barisan belakangnya — keduanya meja barisan DEPAN, dan
          ruang di atas monitornya memang sudah ditempati. Papannya
          digambar belakangan jadi tampil di atas, dan di layar lebar
@@ -1156,7 +1156,7 @@
   }
 
   /* ---------------- penghuni manusia ----------------
-     SATU KERANGKA untuk auditor, Blaster, dan Meta. Ketiganya duduk
+     SATU KERANGKA untuk auditor, Blaster, dan Nawala. Ketiganya duduk
      membelakangi kamera dengan bentuk yang sama persis; yang berbeda
      cuma rambut, baju, dan kacamata.
 
@@ -1170,7 +1170,7 @@
      kantornya dilihat kecil di ponsel, siluetnya yang menolong:
        ekor  auditor  rambut panjang diikat, jatuh ke punggung
        cepak Blaster  pendek berdiri, tengkuk terlihat
-       bob   Meta     menutupi telinga, rata di bawah
+       bob   Nawala   menutupi telinga, rata di bawah
 
      Semua simetris terhadap sumbu x+5. Menambah sesuatu berarti
      menambah sepasang. */
@@ -1246,8 +1246,8 @@
                rambut:'#c8442c', gelap:'#8f2a1a', ujung:'#6d1f13',
                baju:'#2f3550', bajuBayang:'#242a42',
                kerah:'#3f4668', lenganUjung:'#3f4668' },
-    meta:    { gaya:'bob',   kacamata:false,
-               rambut:'#3f83d4', gelap:'#2b5ea6', ujung:'#1f4677',
+    nawala:  { gaya:'bob',   kacamata:false,
+               rambut:'#22a06b', gelap:'#187a52', ujung:'#10563b',
                baju:'#e6eaf2', bajuBayang:'#c5ccdb',
                kerah:'#f4f6fa', lenganUjung:'#c5ccdb' }
   };
@@ -1256,7 +1256,7 @@
     gambarPenghuni(AUDITOR.x, AUDITOR.y, RUPA_ORANG.auditor);
   }
 
-  /* Blaster & Meta duduk dengan pola letak yang sama dengan auditor:
+  /* Blaster & Nawala duduk dengan pola letak yang sama dengan auditor:
      x = pusat meja - 5, y = tutup meja - 16. Diturunkan dari mejanya,
      bukan ditulis tetap — angka tetap sudah dua kali membuat auditor
      berdiri sendirian di samping kursinya. */
@@ -1270,10 +1270,10 @@
 
     gambarPenghuni(x, y, RUPA_ORANG[kunci]);
 
-    if (kunci === 'blaster')
-      daftarTombol('blaster-status', x + 5, y + 10);
+    if (kunci === 'blaster' || kunci === 'nawala')
+      daftarTombol(kunci + '-status', x + 5, y + 10);
 
-    if (!keadaan.siaga) {
+    if (kunci !== 'nawala' && !keadaan.siaga) {
       gambarBalon(keadaan.pesan || 'bekerja',
                   (x + 5) * P, atasPapanNama(m),
                   RUPA_ORANG[kunci].rambut, '#eef1f8', 0);
@@ -1304,7 +1304,7 @@
     /* Warna & tanda wajah tiap agen. Alasan pemilihannya:
 
        - Tiga keluarga warna yang saling jauh. Ruangan ini sudah penuh
-         cyan (layar), biru (Meta), merah (siaga Blaster); amber, ungu,
+         cyan (layar), hijau (Nawala), merah (siaga Blaster); amber, ungu,
          dan mawar yang tersisa. Dua penghuni berwarna mirip akan
          tertukar sekali lihat di layar ponsel.
 
@@ -1525,7 +1525,7 @@
 
      Kalau tiap meja memutuskan sendiri, yang muat tetap panjang dan yang
      tidak jadi pendek — di 390px hasilnya "Agent 1", "Agent 2",
-     "Blaster", lalu "Porscy's Meta". Deretan yang setengah panjang
+     "Blaster", lalu "Nawala Checker". Deretan yang setengah panjang
      setengah pendek terbaca seperti kesalahan, bukan seperti pilihan.
      Jadi begitu SATU papan tidak muat, semuanya ikut dipendekkan. */
   var papanPendek = false;
@@ -1718,7 +1718,8 @@
     }
     for (var i = 0; i < MEJA_SEMUA.length; i++) {
       var meja = MEJA_SEMUA[i];
-      if (meja.isi === 'blaster' && blaster.aktif)
+      if ((meja.isi === 'blaster' && blaster.aktif) ||
+          (meja.isi === 'nawala' && nawala.aktif))
         gambarStatusOnline(meja.x + meja.w / 2, meja.y - 15, t);
     }
     if (auditor.online) gambarStatusOnline(AUDITOR.x + 5, AUDITOR.y + 1, t);
@@ -1785,9 +1786,9 @@
   var agen2 = { aktif: false, siaga: false, pesan: '', lama: null };
   var agen3 = { aktif: false, siaga: false, pesan: '', lama: null };
   var blaster = { aktif: false, siaga: false, pesan: '', lama: null };
-  var meta    = { aktif: false, siaga: false, pesan: '', lama: null };
+  var nawala  = { aktif: false, siaga: true, pesan: '', sites: [] };
   // Stasiun berpenghuni manusia, dibaca dari berkas bernama sama.
-  var STASIUN = { blaster: blaster, meta: meta };
+  var STASIUN = { blaster: blaster, nawala: nawala };
   // Dicari lewat nomornya, bukan lewat indeks meja. Menambah Agen 4
   // berarti menambah satu baris di sini dan satu di MEJA_SEMUA.
   var AGEN = [null, agen1, agen2, agen3];
@@ -1797,6 +1798,7 @@
   };
 
   var infoBlaster = { teks: '', sampai: 0 };
+  var infoNawalaTerbuka = false;
 
   function bukaStatusBlaster() {
     infoBlaster = { teks: 'Memuat status akun…', sampai: performance.now() + 15000 };
@@ -1827,6 +1829,26 @@
     }
   }
 
+  function gambarInfoNawala(t) {
+    if (!nawala.aktif || !infoNawalaTerbuka) return;
+    for (var i = 0; i < MEJA_SEMUA.length; i++) {
+      var m = MEJA_SEMUA[i];
+      if (m.isi !== 'nawala') continue;
+      var teks = nawala.sites.length ? nawala.sites.map(function (s) {
+        var tidakTerukur = Object.keys(s.isp || {}).some(function (k) {
+          return s.isp[k] === 'unmeasured';
+        });
+        var hasil = s.blocked ? 'NAWALA' : s.http === 'down' ? 'DOWN'
+                  : tidakTerukur ? 'TIDAK TERUKUR' : 'AMAN';
+        return s.domain + ': ' + hasil;
+      }).join(' · ') : 'Belum ada hasil pemeriksaan';
+      gambarBalon(teks, (m.x + m.w / 2) * P, atasPapanNama(m),
+                  nawala.sites.some(function (s) { return s.blocked; }) ? '#f87171' : '#34d399',
+                  '#eef1f8', 0);
+      return;
+    }
+  }
+
   /* Titik klik -> tombol mana. Hitungannya dari getBoundingClientRect()
      supaya benar berapa pun kanvasnya diperkecil CSS.
 
@@ -1850,6 +1872,7 @@
   kanvas.addEventListener('click', function (e) {
     var b = tombolDi(e.clientX, e.clientY);
     if (b && b.id === 'blaster-status') bukaStatusBlaster();
+    if (b && b.id === 'nawala-status') infoNawalaTerbuka = !infoNawalaTerbuka;
   });
   kanvas.addEventListener('mousemove', function (e) {
     kanvas.style.cursor = tombolDi(e.clientX, e.clientY) ? 'pointer' : 'default';
@@ -1960,8 +1983,19 @@
     // Tab yang tidak dilihat tidak perlu ditanyakan sama sekali.
     if (document.hidden) return;
     for (var n = 1; n < AGEN.length; n++) ambilAgen('agen' + n, AGEN[n]);
-    for (var s in STASIUN) ambilAgen(s, STASIUN[s]);
+    ambilAgen('blaster', blaster);
     ambilAuditor();
+  }
+
+  function ambilNawala() {
+    if (document.hidden) return;
+    fetch('nawala.json?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        nawala.aktif = !!d && Date.now() / 1000 - (d.waktu || 0) <= 1200;
+        nawala.sites = d && Array.isArray(d.sites) ? d.sites : [];
+      })
+      .catch(function () { nawala.aktif = false; });
   }
 
   function ambilStatus() {
@@ -2052,7 +2086,7 @@
     gambarAgen2(t);
     gambarAgen3(t);
     gambarStasiun('blaster', blaster, t);
-    gambarStasiun('meta', meta, t);
+    gambarStasiun('nawala', nawala, t);
     if (auditorHadir()) {
       gambarAuditor(t);
     }
@@ -2064,6 +2098,7 @@
     gambarSemuaStatusOnline(t);
     gambarGelembung(t);
     gambarInfoBlaster(t);
+    gambarInfoNawala(t);
     siramBalon();          // paling akhir: balon di atas segalanya
     perbaruiPanel();
     requestAnimationFrame(bingkai);
@@ -2071,15 +2106,16 @@
 
   ukur();
   window.addEventListener('resize', ukur);
-  ambilStatus(); ambilSemuaAgen();
+  ambilStatus(); ambilSemuaAgen(); ambilNawala();
   /* Jeda 2 detik dulu dipilih tanpa alasan; kehadiran dianggap basi
      setelah 5 MENIT, jadi menanyakannya 30x per menit tidak pernah ada
      gunanya. Itu yang membuat blob store disuspend. Jangan diturunkan. */
   setInterval(ambilStatus, 6000);
   setInterval(ambilSemuaAgen, 8000);
+  setInterval(ambilNawala, 30000);
   // Begitu tab dilihat lagi, segarkan sekali supaya tidak menunggu jeda.
   document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) ambilSemuaAgen();
+    if (!document.hidden) { ambilSemuaAgen(); ambilNawala(); }
   });
   requestAnimationFrame(bingkai);
 })();

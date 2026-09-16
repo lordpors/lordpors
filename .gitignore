@@ -72,6 +72,13 @@
 # Jangan hapus salah satunya tanpa memeriksa yang lain.
 !wa-anggaran-bot/data/*.json
 
+# ---------- Nawala checker (kode, bukan hasil pemeriksaan) ----------
+!nawala-checker/*.py
+!nawala-checker/*.sh
+!nawala-checker/requirements.txt
+!nawala-checker/README.md
+!nawala-checker/*.service
+
 # ============================================================
 #  PENOLAKAN TEGAS — ditulis paling akhir supaya menang atas
 #  aturan "!" apa pun di atasnya, termasuk yang ditambahkan
@@ -92,6 +99,8 @@ __pycache__/
 *.log
 *.tgz
 *.zip
+domain_status.json
+nawala-alert.json
 unggahan/
 lampiran*/
 

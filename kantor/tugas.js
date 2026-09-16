@@ -43,12 +43,12 @@
   };
 
   /* KEHADIRAN — dibangkitkan, tidak disalin.
-     Lima penghuni x tiga perintah = lima belas entri yang cuma berbeda
+     Empat penghuni x tiga perintah = dua belas entri yang cuma berbeda
      di namanya. Ditulis satu per satu, tiap perbaikan kalimat harus
-     disalin lima belas kali dan yang terlewat jadi berbeda diam-diam.
+     disalin dua belas kali dan yang terlewat jadi berbeda diam-diam.
      Daftarnya harus sama dengan PENGHUNI di server.py; kalau tidak,
      tombolnya ada tapi server menolaknya. */
-  var PENGHUNI = ['agen1', 'agen2', 'agen3', 'blaster', 'meta'];
+  var PENGHUNI = ['agen1', 'agen2', 'agen3', 'blaster'];
 
   PENGHUNI.forEach(function (k) {
     DAFTAR[k] = [
@@ -68,9 +68,6 @@
     { belum: true, judul: 'Nyalakan blast Telegram',
       catatan: 'Belum tersambung — telegram-blaster/ masih tanpa .env, ' +
                'dan akun Telegram-nya belum ditentukan.' });
-  DAFTAR.meta.push(
-    { belum: true, judul: 'Sambungkan WhatsApp / Instagram',
-      catatan: 'Belum tersambung — nomor WA terpisah belum disiapkan.' });
 
   var el = null;
 

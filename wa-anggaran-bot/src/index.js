@@ -1,13 +1,20 @@
 process.env.TZ = process.env.TZ || "Asia/Jakarta";
 
+const fs = require("fs");
 const path = require("path");
 const qrcode = require("qrcode-terminal");
 
 /* Kantor LordPors — penerima QR & kehadiran.
    Bot ini jalan di PC yang sama, jadi cukup localhost. Kuncinya sama
    dengan yang dipakai skrip detak. */
-const KANTOR_QR = "http://127.0.0.1:8790";
-const KANTOR_KUNCI = "kKEXGCMhez5eCMnfIukF4d3bb39Up4qA";
+const KANTOR_QR = process.env.KANTOR_URL || "http://127.0.0.1:8790";
+const KANTOR_KUNCI = process.env.KANTOR_KUNCI || (() => {
+  try {
+    return fs.readFileSync(path.join(__dirname, "..", "..", "kantor", ".kunci-auditor"), "utf8").trim();
+  } catch {
+    return "";
+  }
+})();
 
 function kirimKeKantor(jalur, badan) {
   return fetch(KANTOR_QR + jalur, {
@@ -62,6 +69,7 @@ function sheetLinks() {
 }
 
 const AUTH_DIR = path.join(__dirname, "..", "auth");
+const NAWALA_ALERT_FILE = path.join(__dirname, "..", "data", "nawala-alert.json");
 const logger = pino({ level: "silent" });
 
 const OWNER_NUMBER = "6281225468821";
@@ -94,6 +102,47 @@ function isBotReply(text) {
 let lastProofBuf = null;
 let restarting = false;
 let reconnectWait = 3000;
+let jamNawala = null;
+let mengirimNawala = false;
+
+async function periksaAlertNawala(sock) {
+  if (mengirimNawala) return;
+  let alert;
+  try {
+    alert = JSON.parse(fs.readFileSync(NAWALA_ALERT_FILE, "utf8"));
+  } catch {
+    return;
+  }
+  const groupJid = ledger.load().groupJid;
+  if (!groupJid || alert.sentAt || !alert.id || !alert.text) return;
+  mengirimNawala = true;
+  try {
+    await sock.sendMessage(groupJid, { text: String(alert.text).slice(0, 4000) });
+    const current = JSON.parse(fs.readFileSync(NAWALA_ALERT_FILE, "utf8"));
+    if (current.id !== alert.id) return;
+    current.sentAt = new Date().toISOString();
+    const tmp = NAWALA_ALERT_FILE + ".tmp";
+    fs.writeFileSync(tmp, JSON.stringify(current, null, 2));
+    fs.renameSync(tmp, NAWALA_ALERT_FILE);
+    console.log("Notifikasi Nawala dikirim ke grup Cost SEO");
+  } catch (err) {
+    console.error("notifikasi Nawala:", err.message);
+  } finally {
+    mengirimNawala = false;
+  }
+}
+
+function mulaiAlertNawala(sock) {
+  clearInterval(jamNawala);
+  periksaAlertNawala(sock);
+  jamNawala = setInterval(() => periksaAlertNawala(sock), 10000);
+  if (jamNawala.unref) jamNawala.unref();
+}
+
+function hentikanAlertNawala() {
+  clearInterval(jamNawala);
+  jamNawala = null;
+}
 
 function unwrapMessage(msg) {
   if (!msg) return {};
@@ -664,6 +713,7 @@ async function start() {
       // terbuka. Bukan "prosesnya hidup" seperti dulu waktu ditebak dari
       // luar oleh skrip detak di HP -- ini kabar dari dalam.
       mulaiDetakKantor();
+      mulaiAlertNawala(sock);
       console.log("Di grup ketik: !bot  lalu tes: habis $1 tes usd");
       const seeded = ledger.applyCanonicalCosts();
       if (seeded.applied) {
@@ -684,6 +734,7 @@ async function start() {
       // dengan cara lama: dulu kehadiran ditebak dari "prosesnya hidup",
       // jadi bot yang tersambungnya putus tetap terlihat duduk bekerja.
       hentikanDetakKantor(loggedOut ? "logout" : "koneksi tutup");
+      hentikanAlertNawala();
       if (loggedOut || restarting) return;
       restarting = true;
       const wait = code === 515 ? 1500 : reconnectWait;
