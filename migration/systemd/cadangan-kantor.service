@@ -1,0 +1,10 @@
+[Unit]
+Description=Cadangan kantor LordPors ke GitHub
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/My_Business/AI-agent
+ExecStart=%h/My_Business/AI-agent/cadangan.sh
+SuccessExitStatus=0 1

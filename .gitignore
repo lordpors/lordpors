@@ -27,6 +27,9 @@
 !/PROGRES.md
 !/cadangan.sh
 
+# ---------- paket pindah PC (isinya terenkripsi) ----------
+!migration/**
+
 # ---------- kantor (kode, bukan keadaan) ----------
 !kantor/*.py
 !kantor/*.js

@@ -1,0 +1,15 @@
+[Unit]
+Description=Bot anggaran SEO (LordPors)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/My_Business/AI-agent/wa-anggaran-bot
+ExecStart=/usr/bin/node src/index.js
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target

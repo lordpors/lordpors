@@ -1,0 +1,13 @@
+[Unit]
+Description=Penerima kabar auditor (kantor LordPors)
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/My_Business/AI-agent/kantor
+ExecStart=/usr/bin/python3 %h/My_Business/AI-agent/kantor/penerima-auditor.py 8790
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target
