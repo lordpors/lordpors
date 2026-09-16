@@ -1844,7 +1844,7 @@
       }).join('  ·  ') : 'Belum ada hasil pemeriksaan';
       gambarBalon(teks, (m.x + m.w / 2) * P, atasPapanNama(m),
                   nawala.sites.some(function (s) { return s.blocked; }) ? '#f87171' : '#34d399',
-                  '#eef1f8', 0, .22, 1.2);
+                  '#eef1f8', 0, .22, 1.6);
       return;
     }
   }
